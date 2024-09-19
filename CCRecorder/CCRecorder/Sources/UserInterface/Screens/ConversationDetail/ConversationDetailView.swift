@@ -53,7 +53,7 @@ private extension ConversationDetailView {
             conversations[index].title = newValue.title
             conversations[index].topic = newValue.topic
             conversations[index].noteIds = newValue.noteIds
-            conversations[index].members = newValue.members
+            conversations[index].parties = newValue.parties
         }
     }
     
@@ -71,7 +71,7 @@ extension Conversation {
             recordFilePath: .init(string: "")!,
             title: "제목",
             topic: "주제",
-            members: (0...3).map { .init(name: "name \($0)") }
+            parties: (0...3).map { .init(name: "name \($0)") }
         )
     }
     

@@ -37,7 +37,7 @@ struct ConversationListView: View {
                                 recordFilePath: .init(string: "http://www.naver.com")!,
                                 title: "Dummy \(conversations.count + 1)",
                                 topic: "Dummy \(conversations.count + 1)",
-                                members: (0...3).map { .init(name: "Dummy \($0)") }
+                                parties: (0...3).map { .init(name: "Dummy \($0)") }
                             )
                         )
                     }, label: { Text("더미 추가") }

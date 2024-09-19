@@ -29,7 +29,7 @@ struct ConversationListRow: View {
                         .truncationMode(.tail)
                     Spacer()
                     VStack(alignment: .trailing) {
-                        Text("Attendees \(conversation.members.count)")
+                        Text("Attendees \(conversation.parties.count)")
                             .font(.caption)
                             .tint(.Dark.logoGreen)
                             .lineLimit(1)
@@ -47,7 +47,7 @@ struct ConversationListRow: View {
         .contentShape(Rectangle())
     }
     
-    private var isChecked: Bool { !conversation.title.isEmpty && !conversation.topic.isEmpty && !conversation.members.isEmpty }
+    private var isChecked: Bool { !conversation.title.isEmpty && !conversation.topic.isEmpty && !conversation.parties.isEmpty }
     private var checkerImageName: String { isChecked ? "info.circle.fill" : "circle" }
     private var checkImageColor: Color { isChecked ? .Light.logoBlue : .Dark.logoBlue }
     

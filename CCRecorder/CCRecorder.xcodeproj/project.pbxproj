@@ -18,7 +18,6 @@
 		A94C40BF2C8ADD3F008E91C2 /* Screen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94C40BE2C8ADD3F008E91C2 /* Screen.swift */; };
 		A9615E452C8FBC7E00D2F954 /* VocabularyContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E442C8FBC3000D2F954 /* VocabularyContent.swift */; };
 		A9615E472C8FBCEE00D2F954 /* SentenceContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E462C8FBCE800D2F954 /* SentenceContent.swift */; };
-		A9615E492C8FFB2000D2F954 /* Memeber.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E482C8FFB1D00D2F954 /* Memeber.swift */; };
 		A9615E4B2C9013EC00D2F954 /* Date+.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E4A2C9013E700D2F954 /* Date+.swift */; };
 		A9615E512C90209300D2F954 /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E502C90208E00D2F954 /* Language.swift */; };
 		A9615E5B2C90311C00D2F954 /* PlayTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E5A2C90311400D2F954 /* PlayTab.swift */; };
@@ -40,6 +39,7 @@
 		A96BB0CD2C8EE11800F49BD8 /* ConversationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0CC2C8EE11300F49BD8 /* ConversationRow.swift */; };
 		A96BB0D02C8EE26800F49BD8 /* ConversationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0CF2C8EE26400F49BD8 /* ConversationDetailView.swift */; };
 		A96BB0D32C8EEC8400F49BD8 /* NoteListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0D22C8EEC7D00F49BD8 /* NoteListRow.swift */; };
+		A9D1C37E2C9C038F00478257 /* Party.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D1C37D2C9C038F00478257 /* Party.swift */; };
 		A9DA8CC72C8A9C3500D1141C /* CCRecorderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DA8CC62C8A9C3500D1141C /* CCRecorderApp.swift */; };
 		A9DA8CC92C8A9C3500D1141C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DA8CC82C8A9C3500D1141C /* ContentView.swift */; };
 		A9DA8CCB2C8A9C3500D1141C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DA8CCA2C8A9C3500D1141C /* Item.swift */; };
@@ -81,7 +81,6 @@
 		A94C40BE2C8ADD3F008E91C2 /* Screen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Screen.swift; sourceTree = "<group>"; };
 		A9615E442C8FBC3000D2F954 /* VocabularyContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyContent.swift; sourceTree = "<group>"; };
 		A9615E462C8FBCE800D2F954 /* SentenceContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentenceContent.swift; sourceTree = "<group>"; };
-		A9615E482C8FFB1D00D2F954 /* Memeber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memeber.swift; sourceTree = "<group>"; };
 		A9615E4A2C9013E700D2F954 /* Date+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+.swift"; sourceTree = "<group>"; };
 		A9615E502C90208E00D2F954 /* Language.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Language.swift; sourceTree = "<group>"; };
 		A9615E5A2C90311400D2F954 /* PlayTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayTab.swift; sourceTree = "<group>"; };
@@ -103,6 +102,7 @@
 		A96BB0CC2C8EE11300F49BD8 /* ConversationRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationRow.swift; sourceTree = "<group>"; };
 		A96BB0CF2C8EE26400F49BD8 /* ConversationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationDetailView.swift; sourceTree = "<group>"; };
 		A96BB0D22C8EEC7D00F49BD8 /* NoteListRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteListRow.swift; sourceTree = "<group>"; };
+		A9D1C37D2C9C038F00478257 /* Party.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Party.swift; sourceTree = "<group>"; };
 		A9DA8CC32C8A9C3500D1141C /* CCRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CCRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9DA8CC62C8A9C3500D1141C /* CCRecorderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CCRecorderApp.swift; sourceTree = "<group>"; };
 		A9DA8CC82C8A9C3500D1141C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -213,7 +213,7 @@
 			children = (
 				A96BB0C92C8EDEAB00F49BD8 /* Conversation.swift */,
 				A96BB0C12C8ED29000F49BD8 /* Note.swift */,
-				A9615E482C8FFB1D00D2F954 /* Memeber.swift */,
+				A9D1C37D2C9C038F00478257 /* Party.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -644,7 +644,6 @@
 				A9615E6E2C91242A00D2F954 /* InformationBox.swift in Sources */,
 				A9615E472C8FBCEE00D2F954 /* SentenceContent.swift in Sources */,
 				A96BB0BE2C8EB15C00F49BD8 /* SettingView.swift in Sources */,
-				A9615E492C8FFB2000D2F954 /* Memeber.swift in Sources */,
 				A9615E662C90388200D2F954 /* PlayTool.swift in Sources */,
 				A9DA8CCB2C8A9C3500D1141C /* Item.swift in Sources */,
 				A94C40BD2C8ADCF3008E91C2 /* ViewCoordinator.swift in Sources */,
@@ -663,6 +662,7 @@
 				A90805C52C8E8772005CF9FC /* ConversationListView.swift in Sources */,
 				A96BB0D02C8EE26800F49BD8 /* ConversationDetailView.swift in Sources */,
 				A9615E772C91305B00D2F954 /* View+showClearButton().swift in Sources */,
+				A9D1C37E2C9C038F00478257 /* Party.swift in Sources */,
 				A9615E682C910D0C00D2F954 /* NoteListView.swift in Sources */,
 				A96BB0C82C8ED62500F49BD8 /* NoteDetail.swift in Sources */,
 				A94C40B22C8ACF22008E91C2 /* LaunchScreenView.swift in Sources */,

@@ -19,7 +19,7 @@ final class Conversation {
     var title: String
     var topic: String
     var noteIds: [UUID]
-    @Relationship var members: [Memeber]
+    @Relationship var parties: [Party]
     
     init(
         id: UUID = .init(),
@@ -29,7 +29,7 @@ final class Conversation {
         title: String,
         topic: String,
         notes: [UUID] = [],
-        members: [Memeber]
+        parties: [Party]
     ) {
         self.id = id
         self.createdDate = createdDate
@@ -38,7 +38,7 @@ final class Conversation {
         self.title = title
         self.topic = topic
         self.noteIds = notes
-        self.members = members
+        self.parties = parties
     }
     
 }

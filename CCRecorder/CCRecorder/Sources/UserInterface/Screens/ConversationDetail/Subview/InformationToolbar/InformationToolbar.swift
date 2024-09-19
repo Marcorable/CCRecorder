@@ -11,7 +11,7 @@ import Combine
 enum ConversationDetailField: Hashable {
     case infoTitle
     case infoTopic
-    case infoMember
+    case infoParty
     case inputNote
 }
 
@@ -58,7 +58,7 @@ struct InformationToolbar: View {
                         TextField(
                             "Title",
                             text: $title,
-                            prompt: Text(conversation.createdDate.rowDescription)
+                            prompt: Text(conversation.createdDate.formatted(date: .abbreviated, time: .omitted))
                         )
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)

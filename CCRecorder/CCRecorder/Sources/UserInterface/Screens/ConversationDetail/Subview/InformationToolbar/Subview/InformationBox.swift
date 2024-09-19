@@ -28,7 +28,7 @@ struct InformationBox: View {
     }
     
     @State private var topic: String
-    @State private var member: String = ""
+    @State private var party: String = ""
     
     var body: some View {
         GroupBox {
@@ -70,15 +70,15 @@ struct InformationBox: View {
                             .font(.body)
                             .fontWeight(.bold)
                         TextField(
-                            "Member",
-                            text: $member,
+                            "Party",
+                            text: $party,
                             prompt: Text("참여인원을 추가하세요 (공백 분리)")
                         )
                         .textFieldStyle(.roundedBorder)
                         Button(
                             action: {
                                 withAnimation {
-                                    addMember()
+                                    addParty()
                                 }
                             },
                             label: {
@@ -88,19 +88,19 @@ struct InformationBox: View {
                             }
                         )
                     }
-                    .focused(focuseField, equals: .infoMember)
-                    if !conversation.members.isEmpty {
+                    .focused(focuseField, equals: .infoParty)
+                    if !conversation.parties.isEmpty {
                         ScrollView(.horizontal, showsIndicators: true) {
                             HStack(alignment: .center) {
-                                Text("\(conversation.members.count)명")
+                                Text("\(conversation.parties.count)명")
                                     .font(.body)
                                     .fontWeight(.bold)
                                 LazyHGrid(rows: [.init(.flexible())]) {
-                                    ForEach(conversation.members, id: \.id) { member in
+                                    ForEach(conversation.parties, id: \.id) { party in
                                         HStack(spacing: 6) {
-                                            Text(member.name)
+                                            Text(party.name)
                                             Button(
-                                                action: { deleteMember(of: member) },
+                                                action: { delete(of: party) },
                                                 label: {
                                                     Image(systemName: "xmark.circle.fill")
                                                         .foregroundStyle(Color.Light.logoRed)
@@ -128,14 +128,14 @@ struct InformationBox: View {
 
 private extension InformationBox {
     
-    func addMember() {
-        conversation.members.append(.init(name: member))
-        member = ""
+    func addParty() {
+        conversation.parties.append(.init(name: party))
+        party = ""
     }
     
-    func deleteMember(of member: Memeber) {
-        if let index = conversation.members.firstIndex(where: { $0.id == member.id }) {
-            conversation.members.remove(at: index)
+    func delete(of party: Party) {
+        if let index = conversation.parties.firstIndex(where: { $0.id == party.id }) {
+            conversation.parties.remove(at: index)
         }
     }
     
