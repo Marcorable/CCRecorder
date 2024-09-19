@@ -30,6 +30,7 @@
 		A9615E702C91249D00D2F954 /* InputBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E6F2C91249300D2F954 /* InputBox.swift */; };
 		A9615E732C9124FA00D2F954 /* InformationToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E722C9124F500D2F954 /* InformationToolbar.swift */; };
 		A9615E772C91305B00D2F954 /* View+showClearButton().swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E762C91303F00D2F954 /* View+showClearButton().swift */; };
+		A9615E7C2C91850900D2F954 /* PinGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E7B2C91850200D2F954 /* PinGrid.swift */; };
 		A96BB0B72C8EA74E00F49BD8 /* RecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */; };
 		A96BB0BE2C8EB15C00F49BD8 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0BD2C8EB15900F49BD8 /* SettingView.swift */; };
 		A96BB0C22C8ED29600F49BD8 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0C12C8ED29000F49BD8 /* Note.swift */; };
@@ -38,6 +39,7 @@
 		A96BB0CD2C8EE11800F49BD8 /* ConversationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0CC2C8EE11300F49BD8 /* ConversationRow.swift */; };
 		A96BB0D02C8EE26800F49BD8 /* ConversationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0CF2C8EE26400F49BD8 /* ConversationDetailView.swift */; };
 		A96BB0D32C8EEC8400F49BD8 /* NoteListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0D22C8EEC7D00F49BD8 /* NoteListRow.swift */; };
+		A980B3A62C926C260004E9EE /* ConversationInfoBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A980B3A52C926C100004E9EE /* ConversationInfoBox.swift */; };
 		A9D1C37E2C9C038F00478257 /* Party.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D1C37D2C9C038F00478257 /* Party.swift */; };
 		A9DA8CC72C8A9C3500D1141C /* CCRecorderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DA8CC62C8A9C3500D1141C /* CCRecorderApp.swift */; };
 		A9DA8CCD2C8A9C3600D1141C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A9DA8CCC2C8A9C3600D1141C /* Assets.xcassets */; };
@@ -90,6 +92,7 @@
 		A9615E6F2C91249300D2F954 /* InputBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBox.swift; sourceTree = "<group>"; };
 		A9615E722C9124F500D2F954 /* InformationToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationToolbar.swift; sourceTree = "<group>"; };
 		A9615E762C91303F00D2F954 /* View+showClearButton().swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+showClearButton().swift"; sourceTree = "<group>"; };
+		A9615E7B2C91850200D2F954 /* PinGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinGrid.swift; sourceTree = "<group>"; };
 		A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordView.swift; sourceTree = "<group>"; };
 		A96BB0BD2C8EB15900F49BD8 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
 		A96BB0C12C8ED29000F49BD8 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
@@ -98,6 +101,7 @@
 		A96BB0CC2C8EE11300F49BD8 /* ConversationRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationRow.swift; sourceTree = "<group>"; };
 		A96BB0CF2C8EE26400F49BD8 /* ConversationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationDetailView.swift; sourceTree = "<group>"; };
 		A96BB0D22C8EEC7D00F49BD8 /* NoteListRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteListRow.swift; sourceTree = "<group>"; };
+		A980B3A52C926C100004E9EE /* ConversationInfoBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationInfoBox.swift; sourceTree = "<group>"; };
 		A9D1C37D2C9C038F00478257 /* Party.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Party.swift; sourceTree = "<group>"; };
 		A9DA8CC32C8A9C3500D1141C /* CCRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CCRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9DA8CC62C8A9C3500D1141C /* CCRecorderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CCRecorderApp.swift; sourceTree = "<group>"; };
@@ -293,10 +297,20 @@
 			path = ViewModifier;
 			sourceTree = "<group>";
 		};
+		A9615E7A2C9184EF00D2F954 /* Subview */ = {
+			isa = PBXGroup;
+			children = (
+				A9615E7B2C91850200D2F954 /* PinGrid.swift */,
+				A980B3A52C926C100004E9EE /* ConversationInfoBox.swift */,
+			);
+			path = Subview;
+			sourceTree = "<group>";
+		};
 		A96BB0B52C8EA73D00F49BD8 /* Record */ = {
 			isa = PBXGroup;
 			children = (
 				A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */,
+				A9615E7A2C9184EF00D2F954 /* Subview */,
 			);
 			path = Record;
 			sourceTree = "<group>";
@@ -352,6 +366,13 @@
 				A96BB0D22C8EEC7D00F49BD8 /* NoteListRow.swift */,
 			);
 			path = NoteList;
+			sourceTree = "<group>";
+		};
+		A980B3A72C9287FC0004E9EE /* Service */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Service;
 			sourceTree = "<group>";
 		};
 		A9DA8CBA2C8A9C3500D1141C = {
@@ -619,6 +640,7 @@
 				A96BB0B72C8EA74E00F49BD8 /* RecordView.swift in Sources */,
 				A9615E5F2C90356E00D2F954 /* Speed.swift in Sources */,
 				A96BB0CD2C8EE11800F49BD8 /* ConversationRow.swift in Sources */,
+				A9615E7C2C91850900D2F954 /* PinGrid.swift in Sources */,
 				A9615E642C90382A00D2F954 /* PinButton.swift in Sources */,
 				A90805C72C8E878E005CF9FC /* NoteList.swift in Sources */,
 				A9615E732C9124FA00D2F954 /* InformationToolbar.swift in Sources */,
@@ -633,6 +655,7 @@
 				A96BB0D32C8EEC8400F49BD8 /* NoteListRow.swift in Sources */,
 				A94C40BF2C8ADD3F008E91C2 /* Screen.swift in Sources */,
 				A96BB0CA2C8EDEB000F49BD8 /* Conversation.swift in Sources */,
+				A980B3A62C926C260004E9EE /* ConversationInfoBox.swift in Sources */,
 				A90805CC2C8E930A005CF9FC /* Color+.swift in Sources */,
 				A9DA8D092C8A9FB100D1141C /* MainView.swift in Sources */,
 				A9615E702C91249D00D2F954 /* InputBox.swift in Sources */,
