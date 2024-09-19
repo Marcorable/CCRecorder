@@ -34,7 +34,7 @@ struct ConversationListRow: View {
                             .tint(.Dark.logoGreen)
                             .lineLimit(1)
                             .truncationMode(.tail)
-                        Text(conversation.createdDate.rowDescription)
+                        Text(conversation.createdDate, format: Date.FormatStyle(date: .abbreviated, time: .omitted))
                             .font(.caption2)
                             .foregroundColor(.gray)
                     }
