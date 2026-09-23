@@ -1,10 +1,3 @@
-//
-//  Speed.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/10/24.
-//
-
 enum Speed: Float, CaseIterable {
     case half = 0.5
     case threeQuater = 0.75

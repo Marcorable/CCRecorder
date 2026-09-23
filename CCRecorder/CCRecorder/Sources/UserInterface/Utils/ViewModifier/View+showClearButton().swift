@@ -1,10 +1,3 @@
-//
-//  View+showClearButton().swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/11/24.
-//
-
 import SwiftUI
 
 extension View {

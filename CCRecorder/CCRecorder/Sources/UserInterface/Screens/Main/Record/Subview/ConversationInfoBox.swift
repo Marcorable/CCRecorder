@@ -1,10 +1,3 @@
-//
-//  ConversationInfoBox.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/12/24.
-//
-
 import SwiftUI
 
 struct ConversationInfoBox: View {

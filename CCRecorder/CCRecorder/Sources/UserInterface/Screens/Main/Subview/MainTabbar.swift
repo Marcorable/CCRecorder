@@ -1,10 +1,3 @@
-//
-//  MainTabbar.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/9/24.
-//
-
 import SwiftUI
 
 struct MainTabbar: View {

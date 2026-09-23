@@ -1,10 +1,3 @@
-//
-//  AudioRecorder.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/23/26.
-//
-
 import AVFAudio
 import Observation
 

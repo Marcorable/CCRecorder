@@ -1,10 +1,3 @@
-//
-//  PlayTool.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/10/24.
-//
-
 import SwiftUI
 
 struct PlayTool: View {
