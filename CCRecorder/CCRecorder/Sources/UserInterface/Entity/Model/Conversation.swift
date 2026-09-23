@@ -12,10 +12,10 @@ import SwiftData
 final class Conversation {
     #Unique<Conversation>([\.id])
     
-    let id: UUID
-    let createdDate: Date
-    let recordFilePath: URL
-    let pins: [TimeInterval]
+    var id: UUID
+    var createdDate: Date
+    var recordFilePath: URL
+    var pins: [TimeInterval]
     var title: String
     var topic: String
     @Relationship var notes: [Note]
