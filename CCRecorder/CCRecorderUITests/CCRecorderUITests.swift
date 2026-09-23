@@ -22,12 +22,25 @@ final class CCRecorderUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    /// 온보딩을 건너뛴 상태로 앱을 실행한다.
+    private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments += ["-isFirstLaunched", "NO"]
         app.launch()
+        return app
+    }
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    /// Note 탭은 @Query / modelContext 를 사용하므로 ModelContainer 주입이 빠지면 진입 즉시 크래시한다.
+    func testNoteTabDoesNotCrash() throws {
+        let app = launchApp()
+
+        let noteTab = app.buttons.element(boundBy: 2)
+        XCTAssertTrue(noteTab.waitForExistence(timeout: 10), "메인 탭바가 표시되지 않음")
+        noteTab.tap()
+
+        XCTAssertTrue(app.navigationBars.buttons["더미 추가"].waitForExistence(timeout: 5),
+                      "Note 탭 진입 실패 (크래시 가능성)")
+        XCTAssertEqual(app.state, .runningForeground)
     }
 
     func testLaunchPerformance() throws {
