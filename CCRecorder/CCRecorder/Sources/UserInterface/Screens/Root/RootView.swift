@@ -1,10 +1,3 @@
-//
-//  RootView.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/6/24.
-//
-
 import SwiftUI
 
 struct RootView: View {
@@ -16,6 +9,12 @@ struct RootView: View {
             MainView()
                 .navigationDestination(for: Screen.self) {
                     switch $0 {
+                        case .conversationList:
+                            ConversationListView()
+                            
+                        case .conversationDetail(let conversation):
+                            ConversationDetailView(conversation: conversation)
+                            
                         case .setting:
                             SettingView()
                     }

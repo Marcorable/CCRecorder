@@ -1,10 +1,3 @@
-//
-//  RecordFileStore.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/23/26.
-//
-
 import Foundation
 
 /// 녹음 파일의 저장 위치를 관리한다.

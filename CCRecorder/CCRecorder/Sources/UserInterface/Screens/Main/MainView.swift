@@ -1,10 +1,3 @@
-//
-//  MainView.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/6/24.
-//
-
 import SwiftUI
 
 enum Tab {
@@ -22,8 +15,8 @@ struct MainView: View {
     var body: some View {
         VStack {
             switch selectedTab {
-                case .conversationList:     ConversationList()
-                case .noteList:             NoteList()
+                case .conversationList:     ConversationListView()
+                case .noteList:             NoteListView()
             }
             MainTabbar(
                 selectedTab: $selectedTab, 

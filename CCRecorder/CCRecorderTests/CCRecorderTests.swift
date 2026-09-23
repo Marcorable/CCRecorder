@@ -1,10 +1,3 @@
-//
-//  CCRecorderTests.swift
-//  CCRecorderTests
-//
-//  Created by 김용우 on 9/6/24.
-//
-
 import XCTest
 @testable import CCRecorder
 
