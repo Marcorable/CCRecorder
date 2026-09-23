@@ -12,8 +12,8 @@ import SwiftData
 final class Memeber {
     #Unique<Memeber>([\.id])
     
-    let id: UUID
-    let name: String
+    var id: UUID
+    var name: String
     
     init(
         id: UUID = .init(),
