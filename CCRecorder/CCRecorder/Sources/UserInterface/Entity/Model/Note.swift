@@ -17,8 +17,8 @@ final class Note {
         case sentence
     }
     
-    let id: UUID
-    let createdDate: Date
+    var id: UUID
+    var createdDate: Date
     var original: String
     var translation: String
     var category: Category

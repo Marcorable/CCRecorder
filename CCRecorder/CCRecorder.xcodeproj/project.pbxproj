@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA11B0000000000000000000 /* AudioRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11F0000000000000000000 /* AudioRecorderTests.swift */; };
+		AA01B0000000000000000000 /* RecordFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0000000000000000000 /* RecordFileStore.swift */; };
+		AA02B0000000000000000000 /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02F0000000000000000000 /* AudioSessionController.swift */; };
+		AA03B0000000000000000000 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03F0000000000000000000 /* AudioRecorder.swift */; };
+		AA10B0000000000000000000 /* RecordFileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000000 /* RecordFileStoreTests.swift */; };
 		A90805C52C8E8772005CF9FC /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90805C42C8E876D005CF9FC /* ConversationListView.swift */; };
 		A90805C72C8E878E005CF9FC /* NoteList.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90805C62C8E878B005CF9FC /* NoteList.swift */; };
 		A90805CA2C8E8952005CF9FC /* MainTabbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90805C92C8E894B005CF9FC /* MainTabbar.swift */; };
@@ -69,6 +74,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		AA11F0000000000000000000 /* AudioRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderTests.swift; sourceTree = "<group>"; };
+		AA01F0000000000000000000 /* RecordFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordFileStore.swift; sourceTree = "<group>"; };
+		AA02F0000000000000000000 /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
+		AA03F0000000000000000000 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
+		AA10F0000000000000000000 /* RecordFileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordFileStoreTests.swift; sourceTree = "<group>"; };
 		A90805C42C8E876D005CF9FC /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
 		A90805C62C8E878B005CF9FC /* NoteList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteList.swift; sourceTree = "<group>"; };
 		A90805C92C8E894B005CF9FC /* MainTabbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabbar.swift; sourceTree = "<group>"; };
@@ -141,6 +151,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA0000000000000000000001 /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				AA01F0000000000000000000 /* RecordFileStore.swift */,
+				AA02F0000000000000000000 /* AudioSessionController.swift */,
+				AA03F0000000000000000000 /* AudioRecorder.swift */,
+			);
+			path = Service;
+			sourceTree = "<group>";
+		};
 		A90805C22C8E874A005CF9FC /* Conversation */ = {
 			isa = PBXGroup;
 			children = (
@@ -180,13 +200,6 @@
 				A94C40B12C8ACF22008E91C2 /* LaunchScreenView.swift */,
 			);
 			path = LaunchScreen;
-			sourceTree = "<group>";
-		};
-		A94C40B62C8AD1D8008E91C2 /* Common */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Common;
 			sourceTree = "<group>";
 		};
 		A94C40B92C8AD366008E91C2 /* Root */ = {
@@ -368,13 +381,6 @@
 			path = NoteList;
 			sourceTree = "<group>";
 		};
-		A980B3A72C9287FC0004E9EE /* Service */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Service;
-			sourceTree = "<group>";
-		};
 		A9DA8CBA2C8A9C3500D1141C = {
 			isa = PBXGroup;
 			children = (
@@ -416,6 +422,8 @@
 			isa = PBXGroup;
 			children = (
 				A9DA8CD92C8A9C3600D1141C /* CCRecorderTests.swift */,
+				AA10F0000000000000000000 /* RecordFileStoreTests.swift */,
+				AA11F0000000000000000000 /* AudioRecorderTests.swift */,
 			);
 			path = CCRecorderTests;
 			sourceTree = "<group>";
@@ -433,8 +441,7 @@
 			isa = PBXGroup;
 			children = (
 				A9DA8CC62C8A9C3500D1141C /* CCRecorderApp.swift */,
-				A94C40B62C8AD1D8008E91C2 /* Common */,
-				A980B3A72C9287FC0004E9EE /* Service */,
+				AA0000000000000000000001 /* Service */,
 				A96BB0B82C8EB03D00F49BD8 /* UserInterface */,
 			);
 			path = Sources;
@@ -662,6 +669,9 @@
 				A90805CA2C8E8952005CF9FC /* MainTabbar.swift in Sources */,
 				A9DA8CC72C8A9C3500D1141C /* CCRecorderApp.swift in Sources */,
 				A9615E512C90209300D2F954 /* Language.swift in Sources */,
+				AA01B0000000000000000000 /* RecordFileStore.swift in Sources */,
+				AA02B0000000000000000000 /* AudioSessionController.swift in Sources */,
+				AA03B0000000000000000000 /* AudioRecorder.swift in Sources */,
 				A94C40B82C8AD1E4008E91C2 /* String+Key.swift in Sources */,
 				A90805C52C8E8772005CF9FC /* ConversationListView.swift in Sources */,
 				A96BB0D02C8EE26800F49BD8 /* ConversationDetailView.swift in Sources */,
@@ -678,6 +688,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A9DA8CDA2C8A9C3600D1141C /* CCRecorderTests.swift in Sources */,
+				AA10B0000000000000000000 /* RecordFileStoreTests.swift in Sources */,
+				AA11B0000000000000000000 /* AudioRecorderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -758,7 +770,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -815,7 +827,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -838,6 +850,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Casual Conversation";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "\"사용자의 대화를 녹음 하기위해 앱에서 마이크 접근 허용을 요청합니다 (필수)\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -871,6 +884,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Casual Conversation";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "\"사용자의 대화를 녹음 하기위해 앱에서 마이크 접근 허용을 요청합니다 (필수)\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -900,7 +914,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9486RJPBM5;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pseapplications.ccrecorder.CCRecorderTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -920,7 +934,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9486RJPBM5;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pseapplications.ccrecorder.CCRecorderTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -12,8 +12,8 @@ import SwiftData
 final class Party {
     #Unique<Party>([\.id])
     
-    let id: UUID
-    let name: String
+    var id: UUID
+    var name: String
     
     init(
         id: UUID = .init(),

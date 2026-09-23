@@ -15,6 +15,20 @@ enum LaunchState {
 
 @main
 struct CCRecorderApp: App {
+    private let modelContainer: ModelContainer = {
+        let schema = Schema([
+            Conversation.self,
+            Note.self,
+            Party.self,
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
     
     @AppStorage(.Key.isFirstLaunched) private var isFirstLaunched: Bool = true
     @State private var state: LaunchState = .preprocess
@@ -37,14 +51,9 @@ struct CCRecorderApp: App {
                             }
                         }
                         .animation(.easeInOut, value: isFirstLaunched)
-                        .modelContainer(
-                            for: [
-                                Conversation.self,
-                                Note.self
-                            ]
-                        )
             }
         }
+        .modelContainer(modelContainer)
     }
     
 }
