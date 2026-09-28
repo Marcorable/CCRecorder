@@ -1,10 +1,3 @@
-//
-//  OnboardView.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/6/24.
-//
-
 import SwiftUI
 
 struct OnboardView: View {

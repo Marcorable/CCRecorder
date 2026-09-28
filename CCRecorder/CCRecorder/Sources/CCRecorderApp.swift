@@ -1,10 +1,3 @@
-//
-//  CCRecorderApp.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/6/24.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -19,7 +12,7 @@ struct CCRecorderApp: App {
         let schema = Schema([
             Conversation.self,
             Note.self,
-            Memeber.self,
+            Party.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

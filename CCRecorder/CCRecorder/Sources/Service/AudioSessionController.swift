@@ -1,10 +1,3 @@
-//
-//  AudioSessionController.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/23/26.
-//
-
 import AVFAudio
 
 /// 앱 전역 오디오 세션 설정과 마이크 권한을 담당한다.

@@ -1,10 +1,3 @@
-//
-//  AudioRecorder.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/23/26.
-//
-
 import AVFAudio
 import Observation
 
@@ -133,7 +126,9 @@ private extension AudioRecorder {
         /// 스크롤 중에도 시간이 멈추지 않도록 .common 모드로 등록한다.
         let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
-                guard let self, let recorder = self.recorder else { return }
+                /// pause() 직후 이미 예약된 콜백이 값을 덮어쓰지 않도록 상태를 확인한다.
+                /// AVAudioRecorder.currentTime 은 녹음 중에만 유효하다.
+                guard let self, self.state == .recording, let recorder = self.recorder else { return }
                 self.updateCurrentTime(with: recorder)
             }
         }

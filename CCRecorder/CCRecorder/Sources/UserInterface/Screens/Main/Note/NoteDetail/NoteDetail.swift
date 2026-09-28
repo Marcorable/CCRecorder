@@ -1,10 +1,3 @@
-//
-//  NoteDetail.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/9/24.
-//
-
 import SwiftUI
 import SwiftData
 import Combine
@@ -76,7 +69,9 @@ private extension NoteDetail {
             
             notes[index].original = original
             notes[index].translation = translation
-            let isSentence = translation.components(separatedBy: " ").count > 1
+            let originalParticleCount = original.components(separatedBy: " ").count
+            let translationParticleCount = translation.components(separatedBy: " ").count
+            let isSentence = originalParticleCount > 2 || translationParticleCount > 2
             notes[index].category = isSentence ? .sentence : .vocabulary
             do {
                 try modelContext.save()

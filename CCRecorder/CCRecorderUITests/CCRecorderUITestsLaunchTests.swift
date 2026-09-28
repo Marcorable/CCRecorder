@@ -1,10 +1,3 @@
-//
-//  CCRecorderUITestsLaunchTests.swift
-//  CCRecorderUITests
-//
-//  Created by 김용우 on 9/6/24.
-//
-
 import XCTest
 
 final class CCRecorderUITestsLaunchTests: XCTestCase {

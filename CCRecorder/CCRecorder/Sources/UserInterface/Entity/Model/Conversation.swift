@@ -1,10 +1,3 @@
-//
-//  Conversation.swift
-//  CCRecorder
-//
-//  Created by 김용우 on 9/9/24.
-//
-
 import Foundation
 import SwiftData
 
@@ -18,18 +11,18 @@ final class Conversation {
     var pins: [TimeInterval]
     var title: String
     var topic: String
-    @Relationship var notes: [Note]
-    @Relationship var members: [Memeber]
+    var noteIds: [UUID]
+    @Relationship var parties: [Party]
     
     init(
-        id: UUID,
+        id: UUID = .init(),
         createdDate: Date = .init(),
         recordFilePath: URL,
         pins: [TimeInterval] = [],
         title: String,
         topic: String,
-        notes: [Note] = [],
-        members: [Memeber]
+        notes: [UUID] = [],
+        parties: [Party]
     ) {
         self.id = id
         self.createdDate = createdDate
@@ -37,8 +30,8 @@ final class Conversation {
         self.pins = pins
         self.title = title
         self.topic = topic
-        self.notes = notes
-        self.members = members
+        self.noteIds = notes
+        self.parties = parties
     }
     
 }
