@@ -1,3 +1,4 @@
+
 import SwiftUI
 
 struct RecordView: View {
@@ -6,9 +7,7 @@ struct RecordView: View {
     @State private var isPresentedConfirmCancel: Bool = false
     @State private var isPresentedConfirmStop: Bool = false
     
-    @State private var pins: [TimeInterval] = []
-    @State private var isRecording: Bool = false
-    @State private var currentTime: TimeInterval = .zero
+    @State private var recorder = AudioRecorder()
     
     @State private var title: String = Date.now.formatted(date: .abbreviated, time: .omitted)
     @State private var topic: String = ""
@@ -19,9 +18,10 @@ struct RecordView: View {
             VStack(alignment: .leading) {
                 VStack(alignment: .center) {
                     PinGrid(
-                        pins: $pins,
-                        isRecording: isRecording,
-                        currentTime: currentTime
+                        pins: recorder.pins,
+                        isRecording: recorder.isRecording,
+                        currentTime: recorder.currentTime,
+                        delete: recorder.removePin(at:)
                     )
                     ConversationInfoBox(
                         title: $title,
@@ -32,13 +32,10 @@ struct RecordView: View {
                 .background(Color.Light.recorder)
                 .clipShape(.rect(cornerRadius: 25))
                 .padding()
-    //            RecordControlBoard(
-    //                audioService: audioService, // TODO: 의존성주입 방식 변경 필요
-    //                isPresentedConfirmStop: $isPresentedConfirmStop,
-    //                pins: $pins,
-    //                currentTime: currentTime,
-    //                isRecording: isRecording
-    //            )
+                ControlBoard(
+                    recorder: recorder,
+                    isPresentedConfirmStop: $isPresentedConfirmStop
+                )
             }
             .padding()
             .background(Color.Dark.recorder)
@@ -57,11 +54,16 @@ struct RecordView: View {
                 }
             }
         }
+        .task {
+            // 임시: 준비 실패 안내는 #28 에서 붙인다
+            try? await recorder.prepare()
+        }
         .alert(
             "녹음 취소",
             isPresented: $isPresentedConfirmCancel,
             actions: {
                 Button("삭제", role: .destructive) {
+                    cancel()
                     dismiss()
                 }
                 Button("취소", role: .cancel) { }
@@ -89,7 +91,7 @@ struct RecordView: View {
 private extension RecordView {
     
     func cancel() {
-//        audioService.finish(isCancel: true)
+        recorder.cancel()
     }
     
     func save() {

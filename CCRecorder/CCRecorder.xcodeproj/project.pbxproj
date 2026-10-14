@@ -36,6 +36,7 @@
 		A9615E732C9124FA00D2F954 /* InformationToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E722C9124F500D2F954 /* InformationToolbar.swift */; };
 		A9615E772C91305B00D2F954 /* View+showClearButton().swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E762C91303F00D2F954 /* View+showClearButton().swift */; };
 		A9615E7C2C91850900D2F954 /* PinGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E7B2C91850200D2F954 /* PinGrid.swift */; };
+		A1C26B0F2E9D000100A0C26B /* RecordView.ControlBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C26B102E9D000100A0C26B /* RecordView.ControlBoard.swift */; };
 		A96BB0B72C8EA74E00F49BD8 /* RecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */; };
 		A96BB0BE2C8EB15C00F49BD8 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0BD2C8EB15900F49BD8 /* SettingView.swift */; };
 		A96BB0C22C8ED29600F49BD8 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0C12C8ED29000F49BD8 /* Note.swift */; };
@@ -103,6 +104,7 @@
 		A9615E722C9124F500D2F954 /* InformationToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationToolbar.swift; sourceTree = "<group>"; };
 		A9615E762C91303F00D2F954 /* View+showClearButton().swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+showClearButton().swift"; sourceTree = "<group>"; };
 		A9615E7B2C91850200D2F954 /* PinGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinGrid.swift; sourceTree = "<group>"; };
+		A1C26B102E9D000100A0C26B /* RecordView.ControlBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordView.ControlBoard.swift; sourceTree = "<group>"; };
 		A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordView.swift; sourceTree = "<group>"; };
 		A96BB0BD2C8EB15900F49BD8 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
 		A96BB0C12C8ED29000F49BD8 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
@@ -314,6 +316,7 @@
 			isa = PBXGroup;
 			children = (
 				A9615E7B2C91850200D2F954 /* PinGrid.swift */,
+				A1C26B102E9D000100A0C26B /* RecordView.ControlBoard.swift */,
 				A980B3A52C926C100004E9EE /* ConversationInfoBox.swift */,
 			);
 			path = Subview;
@@ -648,6 +651,7 @@
 				A9615E5F2C90356E00D2F954 /* Speed.swift in Sources */,
 				A96BB0CD2C8EE11800F49BD8 /* ConversationRow.swift in Sources */,
 				A9615E7C2C91850900D2F954 /* PinGrid.swift in Sources */,
+				A1C26B0F2E9D000100A0C26B /* RecordView.ControlBoard.swift in Sources */,
 				A9615E642C90382A00D2F954 /* PinButton.swift in Sources */,
 				A90805C72C8E878E005CF9FC /* NoteList.swift in Sources */,
 				A9615E732C9124FA00D2F954 /* InformationToolbar.swift in Sources */,

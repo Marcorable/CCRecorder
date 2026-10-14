@@ -89,6 +89,12 @@ extension AudioRecorder {
         pins.append(currentTime)
     }
 
+    func removePin(at index: Int) {
+        guard pins.indices.contains(index) else { return }
+
+        pins.remove(at: index)
+    }
+
     /// 녹음을 끝내고 저장된 파일 경로를 돌려준다.
     func finish() throws -> URL {
         guard let recorder else {
