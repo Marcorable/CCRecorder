@@ -1,9 +1,11 @@
+
 import SwiftUI
 
 struct PinGrid: View {
-    @Binding var pins: [TimeInterval]
+    let pins: [TimeInterval]
     let isRecording: Bool
     let currentTime: TimeInterval
+    let delete: (Int) -> Void
     
     var body: some View {
         ScrollView {
@@ -29,7 +31,7 @@ struct PinGrid: View {
                             Button(
                                 action: {
                                     withAnimation {
-                                        delete(of: index)
+                                        delete(index)
                                     }
                                 }, label: {
                                     Image(systemName: "delete.backward")
@@ -57,17 +59,14 @@ private extension PinGrid {
     var timeColor: Color {
         isRecording ? .white : .gray
     }
-    
-    func delete(of index: Int) {
-        pins.remove(at: index)
-    }
   
 }
 
 #Preview {
     PinGrid(
-        pins: .constant([3.0, 2.1]),
+        pins: [3.0, 2.1],
         isRecording: true,
-        currentTime: .init()
+        currentTime: .init(),
+        delete: { _ in }
     )
 }

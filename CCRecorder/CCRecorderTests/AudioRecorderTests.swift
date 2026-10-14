@@ -90,6 +90,23 @@ final class AudioRecorderTests: XCTestCase {
         sut.cancel()
     }
 
+    func test_removePin_지정한_핀만_지워진다() async throws {
+        try await sut.prepare()
+        sut.start()
+        try await Task.sleep(for: .milliseconds(200))
+        sut.addPin()
+        try await Task.sleep(for: .milliseconds(200))
+        sut.addPin()
+        let secondPin = sut.pins[1]
+
+        sut.removePin(at: 0)
+        sut.removePin(at: 5)
+
+        XCTAssertEqual(sut.pins, [secondPin])
+
+        sut.cancel()
+    }
+
     func test_prepare_없이_finish_하면_notPrepared_를_던진다() {
         XCTAssertThrowsError(try sut.finish()) { error in
             guard case AudioRecorder.RecordError.notPrepared = error else {
