@@ -1,4 +1,6 @@
 
+import Foundation
+import SwiftData
 import Testing
 
 @testable import CCRecorder
@@ -10,10 +12,19 @@ struct RecordScreenViewModelTests {
         currentTime: .zero,
         pins: []
     )
+    private let modelContext: ModelContext = .mock
     private let viewModel: RecordScreen.ViewModel
 
     init() {
-        viewModel = .init(model: .init(dependency: .init(recorder: recorder)))
+        viewModel = .init(
+            model: .init(
+                dependency: .init(
+                    recorder: recorder,
+                    modelContext: modelContext,
+                    fileStore: .init()
+                )
+            )
+        )
     }
 }
 
@@ -74,9 +85,83 @@ extension RecordScreenViewModelTests {
         #expect(viewModel.isFinished)
     }
 
+    @Test("저장하면 입력한 정보와 핀으로 대화를 만들고 화면을 닫는다")
+    func save() throws {
+        // given
+        recorder.currentTime = 10.0
+        recorder.pins = [2.0, 7.5]
+
+        // when
+        viewModel.reduce(
+            by: .save(
+                .init(
+                    title: "카페 대화",
+                    topic: "여행",
+                    parties: ["Tom", "Jane"]
+                )
+            )
+        )
+
+        // then
+        let conversation = try #require(fetchConversations().first)
+        #expect(conversation.title == "카페 대화")
+        #expect(conversation.topic == "여행")
+        #expect(Set(conversation.parties.map(\.name)) == ["Tom", "Jane"])
+        #expect(conversation.pins == [2.0, 7.5])
+        #expect(viewModel.alert == nil)
+        #expect(viewModel.isFinished)
+    }
+
+    @Test(
+        "제목이 비어 있으면 녹음 날짜를 제목으로 쓴다",
+        arguments: ["", "  "]
+    )
+    func saveWithEmptyTitleUsesDate(title: String) throws {
+        // when
+        viewModel.reduce(
+            by: .save(
+                .init(
+                    title: title,
+                    topic: "",
+                    parties: []
+                )
+            )
+        )
+
+        // then
+        let conversation = try #require(fetchConversations().first)
+        #expect(conversation.title == RecordScreen.defaultTitle(of: conversation.createdDate))
+    }
+
+    @Test("녹음을 끝내지 못하면 대화를 만들지 않고 실패 알럿을 띄운다")
+    func saveFailsWhenFinishFails() throws {
+        // given
+        recorder.error = AudioRecorder.RecordError.notPrepared
+
+        // when
+        viewModel.reduce(
+            by: .save(
+                .init(
+                    title: "카페 대화",
+                    topic: "",
+                    parties: []
+                )
+            )
+        )
+
+        // then
+        #expect(try fetchConversations().isEmpty)
+        #expect(viewModel.alert == .saveFailed)
+        #expect(!viewModel.isFinished)
+    }
+
 }
 
 private extension RecordScreenViewModelTests {
+
+    func fetchConversations() throws -> [Conversation] {
+        try modelContext.fetch(FetchDescriptor<Conversation>())
+    }
 
     func waitForAlert() async {
         for _ in 0..<20 where viewModel.alert == nil {

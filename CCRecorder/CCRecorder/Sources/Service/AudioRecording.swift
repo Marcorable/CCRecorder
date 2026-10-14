@@ -74,6 +74,9 @@ final class MockAudioRecording: AudioRecording {
     }
 
     func finish() throws -> URL {
+        if let error {
+            throw error
+        }
         isRecording = false
         return FileManager.default.temporaryDirectory.appendingPathComponent("mock.m4a")
     }

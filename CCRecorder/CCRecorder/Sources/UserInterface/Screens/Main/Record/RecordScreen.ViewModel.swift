@@ -62,10 +62,9 @@ extension RecordScreen.ViewModel {
                 model.recorder.cancel()
                 isFinished = true
 
-            case .save:
-                // 임시: 녹음 저장과 Conversation 생성은 #27 에서 연결한다
+            case .save(let information):
                 alert = nil
-                isFinished = true
+                save(information)
 
             case .dismissAlert:
                 alert = nil
@@ -90,6 +89,16 @@ extension RecordScreen.ViewModel {
                 case .failure(let status):
                     update(by: status)
             }
+        }
+    }
+
+    private func save(_ information: RecordScreen.Information) {
+        switch model.save(information) {
+            case .success:
+                isFinished = true
+
+            case .failure(let status):
+                update(by: status)
         }
     }
 
