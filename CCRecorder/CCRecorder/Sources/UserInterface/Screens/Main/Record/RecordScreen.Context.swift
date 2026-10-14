@@ -111,7 +111,7 @@ extension RecordScreen.Context {
         switch alert {
             case .confirmCancel:        "녹음물은 저장되지 않습니다"
             case .confirmSave:          "녹음을 중지하고 녹음물을 저장하시겠습니까?"
-            case .permissionDenied:     "설정에서 마이크 접근을 허용해 주세요"
+            case .permissionDenied:     "설정 > Casual Conversation > 마이크를 허용해 주세요"
             case .prepareFailed:        "잠시 후 다시 시도해 주세요"
             case .saveFailed:           "녹음물을 저장하지 못했습니다"
         }
@@ -122,6 +122,8 @@ extension RecordScreen.Context {
 extension RecordScreen.Context {
 
     struct AlertActions: View {
+        @Environment(\.openURL) private var openURL
+
         let alert: Alert
         let information: RecordScreen.Information
         let reduce: (RecordScreen.Intent) -> Void
@@ -156,7 +158,19 @@ extension RecordScreen.Context {
                         reduce(.save(information))
                     }
 
-                case .permissionDenied, .prepareFailed, .saveFailed:
+                case .permissionDenied:
+                    Button("설정으로 이동") {
+                        openSettings()
+                        reduce(.cancel)
+                    }
+                    Button(
+                        "닫기",
+                        role: .cancel
+                    ) {
+                        reduce(.cancel)
+                    }
+
+                case .prepareFailed, .saveFailed:
                     Button(
                         "닫기",
                         role: .cancel
@@ -165,6 +179,17 @@ extension RecordScreen.Context {
                     }
             }
         }
+    }
+
+}
+
+extension RecordScreen.Context.AlertActions {
+
+    private func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+        openURL(url)
     }
 
 }
