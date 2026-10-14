@@ -1,4 +1,6 @@
 
+import Foundation
+
 enum RecordScreen {
 
     enum Intent: Hashable {
@@ -9,7 +11,7 @@ enum RecordScreen {
         case requestCancel
         case requestSave
         case cancel
-        case save
+        case save(Information)
         case dismissAlert
     }
 
@@ -22,7 +24,26 @@ enum RecordScreen {
             case confirmSave
             case permissionDenied
             case prepareFailed
+            case saveFailed
         }
+    }
+
+    /// 녹음과 함께 저장할 대화 정보
+    struct Information: Hashable {
+        let title: String
+        let topic: String
+        let parties: [String]
+    }
+
+}
+
+extension RecordScreen {
+
+    static func defaultTitle(of date: Date) -> String {
+        date.formatted(
+            date: .abbreviated,
+            time: .omitted
+        )
     }
 
 }

@@ -7,6 +7,7 @@ enum Tab {
 
 struct MainView: View {
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.modelContext) private var modelContext
     @Environment(ViewCoordinator.self) private var viewCoordinator
     
     @State private var selectedTab: Tab = .conversationList
@@ -27,7 +28,13 @@ struct MainView: View {
         .fullScreenCover(isPresented: $isPresentedModal) {
             RecordScreen.Context(
                 viewModel: .init(
-                    model: .init(dependency: .init(recorder: AudioRecorder()))
+                    model: .init(
+                        dependency: .init(
+                            recorder: AudioRecorder(),
+                            modelContext: modelContext,
+                            fileStore: .init()
+                        )
+                    )
                 )
             )
         }
