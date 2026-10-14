@@ -18,7 +18,7 @@ git branch --show-current
 
 ## 2. 이슈 번호 추출
 
-브랜치는 이슈 번호로 만든다. `feature`, `refactor` 같은 작업 종류는 브랜치가 아니라 PR 제목에 쓴다.
+브랜치는 이슈 번호로 만든다. `feature`, `refactor` 같은 작업 종류는 브랜치가 아니라 PR 제목에 쓴다 (`/pr`).
 
 ```
 427           ← 단일 이슈
