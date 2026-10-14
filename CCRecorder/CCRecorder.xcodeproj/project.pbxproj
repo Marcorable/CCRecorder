@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		AA11B0000000000000000000 /* AudioRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11F0000000000000000000 /* AudioRecorderTests.swift */; };
+		A1C200052E9D000100A0C26B /* RecordScreen.ViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C300052E9D000100A0C26B /* RecordScreen.ViewModelTests.swift */; };
 		AA01B0000000000000000000 /* RecordFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0000000000000000000 /* RecordFileStore.swift */; };
 		AA02B0000000000000000000 /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02F0000000000000000000 /* AudioSessionController.swift */; };
 		AA03B0000000000000000000 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03F0000000000000000000 /* AudioRecorder.swift */; };
+		A1C200042E9D000100A0C26B /* AudioRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C300042E9D000100A0C26B /* AudioRecording.swift */; };
 		AA10B0000000000000000000 /* RecordFileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F0000000000000000000 /* RecordFileStoreTests.swift */; };
 		A90805C52C8E8772005CF9FC /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90805C42C8E876D005CF9FC /* ConversationListView.swift */; };
 		A90805C72C8E878E005CF9FC /* NoteList.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90805C62C8E878B005CF9FC /* NoteList.swift */; };
@@ -36,8 +38,11 @@
 		A9615E732C9124FA00D2F954 /* InformationToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E722C9124F500D2F954 /* InformationToolbar.swift */; };
 		A9615E772C91305B00D2F954 /* View+showClearButton().swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E762C91303F00D2F954 /* View+showClearButton().swift */; };
 		A9615E7C2C91850900D2F954 /* PinGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9615E7B2C91850200D2F954 /* PinGrid.swift */; };
-		A1C26B0F2E9D000100A0C26B /* RecordView.ControlBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C26B102E9D000100A0C26B /* RecordView.ControlBoard.swift */; };
-		A96BB0B72C8EA74E00F49BD8 /* RecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */; };
+		A1C26B0F2E9D000100A0C26B /* RecordScreen.ControlBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C26B102E9D000100A0C26B /* RecordScreen.ControlBoard.swift */; };
+		A96BB0B72C8EA74E00F49BD8 /* RecordScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0B62C8EA74C00F49BD8 /* RecordScreen.swift */; };
+		A1C200032E9D000100A0C26B /* RecordScreen.Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C300032E9D000100A0C26B /* RecordScreen.Context.swift */; };
+		A1C200022E9D000100A0C26B /* RecordScreen.ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C300022E9D000100A0C26B /* RecordScreen.ViewModel.swift */; };
+		A1C200012E9D000100A0C26B /* RecordScreen.Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C300012E9D000100A0C26B /* RecordScreen.Model.swift */; };
 		A96BB0BE2C8EB15C00F49BD8 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0BD2C8EB15900F49BD8 /* SettingView.swift */; };
 		A96BB0C22C8ED29600F49BD8 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0C12C8ED29000F49BD8 /* Note.swift */; };
 		A96BB0C82C8ED62500F49BD8 /* NoteDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96BB0C72C8ED61F00F49BD8 /* NoteDetail.swift */; };
@@ -76,9 +81,11 @@
 
 /* Begin PBXFileReference section */
 		AA11F0000000000000000000 /* AudioRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderTests.swift; sourceTree = "<group>"; };
+		A1C300052E9D000100A0C26B /* RecordScreen.ViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.ViewModelTests.swift; sourceTree = "<group>"; };
 		AA01F0000000000000000000 /* RecordFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordFileStore.swift; sourceTree = "<group>"; };
 		AA02F0000000000000000000 /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
 		AA03F0000000000000000000 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
+		A1C300042E9D000100A0C26B /* AudioRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecording.swift; sourceTree = "<group>"; };
 		AA10F0000000000000000000 /* RecordFileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordFileStoreTests.swift; sourceTree = "<group>"; };
 		A90805C42C8E876D005CF9FC /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
 		A90805C62C8E878B005CF9FC /* NoteList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteList.swift; sourceTree = "<group>"; };
@@ -104,8 +111,11 @@
 		A9615E722C9124F500D2F954 /* InformationToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationToolbar.swift; sourceTree = "<group>"; };
 		A9615E762C91303F00D2F954 /* View+showClearButton().swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+showClearButton().swift"; sourceTree = "<group>"; };
 		A9615E7B2C91850200D2F954 /* PinGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinGrid.swift; sourceTree = "<group>"; };
-		A1C26B102E9D000100A0C26B /* RecordView.ControlBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordView.ControlBoard.swift; sourceTree = "<group>"; };
-		A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordView.swift; sourceTree = "<group>"; };
+		A1C26B102E9D000100A0C26B /* RecordScreen.ControlBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.ControlBoard.swift; sourceTree = "<group>"; };
+		A96BB0B62C8EA74C00F49BD8 /* RecordScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.swift; sourceTree = "<group>"; };
+		A1C300032E9D000100A0C26B /* RecordScreen.Context.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.Context.swift; sourceTree = "<group>"; };
+		A1C300022E9D000100A0C26B /* RecordScreen.ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.ViewModel.swift; sourceTree = "<group>"; };
+		A1C300012E9D000100A0C26B /* RecordScreen.Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordScreen.Model.swift; sourceTree = "<group>"; };
 		A96BB0BD2C8EB15900F49BD8 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
 		A96BB0C12C8ED29000F49BD8 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
 		A96BB0C72C8ED61F00F49BD8 /* NoteDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteDetail.swift; sourceTree = "<group>"; };
@@ -159,6 +169,7 @@
 				AA01F0000000000000000000 /* RecordFileStore.swift */,
 				AA02F0000000000000000000 /* AudioSessionController.swift */,
 				AA03F0000000000000000000 /* AudioRecorder.swift */,
+				A1C300042E9D000100A0C26B /* AudioRecording.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -316,7 +327,7 @@
 			isa = PBXGroup;
 			children = (
 				A9615E7B2C91850200D2F954 /* PinGrid.swift */,
-				A1C26B102E9D000100A0C26B /* RecordView.ControlBoard.swift */,
+				A1C26B102E9D000100A0C26B /* RecordScreen.ControlBoard.swift */,
 				A980B3A52C926C100004E9EE /* ConversationInfoBox.swift */,
 			);
 			path = Subview;
@@ -325,7 +336,10 @@
 		A96BB0B52C8EA73D00F49BD8 /* Record */ = {
 			isa = PBXGroup;
 			children = (
-				A96BB0B62C8EA74C00F49BD8 /* RecordView.swift */,
+				A96BB0B62C8EA74C00F49BD8 /* RecordScreen.swift */,
+				A1C300032E9D000100A0C26B /* RecordScreen.Context.swift */,
+				A1C300022E9D000100A0C26B /* RecordScreen.ViewModel.swift */,
+				A1C300012E9D000100A0C26B /* RecordScreen.Model.swift */,
 				A9615E7A2C9184EF00D2F954 /* Subview */,
 			);
 			path = Record;
@@ -427,6 +441,7 @@
 				A9DA8CD92C8A9C3600D1141C /* CCRecorderTests.swift */,
 				AA10F0000000000000000000 /* RecordFileStoreTests.swift */,
 				AA11F0000000000000000000 /* AudioRecorderTests.swift */,
+				A1C300052E9D000100A0C26B /* RecordScreen.ViewModelTests.swift */,
 			);
 			path = CCRecorderTests;
 			sourceTree = "<group>";
@@ -647,11 +662,14 @@
 				A9615E5D2C90328E00D2F954 /* TimeInterval.swift in Sources */,
 				A9615E452C8FBC7E00D2F954 /* VocabularyContent.swift in Sources */,
 				A9DA8D042C8A9EE200D1141C /* OnboardView.swift in Sources */,
-				A96BB0B72C8EA74E00F49BD8 /* RecordView.swift in Sources */,
+				A96BB0B72C8EA74E00F49BD8 /* RecordScreen.swift in Sources */,
+				A1C200032E9D000100A0C26B /* RecordScreen.Context.swift in Sources */,
+				A1C200022E9D000100A0C26B /* RecordScreen.ViewModel.swift in Sources */,
+				A1C200012E9D000100A0C26B /* RecordScreen.Model.swift in Sources */,
 				A9615E5F2C90356E00D2F954 /* Speed.swift in Sources */,
 				A96BB0CD2C8EE11800F49BD8 /* ConversationRow.swift in Sources */,
 				A9615E7C2C91850900D2F954 /* PinGrid.swift in Sources */,
-				A1C26B0F2E9D000100A0C26B /* RecordView.ControlBoard.swift in Sources */,
+				A1C26B0F2E9D000100A0C26B /* RecordScreen.ControlBoard.swift in Sources */,
 				A9615E642C90382A00D2F954 /* PinButton.swift in Sources */,
 				A90805C72C8E878E005CF9FC /* NoteList.swift in Sources */,
 				A9615E732C9124FA00D2F954 /* InformationToolbar.swift in Sources */,
@@ -676,6 +694,7 @@
 				AA01B0000000000000000000 /* RecordFileStore.swift in Sources */,
 				AA02B0000000000000000000 /* AudioSessionController.swift in Sources */,
 				AA03B0000000000000000000 /* AudioRecorder.swift in Sources */,
+				A1C200042E9D000100A0C26B /* AudioRecording.swift in Sources */,
 				A94C40B82C8AD1E4008E91C2 /* String+Key.swift in Sources */,
 				A90805C52C8E8772005CF9FC /* ConversationListView.swift in Sources */,
 				A96BB0D02C8EE26800F49BD8 /* ConversationDetailView.swift in Sources */,
@@ -694,6 +713,7 @@
 				A9DA8CDA2C8A9C3600D1141C /* CCRecorderTests.swift in Sources */,
 				AA10B0000000000000000000 /* RecordFileStoreTests.swift in Sources */,
 				AA11B0000000000000000000 /* AudioRecorderTests.swift in Sources */,
+				A1C200052E9D000100A0C26B /* RecordScreen.ViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

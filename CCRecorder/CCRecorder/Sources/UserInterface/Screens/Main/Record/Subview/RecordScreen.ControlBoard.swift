@@ -1,27 +1,26 @@
 
 import SwiftUI
 
-extension RecordView {
+extension RecordScreen {
 
     struct ControlBoard: View {
-        let recorder: AudioRecorder
-        @Binding var isPresentedConfirmStop: Bool
+        let viewModel: ViewModel
 
         var body: some View {
             HStack(alignment: .center) {
                 StopButton(
-                    isEnabled: recorder.currentTime > 0,
-                    action: { isPresentedConfirmStop.toggle() }
+                    isEnabled: viewModel.isAbleToSave,
+                    action: { viewModel.reduce(by: .requestSave) }
                 )
                 Spacer()
                 RecordButton(
-                    isRecording: recorder.isRecording,
-                    action: toggleRecording
+                    isRecording: viewModel.isRecording,
+                    action: { viewModel.reduce(by: .toggleRecording) }
                 )
                 Spacer()
                 PinButton(
-                    isEnabled: recorder.isRecording,
-                    action: recorder.addPin
+                    isEnabled: viewModel.isRecording,
+                    action: { viewModel.reduce(by: .addPin) }
                 )
             }
         }
@@ -29,19 +28,7 @@ extension RecordView {
 
 }
 
-private extension RecordView.ControlBoard {
-
-    func toggleRecording() {
-        if recorder.isRecording {
-            recorder.pause()
-        } else {
-            recorder.start()
-        }
-    }
-
-}
-
-extension RecordView.ControlBoard {
+extension RecordScreen.ControlBoard {
 
     struct StopButton: View {
         let isEnabled: Bool
@@ -151,10 +138,7 @@ extension RecordView.ControlBoard {
 
 #Preview {
     Color.Dark.recorder.overlay {
-        RecordView.ControlBoard(
-            recorder: .init(),
-            isPresentedConfirmStop: .constant(false)
-        )
+        RecordScreen.ControlBoard(viewModel: .mock)
         .padding()
     }
 }
