@@ -25,7 +25,11 @@ struct MainView: View {
         }
         .background(backgroudColor)
         .fullScreenCover(isPresented: $isPresentedModal) {
-            RecordView()
+            RecordScreen.Context(
+                viewModel: .init(
+                    model: .init(dependency: .init(recorder: AudioRecorder()))
+                )
+            )
         }
         .toolbar {
             MainViewToolbar()
