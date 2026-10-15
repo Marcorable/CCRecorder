@@ -47,7 +47,6 @@ extension RecordFileStore {
             .appendingPathExtension(Self.fileExtension)
     }
 
-    /// [AI] 저장된 파일 이름으로 현재 컨테이너 기준 경로를 만든다. 빈 이름이면 녹음 디렉토리 자체를 가리키므로 nil 이다
     func fileURL(of fileName: String) -> URL? {
         guard
             !fileName.isEmpty,

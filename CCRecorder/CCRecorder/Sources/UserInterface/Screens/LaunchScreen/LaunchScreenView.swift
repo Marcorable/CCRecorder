@@ -33,7 +33,6 @@ extension LaunchScreenView {
         do {
             _ = try LegacyStoreMigrator().migrateIfNeeded(into: modelContext)
         } catch {
-            /// [AI] v1 원본은 그대로 남으므로 다음 실행에 다시 시도한다.
             print("\(Self.self) \(#function) - \(error)")
         }
 
