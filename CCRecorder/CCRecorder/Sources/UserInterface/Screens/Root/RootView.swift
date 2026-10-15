@@ -34,7 +34,6 @@ struct RootView: View {
         }
     }
     
-    /// [AI] `nil` 이면 기기 설정을 따른다
     private var userColorScheme: ColorScheme? {
         switch displayMode {
             case .system:

@@ -7,6 +7,7 @@ extension String {
         static var displayMode: String                                      { "\(#function)" }
         static var skipInterval: String                                     { "\(#function)" }
         static var isIdleTimerDisabled: String                              { "\(#function)" }
+        static var isLegacyStoreMigrated: String                            { "\(#function)" }
     }
     
 }

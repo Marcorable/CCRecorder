@@ -98,7 +98,6 @@ private extension PlayTab {
         )
     }
 
-    // [AI] v1 은 currentTime 이전 핀 중 첫 번째로 이동해 다음 핀이 아니었다 — 현재 시점 이후 첫 핀으로 고쳤다
     var nextPin: TimeInterval? {
         guard !disabledPlaying else {
             return nil
