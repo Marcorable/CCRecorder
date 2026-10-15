@@ -5,6 +5,12 @@ struct ConversationListView: View {
     @Environment(ViewCoordinator.self) private var viewCoordinator
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Conversation.createdDate) private var conversations: [Conversation]
+
+    private let deletionService: ConversationDeletionService
+
+    init(deletionService: ConversationDeletionService = .init()) {
+        self.deletionService = deletionService
+    }
     
     var body: some View {
         Group {
@@ -37,8 +43,10 @@ extension ConversationListView {
     
     private func onDelete(at offsets: IndexSet) {
         for offset in offsets {
-            modelContext.delete(conversations[offset])
-            // TODO: RecordFile 제거 기능 추가
+            try? deletionService.delete(
+                conversations[offset],
+                from: modelContext
+            )
         }
     }
     
