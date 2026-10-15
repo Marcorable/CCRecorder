@@ -1,14 +1,15 @@
 import SwiftUI
 
 struct SpeedMenu: View {
-    @State private var speed: Speed = .default
+    let speed: Speed
+    let select: (Speed) -> Void
 
     var body: some View {
         Menu(
             content: {
                 ForEach(Speed.allCases, id: \.self) { speed in
                     Button(
-                        action: { }, // speed = speed
+                        action: { select(speed) },
                         label: {
                             Text(speedDescription(of: speed))
                                 .foregroundStyle(Color.Dark.logoBlue)

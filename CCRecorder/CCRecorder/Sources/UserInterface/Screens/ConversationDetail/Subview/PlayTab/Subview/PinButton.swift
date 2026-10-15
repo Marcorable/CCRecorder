@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct PinButton: View {
-    
-    let pinDisabled: Bool = false // FIXME: Player 메서드
+    let pinDisabled: Bool
+    let jump: () -> Void
     
     var body: some View {
         Button(
-            action: { }, // skip(.next) },
+            action: jump,
             label: {
                 Spacer()
                 Image(systemName: "forward.end.alt.fill")
