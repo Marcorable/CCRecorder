@@ -2,11 +2,11 @@ import SwiftUI
 
 struct PlayTab: View {
     @Environment(\.colorScheme) var colorScheme
+    @AppStorage(.Key.skipInterval) private var skipInterval: SkipInterval = .five
 
     let player: AudioPlayer
     let filePath: URL?
     let pins: [TimeInterval]
-    var skipInterval: TimeInterval = PlayTab.defaultSkipInterval
 
     @State private var isEditing: Bool = false
     @State private var editingTime: TimeInterval = .zero
@@ -42,7 +42,7 @@ struct PlayTab: View {
                 PlayTool(
                     isPlaying: player.isPlaying,
                     disabledPlaying: disabledPlaying,
-                    skipInterval: skipInterval,
+                    skipInterval: skipInterval.timeInterval,
                     play: player.play,
                     pause: player.pause,
                     skip: skip(_:)
@@ -64,12 +64,6 @@ struct PlayTab: View {
             player.finish()
         }
     }
-
-}
-
-extension PlayTab {
-
-    static let defaultSkipInterval: TimeInterval = 10
 
 }
 
@@ -115,10 +109,10 @@ private extension PlayTab {
     func skip(_ direction: PlayTool.Direction) {
         switch direction {
             case .back:
-                player.seek(to: player.currentTime - skipInterval)
+                player.seek(to: player.currentTime - skipInterval.timeInterval)
 
             case .forward:
-                player.seek(to: player.currentTime + skipInterval)
+                player.seek(to: player.currentTime + skipInterval.timeInterval)
         }
     }
 
