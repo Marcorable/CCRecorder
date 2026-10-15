@@ -3,8 +3,6 @@ import CoreData
 import Foundation
 import SwiftData
 
-/// [AI] v1(App Store 1.1.0) 의 CoreData 대화·노트와 녹음 파일을 v2 로 옮긴다.
-/// 실패하면 v1 원본을 그대로 두고 다음 실행에 다시 시도한다.
 struct LegacyStoreMigrator {
     enum MigrationError: Error {
         case modelNotFound
@@ -108,16 +106,15 @@ private extension LegacyStoreMigrator {
         let notes: [LegacyNote]
     }
 
-    struct MovedRecord {
-        let source: URL
-        let destination: URL
+    enum RecordChange {
+        case moved(source: URL, destination: URL)
+        case copied(URL)
     }
 
 }
 
 private extension LegacyStoreMigrator {
 
-    /// [AI] v1 원본을 건드리지 않도록 임시 디렉토리에 복사본을 만들어 읽는다.
     @MainActor
     func loadLegacyData() throws -> LegacyData {
         guard
@@ -170,7 +167,6 @@ private extension LegacyStoreMigrator {
         }
     }
 
-    /// [AI] WAL 모드라 `-wal`, `-shm` 파일까지 함께 복사해야 최근 변경이 빠지지 않는다.
     func copyStore(to directoryURL: URL) throws -> URL {
         try dependency.fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
 
@@ -217,13 +213,12 @@ private extension LegacyStoreMigrator {
 
 private extension LegacyStoreMigrator {
 
-    /// [AI] 녹음 파일을 먼저 옮기고 저장한다. 저장에 실패하면 옮긴 파일을 되돌린다.
     @MainActor
     func insert(_ legacyData: LegacyData, into modelContext: ModelContext) throws -> Outcome {
-        let existingConversationIds: Set<UUID>
+        let existingConversations: [Conversation]
         let existingNoteIds: Set<UUID>
         do {
-            existingConversationIds = Set(try modelContext.fetch(FetchDescriptor<Conversation>()).map(\.id))
+            existingConversations = try modelContext.fetch(FetchDescriptor<Conversation>())
             existingNoteIds = Set(try modelContext.fetch(FetchDescriptor<Note>()).map(\.id))
         } catch {
             throw MigrationError.saveFailed(error)
@@ -236,13 +231,19 @@ private extension LegacyStoreMigrator {
             }
         }
 
+        let existingConversationIds = Set(existingConversations.map(\.id))
         let newConversations = legacyData.conversations.filter { !existingConversationIds.contains($0.id) }
         let newNotes = legacyData.notes.filter { !existingNoteIds.contains($0.id) }
 
-        var movedRecords: [MovedRecord] = []
+        var claimedFileNames = Set(existingConversations.map(\.recordFileName).filter { !$0.isEmpty })
+        var recordChanges: [RecordChange] = []
         do {
             for legacy in newConversations {
-                let recordFileName = try moveRecord(of: legacy, movedRecords: &movedRecords)
+                let recordFileName = try migrateRecord(
+                    of: legacy,
+                    claimedFileNames: &claimedFileNames,
+                    recordChanges: &recordChanges
+                )
                 modelContext.insert(Self.conversation(
                     from: legacy,
                     recordFileName: recordFileName,
@@ -255,7 +256,7 @@ private extension LegacyStoreMigrator {
             try modelContext.save()
         } catch {
             modelContext.rollback()
-            restore(movedRecords)
+            restore(recordChanges)
             if let error = error as? MigrationError {
                 throw error
             }
@@ -265,12 +266,26 @@ private extension LegacyStoreMigrator {
         return .migrated(conversations: newConversations.count, notes: newNotes.count)
     }
 
-    /// [AI] v1 녹음 디렉토리에서 파일 이름으로 찾아 v2 녹음 디렉토리로 옮기고, 저장할 파일 이름을 돌려준다.
-    func moveRecord(of legacy: LegacyConversation, movedRecords: inout [MovedRecord]) throws -> String {
+    func migrateRecord(
+        of legacy: LegacyConversation,
+        claimedFileNames: inout Set<String>,
+        recordChanges: inout [RecordChange]
+    ) throws -> String {
         let fileName = legacy.recordFilePath?.lastPathComponent ?? ""
         guard let destination = dependency.fileStore.fileURL(of: fileName) else {
             return ""
         }
+
+        if claimedFileNames.contains(fileName) {
+            return try copyRecord(
+                at: destination,
+                for: legacy,
+                claimedFileNames: &claimedFileNames,
+                recordChanges: &recordChanges
+            )
+        }
+        claimedFileNames.insert(fileName)
+
         guard !dependency.fileStore.fileExists(at: destination) else {
             return fileName
         }
@@ -287,16 +302,52 @@ private extension LegacyStoreMigrator {
             } catch {
                 throw MigrationError.recordMoveFailed(error)
             }
-            movedRecords.append(.init(source: source, destination: destination))
+            recordChanges.append(.moved(source: source, destination: destination))
             return fileName
         }
 
         return fileName
     }
 
-    func restore(_ movedRecords: [MovedRecord]) {
-        for record in movedRecords.reversed() {
-            try? dependency.fileManager.moveItem(at: record.destination, to: record.source)
+    func copyRecord(
+        at sharedFileURL: URL,
+        for legacy: LegacyConversation,
+        claimedFileNames: inout Set<String>,
+        recordChanges: inout [RecordChange]
+    ) throws -> String {
+        let sharedFileName = sharedFileURL.lastPathComponent
+        guard dependency.fileStore.fileExists(at: sharedFileURL) else {
+            return sharedFileName
+        }
+
+        let copiedFileName = sharedFileURL.deletingPathExtension().lastPathComponent
+            + "_" + legacy.id.uuidString.prefix(8)
+            + "." + sharedFileURL.pathExtension
+        guard let copiedFileURL = dependency.fileStore.fileURL(of: copiedFileName) else {
+            return sharedFileName
+        }
+
+        if !dependency.fileStore.fileExists(at: copiedFileURL) {
+            do {
+                try dependency.fileManager.copyItem(at: sharedFileURL, to: copiedFileURL)
+            } catch {
+                throw MigrationError.recordMoveFailed(error)
+            }
+            recordChanges.append(.copied(copiedFileURL))
+        }
+        claimedFileNames.insert(copiedFileName)
+        return copiedFileName
+    }
+
+    func restore(_ recordChanges: [RecordChange]) {
+        for change in recordChanges.reversed() {
+            switch change {
+                case .moved(let source, let destination):
+                    try? dependency.fileManager.moveItem(at: destination, to: source)
+
+                case .copied(let url):
+                    try? dependency.fileManager.removeItem(at: url)
+            }
         }
     }
 

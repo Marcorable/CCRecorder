@@ -102,6 +102,35 @@ extension LegacyStoreMigratorTests {
         #expect(!fileStore.fileExists(at: legacyFileURL))
     }
 
+    @Test("같은 녹음 파일을 가리키는 대화는 파일을 복사해 각자 갖는다")
+    func copiesSharedRecordFile() throws {
+        defer { cleanUp() }
+
+        // given
+        let fileName = "20220809_0806.m4a"
+        try Data("recording".utf8).write(to: legacyRecordDirectory.appendingPathComponent(fileName))
+        try makeLegacyStore { context in
+            insertConversation(into: context, title: "첫 번째", fileName: fileName)
+            insertConversation(into: context, title: "두 번째", fileName: fileName)
+        }
+
+        // when
+        _ = try makeSUT().migrateIfNeeded(into: modelContext)
+
+        // then
+        let conversations = try modelContext.fetch(FetchDescriptor<Conversation>())
+        let fileURLs = try conversations.map { try #require(fileStore.fileURL(of: $0.recordFileName)) }
+        #expect(Set(fileURLs).count == 2)
+        #expect(fileURLs.allSatisfy { fileStore.fileExists(at: $0) })
+        #expect(try fileURLs.map { try Data(contentsOf: $0) }.allSatisfy { $0 == Data("recording".utf8) })
+
+        // when
+        try ConversationDeletionService(fileStore: fileStore).delete(conversations[0], from: modelContext)
+
+        // then
+        #expect(fileStore.fileExists(at: fileURLs[1]))
+    }
+
     @Test("한 번 옮기면 다시 실행해도 중복되지 않는다")
     func migratesOnlyOnce() throws {
         defer { cleanUp() }
@@ -185,7 +214,6 @@ private extension LegacyStoreMigratorTests {
         )
     }
 
-    /// [AI] v1 앱과 같은 모델로 실제 CoreData 저장소를 만든다.
     func makeLegacyStore(_ insert: (NSManagedObjectContext) -> Void) throws {
         let modelURL = try #require(Bundle.main.url(forResource: LegacyStoreMigrator.modelName, withExtension: "momd"))
         let model = try #require(NSManagedObjectModel(contentsOf: modelURL))
