@@ -10,6 +10,8 @@ struct PlayTab: View {
 
     @State private var isEditing: Bool = false
     @State private var editingTime: TimeInterval = .zero
+    @State private var isSetupFailed: Bool = false
+    @State private var isPresentedSetupFailedAlert: Bool = false
 
     var body: some View {
         VStack(alignment: .center) {
@@ -29,7 +31,10 @@ struct PlayTab: View {
             .foregroundColor(.gray)
             .font(.caption)
             .overlay {
-                if disabledPlaying {
+                if isSetupFailed {
+                    Text("재생할 수 없는 녹음 파일")
+                        .font(.headline)
+                } else if disabledPlaying {
                     Text("녹음 파일 없음")
                         .font(.headline)
                 }
@@ -54,15 +59,20 @@ struct PlayTab: View {
             }
         }
         .background(colorScheme == .dark ? Color.Dark.background : Color.Light.background)
-        .onAppear {
-            guard let filePath else {
-                return
-            }
-            try? player.setup(filePath: filePath)
-        }
+        .onAppear(perform: setup)
         .onDisappear {
             player.finish()
         }
+        .alert(
+            "녹음 파일을 재생할 수 없습니다",
+            isPresented: $isPresentedSetupFailedAlert,
+            actions: {
+                Button("확인", role: .cancel) { }
+            },
+            message: {
+                Text("파일이 손상되었을 수 있습니다.")
+            }
+        )
     }
 
 }
@@ -94,6 +104,20 @@ private extension PlayTab {
             return nil
         }
         return pins.sorted().first { $0 > displayedTime }
+    }
+
+    func setup() {
+        guard let filePath, RecordFileStore().fileExists(at: filePath) else {
+            return
+        }
+
+        do {
+            try player.setup(filePath: filePath)
+            isSetupFailed = false
+        } catch {
+            isSetupFailed = true
+            isPresentedSetupFailedAlert = true
+        }
     }
 
     func onEditingChanged(_ isEditing: Bool) {

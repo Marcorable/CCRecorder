@@ -82,6 +82,21 @@ extension AudioPlayerPlaybackTests {
         #expect(sut.rate == min(max(value, 0.5), 2.0))
     }
 
+    @Test("손상된 파일은 재생 준비에서 실패한다")
+    func setupThrowsForCorruptedFile() throws {
+        // given
+        let corruptedFilePath = FileManager.default.temporaryDirectory
+            .appendingPathComponent("audio-player-corrupted-\(UUID().uuidString).m4a")
+        try Data("not audio".utf8).write(to: corruptedFilePath)
+        defer { try? FileManager.default.removeItem(at: corruptedFilePath) }
+
+        // when, then
+        #expect(throws: (any Error).self) {
+            try sut.setup(filePath: corruptedFilePath)
+        }
+        #expect(sut.duration == .zero)
+    }
+
     @Test("재생을 끝내면 준비 상태와 시간이 초기화된다")
     func finishResetsPlaybackState() throws {
         // given
