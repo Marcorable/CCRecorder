@@ -26,6 +26,7 @@ final class AudioPlayer: NSObject {
 
     deinit {
         observers.forEach(NotificationCenter.default.removeObserver(_:))
+        ticker?.invalidate()
     }
 }
 
@@ -198,9 +199,7 @@ private extension AudioPlayer {
         guard
             let rawValue = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
             let reason = AVAudioSession.RouteChangeReason(rawValue: rawValue),
-            reason == .oldDeviceUnavailable,
-            let previousRoute = notification.userInfo?[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription,
-            previousRoute.outputs.first?.portType == .headphones
+            reason == .oldDeviceUnavailable
         else {
             return
         }
@@ -224,6 +223,22 @@ extension AudioPlayer: AVAudioPlayerDelegate {
             player.currentTime = .zero
             self?.isPlaying = false
             self?.currentTime = .zero
+            self?.stopTicker()
+        }
+    }
+
+    nonisolated func audioPlayerDecodeErrorDidOccur(
+        _ player: AVAudioPlayer,
+        error: Error?
+    ) {
+        Task { @MainActor [weak self] in
+            guard self?.player === player else {
+                return
+            }
+
+            player.stop()
+            self?.isPlaying = false
+            self?.updateCurrentTime(with: player)
             self?.stopTicker()
         }
     }
