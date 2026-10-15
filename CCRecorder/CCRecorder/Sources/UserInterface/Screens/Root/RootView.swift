@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct RootView: View {
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
+    @AppStorage(.Key.displayMode) private var displayMode: DisplayMode = .system
+    @AppStorage(.Key.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
     @State private var viewCoordinator: ViewCoordinator = .init()
     
     var body: some View {
@@ -16,16 +17,35 @@ struct RootView: View {
                             ConversationDetailView(conversation: conversation)
                             
                         case .setting:
-                            SettingView()
+                            SettingScreen.Context(
+                                viewModel: .init(
+                                    model: .init(
+                                        dependency: .init(bundle: .main)
+                                    )
+                                )
+                            )
                     }
                 }
         }
         .environment(viewCoordinator)
-        .environment(\.colorScheme, userColorScheme)
+        .preferredColorScheme(userColorScheme)
+        .onChange(of: isIdleTimerDisabled, initial: true) {
+            UIApplication.shared.isIdleTimerDisabled = isIdleTimerDisabled
+        }
     }
     
-    private var userColorScheme: ColorScheme {
-        return colorScheme
+    /// [AI] `nil` 이면 기기 설정을 따른다
+    private var userColorScheme: ColorScheme? {
+        switch displayMode {
+            case .system:
+                nil
+
+            case .light:
+                .light
+
+            case .dark:
+                .dark
+        }
     }
 }
 
