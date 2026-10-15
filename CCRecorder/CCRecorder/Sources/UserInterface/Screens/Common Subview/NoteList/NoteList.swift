@@ -8,16 +8,26 @@ struct NoteList: View {
     @State private var isPresentedModal: Note?
 
     var body: some View {
-        List {
-            ForEach(notes, id: \.id) { note in
-                NoteListRow(note: note)
-                    .onTapGesture {
-                        isPresentedModal = note
+        Group {
+            if notes.isEmpty {
+                ContentUnavailableView(
+                    "No Notes",
+                    systemImage: "note.text",
+                    description: Text("Notes from your conversations will appear here.")
+                )
+            } else {
+                List {
+                    ForEach(notes, id: \.id) { note in
+                        NoteListRow(note: note)
+                            .onTapGesture {
+                                isPresentedModal = note
+                            }
                     }
+                    .onDelete(perform: onDelete)
+                }
+                .listStyle(.plain)
             }
-            .onDelete(perform: onDelete)
         }
-        .listStyle(.plain)
         .sheet(item: $isPresentedModal) { note in
             NoteDetail(note: note)
                 .presentationDetents(detents(of: note.category))
