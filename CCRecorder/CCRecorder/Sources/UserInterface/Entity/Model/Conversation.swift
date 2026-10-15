@@ -7,7 +7,7 @@ final class Conversation {
     
     var id: UUID
     var createdDate: Date
-    var recordFilePath: URL
+    var recordFileName: String = ""
     var pins: [TimeInterval]
     var title: String
     var topic: String
@@ -17,7 +17,7 @@ final class Conversation {
     init(
         id: UUID = .init(),
         createdDate: Date = .init(),
-        recordFilePath: URL,
+        recordFileName: String,
         pins: [TimeInterval] = [],
         title: String,
         topic: String,
@@ -26,7 +26,7 @@ final class Conversation {
     ) {
         self.id = id
         self.createdDate = createdDate
-        self.recordFilePath = recordFilePath
+        self.recordFileName = recordFileName
         self.pins = pins
         self.title = title
         self.topic = topic

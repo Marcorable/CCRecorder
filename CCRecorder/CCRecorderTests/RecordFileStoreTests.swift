@@ -83,4 +83,28 @@ final class RecordFileStoreTests: XCTestCase {
         }
     }
 
+    func test_fileURL_컨테이너_경로가_바뀌어도_같은_파일_이름으로_찾는다() throws {
+        try sut.prepareDirectory()
+        let url = sut.makeNewFileURL()
+        try Data("녹음물".utf8).write(to: url)
+        let fileName = url.lastPathComponent
+
+        let movedBaseURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: movedBaseURL) }
+        try FileManager.default.moveItem(at: baseURL, to: movedBaseURL)
+        let movedStore = RecordFileStore(baseURL: movedBaseURL)
+
+        let resolved = try XCTUnwrap(movedStore.fileURL(of: fileName))
+        XCTAssertTrue(movedStore.fileExists(at: resolved))
+        XCTAssertFalse(sut.fileExists(at: url))
+    }
+
+    func test_fileURL_빈_이름이나_경로가_섞인_이름이면_nil_이다() {
+        XCTAssertNil(sut.fileURL(of: ""))
+        XCTAssertNil(sut.fileURL(of: "."))
+        XCTAssertNil(sut.fileURL(of: ".."))
+        XCTAssertNil(sut.fileURL(of: "../other.m4a"))
+    }
+
 }

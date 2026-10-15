@@ -60,7 +60,7 @@ extension RecordScreen.Model {
         let title = information.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let conversation = Conversation(
             createdDate: createdDate,
-            recordFilePath: recordFilePath,
+            recordFileName: recordFilePath.lastPathComponent,
             pins: pins,
             title: title.isEmpty ? RecordScreen.defaultTitle(of: createdDate) : title,
             topic: information.topic,

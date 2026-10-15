@@ -4,7 +4,7 @@ struct PlayTab: View {
     @Environment(\.colorScheme) var colorScheme
 
     let player: AudioPlayer
-    let filePath: URL
+    let filePath: URL?
     let pins: [TimeInterval]
     var skipInterval: TimeInterval = PlayTab.defaultSkipInterval
 
@@ -55,6 +55,9 @@ struct PlayTab: View {
         }
         .background(colorScheme == .dark ? Color.Dark.background : Color.Light.background)
         .onAppear {
+            guard let filePath else {
+                return
+            }
             try? player.setup(filePath: filePath)
         }
         .onDisappear {

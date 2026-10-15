@@ -18,7 +18,7 @@ struct ConversationDetailView: View {
             )
             PlayTab(
                 player: player,
-                filePath: conversation.recordFilePath,
+                filePath: RecordFileStore().fileURL(of: conversation.recordFileName),
                 pins: conversation.pins
             )
         }
@@ -66,7 +66,7 @@ extension Conversation {
     
     static var preview: Self {
         .init(
-            recordFilePath: .init(string: "")!,
+            recordFileName: "",
             title: "제목",
             topic: "주제",
             parties: (0...3).map { .init(name: "name \($0)") }

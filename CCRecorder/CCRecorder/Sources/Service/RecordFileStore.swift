@@ -47,6 +47,19 @@ extension RecordFileStore {
             .appendingPathExtension(Self.fileExtension)
     }
 
+    /// [AI] 저장된 파일 이름으로 현재 컨테이너 기준 경로를 만든다. 빈 이름이면 녹음 디렉토리 자체를 가리키므로 nil 이다
+    func fileURL(of fileName: String) -> URL? {
+        guard
+            !fileName.isEmpty,
+            !fileName.contains("/"),
+            fileName != ".",
+            fileName != ".."
+        else {
+            return nil
+        }
+        return directoryURL.appendingPathComponent(fileName, isDirectory: false)
+    }
+
     func fileExists(at url: URL) -> Bool {
         /// URL 을 경로로 쓸 때 absoluteString 은 `file://` 스킴이 붙어 FileManager 가 찾지 못한다.
         fileManager.fileExists(atPath: url.path(percentEncoded: false))
