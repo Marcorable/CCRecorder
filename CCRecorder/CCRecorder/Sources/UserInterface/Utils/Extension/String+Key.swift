@@ -4,7 +4,9 @@ extension String {
     
     enum Key {
         static var isFirstLaunched: String                                  { "\(#function)" }
-        static var isLightMode: String                                      { "\(#function)" }
+        static var displayMode: String                                      { "\(#function)" }
+        static var skipInterval: String                                     { "\(#function)" }
+        static var isIdleTimerDisabled: String                              { "\(#function)" }
     }
     
 }
