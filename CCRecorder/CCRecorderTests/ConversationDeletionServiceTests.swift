@@ -51,7 +51,8 @@ extension ConversationDeletionServiceTests {
         )
 
         // then
-        #expect(!fileStore.fileExists(at: conversation.recordFilePath))
+        let recordFileURL = try #require(fileStore.fileURL(of: conversation.recordFileName))
+        #expect(!fileStore.fileExists(at: recordFileURL))
         #expect(try fetchConversations().isEmpty)
     }
 
@@ -72,6 +73,33 @@ extension ConversationDeletionServiceTests {
         #expect(try fetchConversations().isEmpty)
     }
 
+    @Test("녹음 파일 이름이 비어 있으면 녹음 디렉토리를 지우지 않는다")
+    func deleteWithEmptyFileNameKeepsDirectory() throws {
+        defer { try? FileManager.default.removeItem(at: baseURL) }
+
+        // given
+        let other = try makeConversation(fileExists: true)
+        let otherFileURL = try #require(fileStore.fileURL(of: other.recordFileName))
+        let conversation = Conversation(
+            recordFileName: "",
+            title: "이름 없는 녹음",
+            topic: "",
+            parties: []
+        )
+        modelContext.insert(conversation)
+        try modelContext.save()
+
+        // when
+        try sut.delete(
+            conversation,
+            from: modelContext
+        )
+
+        // then
+        #expect(fileStore.fileExists(at: fileStore.directoryURL))
+        #expect(fileStore.fileExists(at: otherFileURL))
+    }
+
 }
 
 private extension ConversationDeletionServiceTests {
@@ -84,7 +112,7 @@ private extension ConversationDeletionServiceTests {
         }
 
         let conversation = Conversation(
-            recordFilePath: recordFileURL,
+            recordFileName: recordFileURL.lastPathComponent,
             title: "카페 대화",
             topic: "여행",
             parties: []

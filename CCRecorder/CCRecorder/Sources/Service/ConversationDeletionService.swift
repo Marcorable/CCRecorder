@@ -16,9 +16,11 @@ extension ConversationDeletionService {
         _ conversation: Conversation,
         from modelContext: ModelContext
     ) throws {
-        do {
-            try fileStore.removeFile(at: conversation.recordFilePath)
-        } catch RecordFileStore.StoreError.fileNotFound {
+        if let recordFileURL = fileStore.fileURL(of: conversation.recordFileName) {
+            do {
+                try fileStore.removeFile(at: recordFileURL)
+            } catch RecordFileStore.StoreError.fileNotFound {
+            }
         }
 
         modelContext.delete(conversation)
