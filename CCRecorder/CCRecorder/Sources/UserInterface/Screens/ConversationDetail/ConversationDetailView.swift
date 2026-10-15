@@ -7,6 +7,7 @@ struct ConversationDetailView: View {
     @Query(sort: \Note.createdDate, order: .reverse) private var notes: [Note]
 
     @State var conversation: Conversation
+    @State private var player = AudioPlayer()
     
     var body: some View {
         VStack {
@@ -15,7 +16,11 @@ struct ConversationDetailView: View {
                 notes: filteredNotes,
                 onDelete: onDelete(of:)
             )
-            PlayTab()
+            PlayTab(
+                player: player,
+                filePath: conversation.recordFilePath,
+                pins: conversation.pins
+            )
         }
         .onChange(of: conversation, initial: false) {
             update(of: $1)

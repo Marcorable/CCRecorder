@@ -1,17 +1,20 @@
 import SwiftUI
 
 struct PlayTool: View {
-    @State private var isPlaying: Bool = false
-    
-    let disabledPlaying: Bool = false // FIXME: Player 메서드
-    
+    let isPlaying: Bool
+    let disabledPlaying: Bool
+    let skipInterval: TimeInterval
+    let play: () -> Void
+    let pause: () -> Void
+    let skip: (Direction) -> Void
+
     var body: some View {
         Group {
             Button(
-                action: { }, // skip(.back) },
+                action: { skip(.back) },
                 label: {
                     Spacer()
-                    Image(systemName: "gobackward." + "skipTime")
+                    Image(systemName: "gobackward." + skipTime)
                         .font(.system(size: 22))
                     Spacer()
                 }
@@ -19,9 +22,9 @@ struct PlayTool: View {
             Button(
                 action: {
                     if isPlaying {
-                        // pause()
+                        pause()
                     } else {
-                        // start()
+                        play()
                     }
                 }, label: {
                     Spacer()
@@ -31,10 +34,10 @@ struct PlayTool: View {
                 }
             )
             Button(
-                action: { }, // skip(.forward)
+                action: { skip(.forward) },
                 label: {
                     Spacer()
-                    Image(systemName: "goforward." + "skipTime")
+                    Image(systemName: "goforward." + skipTime)
                         .font(.system(size: 22))
                     Spacer()
                 }
@@ -46,8 +49,21 @@ struct PlayTool: View {
     }
 }
 
+extension PlayTool {
+
+    enum Direction {
+        case back
+        case forward
+    }
+
+}
+
 private extension PlayTool {
-    
+
+    var skipTime: String {
+        "\(Int(skipInterval))"
+    }
+
     var playButtonImageName: String {
         if disabledPlaying {
             return "speaker.slash.circle.fill"
@@ -55,5 +71,5 @@ private extension PlayTool {
             return isPlaying ? "pause.circle.fill" : "play.circle.fill"
         }
     }
-    
+
 }
