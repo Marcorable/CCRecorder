@@ -24,6 +24,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A9AC81083081D12D00508A21 /* App.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = App.xctestplan; sourceTree = "<group>"; };
+		A9AC81093081D81000508A21 /* CI-Unit.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "CI-Unit.xctestplan"; sourceTree = "<group>"; };
 		A9DA8CC32C8A9C3500D1141C /* CCRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CCRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9DA8CD52C8A9C3600D1141C /* CCRecorderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CCRecorderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9DA8CDF2C8A9C3600D1141C /* CCRecorderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CCRecorderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +77,8 @@
 		A9DA8CBA2C8A9C3500D1141C = {
 			isa = PBXGroup;
 			children = (
+				A9AC81083081D12D00508A21 /* App.xctestplan */,
+				A9AC81093081D81000508A21 /* CI-Unit.xctestplan */,
 				A9DA8CC52C8A9C3500D1141C /* CCRecorder */,
 				A9DA8CD82C8A9C3600D1141C /* CCRecorderTests */,
 				A9DA8CE22C8A9C3600D1141C /* CCRecorderUITests */,
