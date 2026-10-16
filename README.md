@@ -1,5 +1,9 @@
 # Casual Conversation 프로젝트
 
+## 개발 문서
+
+- [테스트 운영](Docs/Testing.md)
+
 [<img src="https://www.notion.so/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F69a38380-1115-4931-a927-6fa25b595692%2Fappstore.png?table=block&id=48bd959c-7719-4ac1-b0cb-d4e4d9b7f7a7&spaceId=e6b8a7b9-cbae-4355-941e-ce441f218386&width=2000&userId=aaeaa0fd-5da4-499b-9277-7adf273dceea&cache=v2" width="150" height="150">](https://apps.apple.com/kr/app/id1642134370/) [<img src="https://www.notion.so/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F3f389223-44b3-43f4-aba5-852e9bdae806%2Fpngwing.com.png?table=block&id=ac150090-d883-4de6-9198-f40f378d8d6f&spaceId=e6b8a7b9-cbae-4355-941e-ce441f218386&width=2000&userId=aaeaa0fd-5da4-499b-9277-7adf273dceea&cache=v2" width=195 height=75>](https://apps.apple.com/kr/app/id1642134370/) 
 
 ***잊지말고 녹음부터 하세요!***
