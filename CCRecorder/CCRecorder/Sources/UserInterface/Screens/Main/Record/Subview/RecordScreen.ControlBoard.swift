@@ -136,9 +136,11 @@ extension RecordScreen.ControlBoard {
 
 }
 
+#if DEBUG
 #Preview {
     Color.Dark.recorder.overlay {
         RecordScreen.ControlBoard(viewModel: .mock)
         .padding()
     }
 }
+#endif

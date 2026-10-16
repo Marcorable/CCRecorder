@@ -1,45 +1,63 @@
-import XCTest
+
+import Testing
+import Foundation
+
 @testable import CCRecorder
 
-final class RecordFileStoreTests: XCTestCase {
+@Suite("RecordFileStore 파일 관리")
+struct RecordFileStoreTests {
+    private let baseURL: URL
+    private let sut: RecordFileStore
 
-    private var baseURL: URL!
-    private var sut: RecordFileStore!
-
-    override func setUpWithError() throws {
+    init() throws {
         baseURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: baseURL,
+            withIntermediateDirectories: true
+        )
 
-        sut = RecordFileStore(baseURL: baseURL)
+        sut = .init(baseURL: baseURL)
     }
+}
 
-    override func tearDownWithError() throws {
-        try? FileManager.default.removeItem(at: baseURL)
+extension RecordFileStoreTests {
 
-        baseURL = nil
-        sut = nil
-    }
+    @Test("녹음 디렉토리가 없으면 생성한다")
+    func prepareDirectoryCreatesMissingDirectory() throws {
+        defer { cleanUp() }
 
-    func test_prepareDirectory_디렉토리가_없으면_생성한다() throws {
-        XCTAssertFalse(sut.fileExists(at: sut.directoryURL))
+        // given
+        #expect(!sut.fileExists(at: sut.directoryURL))
 
+        // when
         try sut.prepareDirectory()
 
-        XCTAssertTrue(sut.fileExists(at: sut.directoryURL))
+        // then
+        #expect(sut.fileExists(at: sut.directoryURL))
     }
 
-    func test_prepareDirectory_이미_있으면_기존_파일을_보존한다() throws {
+    @Test("녹음 디렉토리가 이미 있으면 기존 파일을 보존한다")
+    func prepareDirectoryPreservesExistingFile() throws {
+        defer { cleanUp() }
+
+        // given
         try sut.prepareDirectory()
         let existing = sut.makeNewFileURL()
         try Data("녹음물".utf8).write(to: existing)
 
+        // when
         try sut.prepareDirectory()
 
-        XCTAssertTrue(sut.fileExists(at: existing))
+        // then
+        #expect(sut.fileExists(at: existing))
     }
 
-    func test_makeNewFileURL_초단위_이름과_m4a_확장자를_가진다() {
+    @Test("새 녹음 파일 URL은 초 단위 이름과 m4a 확장자를 가진다")
+    func makeNewFileURLUsesTimestampAndM4AExtension() throws {
+        defer { cleanUp() }
+
+        // given
         var components = DateComponents()
         components.year = 2026
         components.month = 9
@@ -47,43 +65,68 @@ final class RecordFileStoreTests: XCTestCase {
         components.hour = 14
         components.minute = 5
         components.second = 9
-        let date = Calendar.current.date(from: components)!
+        let date = try #require(Calendar.current.date(from: components))
 
+        // when
         let url = sut.makeNewFileURL(at: date)
 
-        XCTAssertEqual(url.lastPathComponent, "2026-09-23_14-05-09.m4a")
-        XCTAssertEqual(url.deletingLastPathComponent(), sut.directoryURL)
+        // then
+        #expect(url.lastPathComponent == "2026-09-23_14-05-09.m4a")
+        #expect(url.deletingLastPathComponent() == sut.directoryURL)
     }
 
-    func test_makeNewFileURL_경로에_file_스킴이_섞이지_않는다() {
+    @Test("새 녹음 파일 경로에는 file 스킴이 섞이지 않는다")
+    func makeNewFileURLDoesNotContainFileScheme() {
+        defer { cleanUp() }
+
+        // when
         let url = sut.makeNewFileURL()
 
-        XCTAssertFalse(url.path(percentEncoded: false).contains("file://"))
+        // then
+        #expect(!url.path(percentEncoded: false).contains("file://"))
     }
 
-    func test_removeFile_저장된_파일을_지운다() throws {
+    @Test("저장된 녹음 파일을 제거한다")
+    func removeFileDeletesStoredFile() throws {
+        defer { cleanUp() }
+
+        // given
         try sut.prepareDirectory()
         let url = sut.makeNewFileURL()
         try Data("녹음물".utf8).write(to: url)
-        XCTAssertTrue(sut.fileExists(at: url))
+        #expect(sut.fileExists(at: url))
 
+        // when
         try sut.removeFile(at: url)
 
-        XCTAssertFalse(sut.fileExists(at: url))
+        // then
+        #expect(!sut.fileExists(at: url))
     }
 
-    func test_removeFile_없는_파일이면_fileNotFound_를_던진다() throws {
+    @Test("없는 녹음 파일을 제거하면 fileNotFound 오류를 던진다")
+    func removeMissingFileThrowsFileNotFound() throws {
+        defer { cleanUp() }
+
+        // given
         try sut.prepareDirectory()
         let url = sut.makeNewFileURL()
 
-        XCTAssertThrowsError(try sut.removeFile(at: url)) { error in
+        // when, then
+        #expect {
+            try sut.removeFile(at: url)
+        } throws: { error in
             guard case RecordFileStore.StoreError.fileNotFound = error else {
-                return XCTFail("기대한 에러가 아님: \(error)")
+                return false
             }
+            return true
         }
     }
 
-    func test_fileURL_컨테이너_경로가_바뀌어도_같은_파일_이름으로_찾는다() throws {
+    @Test("컨테이너 경로가 바뀌어도 파일 이름으로 같은 녹음물을 찾는다")
+    func fileURLResolvesAfterContainerMoves() throws {
+        defer { cleanUp() }
+
+        // given
         try sut.prepareDirectory()
         let url = sut.makeNewFileURL()
         try Data("녹음물".utf8).write(to: url)
@@ -95,16 +138,31 @@ final class RecordFileStoreTests: XCTestCase {
         try FileManager.default.moveItem(at: baseURL, to: movedBaseURL)
         let movedStore = RecordFileStore(baseURL: movedBaseURL)
 
-        let resolved = try XCTUnwrap(movedStore.fileURL(of: fileName))
-        XCTAssertTrue(movedStore.fileExists(at: resolved))
-        XCTAssertFalse(sut.fileExists(at: url))
+        // when
+        let resolved = try #require(movedStore.fileURL(of: fileName))
+
+        // then
+        #expect(movedStore.fileExists(at: resolved))
+        #expect(!sut.fileExists(at: url))
     }
 
-    func test_fileURL_빈_이름이나_경로가_섞인_이름이면_nil_이다() {
-        XCTAssertNil(sut.fileURL(of: ""))
-        XCTAssertNil(sut.fileURL(of: "."))
-        XCTAssertNil(sut.fileURL(of: ".."))
-        XCTAssertNil(sut.fileURL(of: "../other.m4a"))
+    @Test("빈 이름이나 경로가 포함된 이름으로는 녹음 파일을 찾지 않는다")
+    func fileURLRejectsEmptyAndPathNames() {
+        defer { cleanUp() }
+
+        // when, then
+        #expect(sut.fileURL(of: "") == nil)
+        #expect(sut.fileURL(of: ".") == nil)
+        #expect(sut.fileURL(of: "..") == nil)
+        #expect(sut.fileURL(of: "../other.m4a") == nil)
+    }
+
+}
+
+private extension RecordFileStoreTests {
+
+    func cleanUp() {
+        try? FileManager.default.removeItem(at: baseURL)
     }
 
 }

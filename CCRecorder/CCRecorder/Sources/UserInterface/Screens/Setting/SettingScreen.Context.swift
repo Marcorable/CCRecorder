@@ -49,8 +49,10 @@ extension SettingScreen.Context {
 
 }
 
+#if DEBUG
 #Preview {
     NavigationStack {
         SettingScreen.Context(viewModel: .mock)
     }
 }
+#endif

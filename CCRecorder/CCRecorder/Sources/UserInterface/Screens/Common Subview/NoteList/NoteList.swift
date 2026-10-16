@@ -47,9 +47,11 @@ private extension NoteList {
     
 }
 
+#if DEBUG
 #Preview {
     NoteList(
         notes: [.sentenceDummy, .vocabularyDummy],
         onDelete: { _ in }
     )
 }
+#endif

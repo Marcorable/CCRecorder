@@ -1,123 +1,167 @@
-import XCTest
+
+import Testing
+import AVFAudio
+import Foundation
+
 @testable import CCRecorder
 
 /// 실제 마이크 입력이 필요하므로 권한이 없는 환경에서는 건너뛴다.
 /// 시뮬레이터에서는 `xcrun simctl privacy <device> grant microphone <bundleId>` 로 권한을 줄 수 있다.
+@Suite(
+    "AudioRecorder 녹음 제어",
+    .serialized,
+    .enabled(
+        if: AudioSessionController.recordPermission == .granted,
+        "마이크 권한이 필요한 테스트입니다"
+    )
+)
 @MainActor
-final class AudioRecorderTests: XCTestCase {
+struct AudioRecorderTests {
+    private let baseURL: URL
+    private let store: RecordFileStore
+    private let sut: AudioRecorder
 
-    private var baseURL: URL!
-    private var store: RecordFileStore!
-    private var sut: AudioRecorder!
-
-    override func setUpWithError() throws {
-        try XCTSkipUnless(
-            AudioSessionController.recordPermission == .granted,
-            "마이크 권한이 필요한 테스트입니다"
-        )
-
+    init() throws {
         baseURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: baseURL,
+            withIntermediateDirectories: true
+        )
 
         try AudioSessionController.configure()
 
-        store = RecordFileStore(baseURL: baseURL)
-        sut = AudioRecorder(store: store)
+        store = .init(baseURL: baseURL)
+        sut = .init(store: store)
     }
+}
 
-    override func tearDownWithError() throws {
-        if let baseURL {
-            try? FileManager.default.removeItem(at: baseURL)
-        }
+extension AudioRecorderTests {
 
-        baseURL = nil
-        store = nil
-        sut = nil
-    }
+    @Test("녹음을 끝내면 녹음물이 파일로 저장된다")
+    func finishSavesRecordingFile() async throws {
+        defer { cleanUp() }
 
-    func test_finish_녹음물이_파일로_저장된다() async throws {
+        // given
         try await sut.prepare()
         sut.start()
-        XCTAssertTrue(sut.isRecording)
-
+        #expect(sut.isRecording)
         try await Task.sleep(for: .milliseconds(600))
+
+        // when
         let filePath = try sut.finish()
 
-        XCTAssertFalse(sut.isRecording)
-        XCTAssertTrue(store.fileExists(at: filePath))
-        XCTAssertGreaterThan(try fileSize(of: filePath), 0)
+        // then
+        #expect(!sut.isRecording)
+        #expect(store.fileExists(at: filePath))
+        #expect(try fileSize(of: filePath) > 0)
     }
 
-    func test_cancel_녹음물이_삭제된다() async throws {
+    @Test("녹음을 취소하면 녹음물과 상태가 초기화된다")
+    func cancelDeletesRecording() async throws {
+        defer { cleanUp() }
+
+        // given
         try await sut.prepare()
         sut.start()
         try await Task.sleep(for: .milliseconds(300))
 
+        // when
         sut.cancel()
 
-        XCTAssertFalse(sut.isRecording)
-        XCTAssertEqual(sut.currentTime, .zero)
-        XCTAssertTrue(sut.pins.isEmpty)
+        // then
+        #expect(!sut.isRecording)
+        #expect(sut.currentTime == .zero)
+        #expect(sut.pins.isEmpty)
     }
 
-    func test_pause_경과시간이_유지된다() async throws {
+    @Test("녹음을 일시정지하면 경과 시간이 유지된다")
+    func pauseKeepsElapsedTime() async throws {
+        defer { cleanUp() }
+
+        // given
         try await sut.prepare()
         sut.start()
         try await Task.sleep(for: .milliseconds(400))
 
+        // when
         sut.pause()
         let pausedTime = sut.currentTime
         try await Task.sleep(for: .milliseconds(300))
 
-        XCTAssertEqual(sut.state, .paused)
-        XCTAssertEqual(sut.currentTime, pausedTime)
+        // then
+        #expect(sut.state == .paused)
+        #expect(sut.currentTime == pausedTime)
     }
 
-    func test_addPin_녹음중에만_적립된다() async throws {
+    @Test("핀은 녹음 중에만 추가된다")
+    func addPinOnlyWhileRecording() async throws {
+        defer { cleanUp() }
+
+        // given
         try await sut.prepare()
 
+        // when
         sut.addPin()
-        XCTAssertTrue(sut.pins.isEmpty, "녹음 전에는 핀이 쌓이지 않아야 한다")
 
+        // then
+        #expect(sut.pins.isEmpty)
+
+        // when
         sut.start()
         try await Task.sleep(for: .milliseconds(300))
         sut.addPin()
 
-        XCTAssertEqual(sut.pins.count, 1)
-        XCTAssertGreaterThan(sut.pins[0], 0)
-
+        // then
+        #expect(sut.pins.count == 1)
+        #expect(try #require(sut.pins.first) > 0)
         sut.cancel()
     }
 
-    func test_removePin_지정한_핀만_지워진다() async throws {
+    @Test("지정한 핀만 제거된다")
+    func removePinAtIndex() async throws {
+        defer { cleanUp() }
+
+        // given
         try await sut.prepare()
         sut.start()
         try await Task.sleep(for: .milliseconds(200))
         sut.addPin()
         try await Task.sleep(for: .milliseconds(200))
         sut.addPin()
-        let secondPin = sut.pins[1]
+        let secondPin = try #require(sut.pins.last)
 
+        // when
         sut.removePin(at: 0)
         sut.removePin(at: 5)
 
-        XCTAssertEqual(sut.pins, [secondPin])
-
+        // then
+        #expect(sut.pins == [secondPin])
         sut.cancel()
     }
 
-    func test_prepare_없이_finish_하면_notPrepared_를_던진다() {
-        XCTAssertThrowsError(try sut.finish()) { error in
+    @Test("준비하지 않고 녹음을 끝내면 notPrepared 오류를 던진다")
+    func finishWithoutPrepareThrowsNotPrepared() {
+        defer { cleanUp() }
+
+        // when, then
+        #expect {
+            try sut.finish()
+        } throws: { error in
             guard case AudioRecorder.RecordError.notPrepared = error else {
-                return XCTFail("기대한 에러가 아님: \(error)")
+                return false
             }
+            return true
         }
     }
 
 }
 
 private extension AudioRecorderTests {
+
+    func cleanUp() {
+        try? FileManager.default.removeItem(at: baseURL)
+    }
 
     func fileSize(of url: URL) throws -> Int {
         let attributes = try FileManager.default

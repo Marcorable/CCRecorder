@@ -194,6 +194,8 @@ extension RecordScreen.Context.AlertActions {
 
 }
 
+#if DEBUG
 #Preview {
     RecordScreen.Context(viewModel: .mock)
 }
+#endif
