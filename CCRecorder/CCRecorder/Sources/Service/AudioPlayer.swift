@@ -2,6 +2,24 @@
 import AVFAudio
 import Observation
 
+protocol AudioPlaying: AnyObject {
+    var currentTime: TimeInterval { get set }
+    var duration: TimeInterval { get }
+    var enableRate: Bool { get set }
+    var numberOfLoops: Int { get set }
+    var volume: Float { get set }
+    var rate: Float { get set }
+    var delegate: (any AVAudioPlayerDelegate)? { get set }
+
+    func prepareToPlay() -> Bool
+    @discardableResult
+    func play() -> Bool
+    func pause()
+    func stop()
+}
+
+extension AVAudioPlayer: AudioPlaying { }
+
 @MainActor
 @Observable
 final class AudioPlayer: NSObject {
@@ -14,11 +32,17 @@ final class AudioPlayer: NSObject {
     private(set) var duration: TimeInterval = .zero
     private(set) var rate: Float = 1.0
 
-    @ObservationIgnored private var player: AVAudioPlayer?
+    @ObservationIgnored private let makePlayer: (URL) throws -> any AudioPlaying
+    @ObservationIgnored private var player: (any AudioPlaying)?
     @ObservationIgnored private var ticker: Timer?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
 
-    override init() {
+    init(
+        makePlayer: @escaping (URL) throws -> any AudioPlaying = {
+            try AVAudioPlayer(contentsOf: $0)
+        }
+    ) {
+        self.makePlayer = makePlayer
         super.init()
 
         observeSessionNotifications()
@@ -33,7 +57,7 @@ final class AudioPlayer: NSObject {
 extension AudioPlayer {
 
     func setup(filePath: URL) throws {
-        let player = try AVAudioPlayer(contentsOf: filePath)
+        let player = try makePlayer(filePath)
         player.enableRate = true
         player.numberOfLoops = 0
         player.volume = 1.0
@@ -139,7 +163,7 @@ private extension AudioPlayer {
         ticker = nil
     }
 
-    func updateCurrentTime(with player: AVAudioPlayer) {
+    func updateCurrentTime(with player: any AudioPlaying) {
         currentTime = player.currentTime
     }
 
@@ -244,3 +268,48 @@ extension AudioPlayer: AVAudioPlayerDelegate {
     }
 
 }
+
+#if DEBUG
+final class MockAudioPlaying: AudioPlaying {
+    var currentTime: TimeInterval = .zero
+    var duration: TimeInterval
+    var enableRate: Bool = false
+    var numberOfLoops: Int = 0
+    var volume: Float = 1.0
+    var rate: Float = 1.0
+    weak var delegate: (any AVAudioPlayerDelegate)?
+
+    var prepareResult: Bool
+    var playResult: Bool
+    var currentTimeAfterPlay: TimeInterval
+
+    init(
+        duration: TimeInterval = 1.0,
+        prepareResult: Bool = true,
+        playResult: Bool = true,
+        currentTimeAfterPlay: TimeInterval = 0.25
+    ) {
+        self.duration = duration
+        self.prepareResult = prepareResult
+        self.playResult = playResult
+        self.currentTimeAfterPlay = currentTimeAfterPlay
+    }
+
+    func prepareToPlay() -> Bool {
+        prepareResult
+    }
+
+    @discardableResult
+    func play() -> Bool {
+        guard playResult else {
+            return false
+        }
+        currentTime = currentTimeAfterPlay
+        return true
+    }
+
+    func pause() { }
+
+    func stop() { }
+}
+#endif

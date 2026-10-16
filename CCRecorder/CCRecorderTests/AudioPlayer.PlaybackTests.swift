@@ -32,20 +32,20 @@ extension AudioPlayerPlaybackTests {
     }
 
     @Test("준비한 파일을 재생하고 일시정지하면 현재 시간이 유지된다")
-    func playAndPauseKeepsCurrentTime() async throws {
+    func playAndPauseKeepsCurrentTime() throws {
         // given
+        let player = MockAudioPlaying(currentTimeAfterPlay: 0.25)
+        let sut = AudioPlayer(makePlayer: { _ in player })
         try sut.setup(filePath: filePath)
 
         // when
         sut.play()
-        try await Task.sleep(for: .milliseconds(250))
         sut.pause()
         let pausedTime = sut.currentTime
-        try await Task.sleep(for: .milliseconds(150))
 
         // then
         #expect(!sut.isPlaying)
-        #expect(pausedTime > .zero)
+        #expect(pausedTime == 0.25)
         #expect(sut.currentTime == pausedTime)
     }
 

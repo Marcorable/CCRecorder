@@ -67,6 +67,7 @@ fileprivate struct MainTabItem: View {
                 Spacer()
             }
         )
+        .accessibilityIdentifier(accessibilityIdentifier)
     }
     
     private var tabItemImageName: String {
@@ -77,6 +78,13 @@ fileprivate struct MainTabItem: View {
     }
     
     private var isSelected: Bool { tab == selectedTab }
+
+    private var accessibilityIdentifier: String {
+        switch tab {
+            case .conversationList:     "mainTab.conversation"
+            case .noteList:             "mainTab.note"
+        }
+    }
     
     private var currentTintColor: Color {
         switch tab {

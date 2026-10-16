@@ -27,11 +27,11 @@ final class CCRecorderUITests: XCTestCase {
     func testNoteTabDoesNotCrash() throws {
         let app = launchApp()
 
-        let noteTab = app.buttons.element(boundBy: 2)
+        let noteTab = app.buttons["mainTab.note"]
         XCTAssertTrue(noteTab.waitForExistence(timeout: 10), "메인 탭바가 표시되지 않음")
         noteTab.tap()
 
-        XCTAssertTrue(app.navigationBars.buttons["더미 추가"].waitForExistence(timeout: 5),
+        XCTAssertTrue(app.navigationBars["Note"].waitForExistence(timeout: 5),
                       "Note 탭 진입 실패 (크래시 가능성)")
         XCTAssertEqual(app.state, .runningForeground)
     }
