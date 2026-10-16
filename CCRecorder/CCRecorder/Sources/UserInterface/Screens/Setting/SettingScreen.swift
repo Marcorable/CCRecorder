@@ -23,7 +23,6 @@ enum SettingScreen {
 
 extension SettingScreen {
 
-    static var repositoryURL: URL { URL(string: "https://github.com/Marcorable/CCRecorder")! }
     static var instagramURL: URL { URL(string: "https://www.instagram.com/casualconversation_ccrecorder/")! }
     static var mailURL: URL { URL(string: "mailto:pse.applications@gmail.com")! }
 
@@ -34,7 +33,6 @@ extension SettingScreen {
                 role: "Team Leader · iOS Development",
                 links: [
                     .init(title: "GitHub", url: URL(string: "https://github.com/Marcorable")!),
-                    .init(title: "Blog", url: URL(string: "https://keeplo.tistory.com")!),
                 ]
             ),
             .init(
@@ -42,7 +40,6 @@ extension SettingScreen {
                 role: "Project Management",
                 links: [
                     .init(title: "GitHub", url: URL(string: "https://github.com/dacodaco")!),
-                    .init(title: "App Store", url: URL(string: "https://apps.apple.com/kr/developer/id1604589992")!),
                 ]
             ),
         ]
