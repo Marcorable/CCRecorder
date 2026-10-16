@@ -11,10 +11,6 @@ extension SettingScreen {
                 content: {
                     LabeledContent("버전", value: appVersion ?? "알 수 없음")
                     Link(
-                        destination: SettingScreen.repositoryURL,
-                        label: { Label("오픈소스 (GitHub)", systemImage: "chevron.left.forwardslash.chevron.right") }
-                    )
-                    Link(
                         destination: SettingScreen.instagramURL,
                         label: { Label("인스타그램 소통하기", systemImage: "hand.thumbsup") }
                     )
