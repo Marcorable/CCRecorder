@@ -35,29 +35,10 @@
          <TestPlanReference
             reference = "container:CI-Unit.xctestplan">
          </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Local-UI.xctestplan">
+         </TestPlanReference>
       </TestPlans>
-      <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A9DA8CDE2C8A9C3600D1141C"
-               BuildableName = "CCRecorderUITests.xctest"
-               ReferencedContainer = "container:CCRecorder.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A9DA8CD42C8A9C3600D1141C"
-               BuildableName = "CCRecorderTests.xctest"
-               ReferencedContainer = "container:CCRecorder.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
