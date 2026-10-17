@@ -31,7 +31,8 @@ struct PinGrid: View {
                                 withAnimation {
                                     delete(index)
                                 }
-                            }, label: {
+                            },
+                            label: {
                                 Image(systemName: "delete.backward")
                                     .foregroundStyle(Color.Light.logoRed)
                             }
