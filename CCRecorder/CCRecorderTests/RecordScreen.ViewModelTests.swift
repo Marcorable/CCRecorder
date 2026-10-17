@@ -57,6 +57,31 @@ extension RecordScreenViewModelTests {
         #expect(!viewModel.isRecording)
     }
 
+    @Test("녹음 중 핀을 추가하면 화면 표시용 목록에 반영된다")
+    func addPinUpdatesPins() {
+        // given
+        recorder.isRecording = true
+        recorder.currentTime = 3.0
+
+        // when
+        viewModel.reduce(by: .addPin)
+
+        // then
+        #expect(viewModel.pins == [3.0])
+    }
+
+    @Test("핀을 삭제하면 화면 표시용 목록에서 제거된다")
+    func removePinUpdatesPins() {
+        // given
+        recorder.pins = [2.0, 7.5]
+
+        // when
+        viewModel.reduce(by: .removePin(0))
+
+        // then
+        #expect(viewModel.pins == [7.5])
+    }
+
     @Test("녹음한 시간이 없으면 저장 확인을 띄우지 않는다")
     func requestSave_withoutRecording() {
         viewModel.reduce(by: .requestSave)
