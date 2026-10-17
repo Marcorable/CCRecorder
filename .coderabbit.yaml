@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: ko-KR
+
+reviews:
+  auto_review:
+    enabled: true
+    # [AI] 기본 브랜치(main) 외에 PR 베이스인 develop 도 자동 리뷰한다
+    base_branches:
+      - develop
+  path_instructions:
+    - path: "**/*.swift"
+      instructions: >-
+        `.claude/rules/marcorable-swift/` 의 규칙을 기준으로 리뷰한다.
+        새 화면은 Screen 패턴(`<Name>Screen` 의 Model·ViewModel·Context)을 따른다.
+        기존 코드는 손댄 파일만 규칙에 맞추므로, 변경하지 않은 레거시 코드의 규칙 위반은 지적하지 않는다.
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - ".claude/rules/**/*.md"

@@ -1,115 +1,140 @@
-# Casual Conversation 프로젝트
+# CasualConversation
 
-[<img src="https://is1-ssl.mzstatic.com/image/thumb/Purple112/v4/f5/e6/a6/f5e6a66b-6148-0758-1cbe-68e044302575/AppIcon-0-1x_U007emarketing-0-7-0-85-220.png/230x0w.webp" width="150" height="150">](https://apps.apple.com/kr/app/id1642134370/) [<img src="https://github.com/user-attachments/assets/fc55999e-fdc5-4814-8f1f-f22030e0de83" width=195 height=75>](https://apps.apple.com/kr/app/id1642134370/) 
+영어 회화를 녹음하고 다시 들으면서 놓친 단어와 문장을 기록하는 iOS 앱입니다.
 
-***잊지말고 녹음부터 하세요!***
+<p>
+  <a href="https://apps.apple.com/kr/app/casualconversation/id1642134370"><img alt="App Store" src="https://img.shields.io/badge/App_Store-1.1.0-0D96F6?logo=appstore"></a>
+  <img alt="iOS 18+" src="https://img.shields.io/badge/iOS-18.0%2B-000000?logo=apple">
+  <img alt="Swift 5" src="https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white">
+  <img alt="Xcode 26.2" src="https://img.shields.io/badge/Xcode-26.2-147EFB?logo=xcode&logoColor=white">
+</p>
 
-***항상 회화 순간을 녹음해두었다가  
-모르는 단어와 만들지 못한 문장을 학습하세요!***
+## 앱 소개
 
-## 📱 앱 소개
-영어회화를 녹음하고 녹음된 내용을 다시 들으며, 몰랐던 단어와 만들지 못한 문장을 기록하고   
-기록한 단어나 문장을 다시 만들어보는 기회를 제공하는 기록앱입니다.    
-[인스타그램 홍보/문의 페이지](https://www.instagram.com/casualconversation_ccrecorder/)  [앱스토어](https://apps.apple.com/kr/app/id1642134370/)  
+짧은 영어 회화 중 바로 이해하지 못했거나 표현하지 못한 부분을 나중에 다시 학습할 수 있도록 돕습니다.
 
-## 🗂 프로젝트 소개
+- 대화를 녹음하고 중요한 순간에 핀 표시
+- 제목, 주제, 참여자와 함께 녹음 저장
+- 녹음 재생, 구간 이동, 0.5배속부터 2배속까지 속도 조절
+- 대화에 연결된 단어와 문장 기록
+- 화면 모드, 건너뛰기 시간, 자동 잠금 설정
+- v1 CoreData 데이터와 녹음 파일을 v2 SwiftData 구조로 자동 이전
 
-<details><summary>v1 (1.0.1) - 출시 프로세스</summary><div markdown="1">
+[App Store](https://apps.apple.com/kr/app/casualconversation/id1642134370) · [Instagram](https://www.instagram.com/casualconversation_ccrecorder/)
 
-팀원 : 2명 (iOS 개발 1명, ProductManger 1명)  
-기간 : 22.06.17 ~ 22.09.17 `v1.0.0 출시` / 09.19 `v1.1.0 업데이트` ~    
-</div></details>
+## v2 화면
 
-<details><summary>v2 (2.0.0) - 서비스 개선 프로세스</summary><div markdown="1">
+<p align="center">
+  <img src="Docs/Images/v2-conversations.png" alt="대화 목록" width="260">
+  <img src="Docs/Images/v2-recording.png" alt="녹음" width="260">
+  <img src="Docs/Images/v2-settings.png" alt="설정" width="260">
+</p>
 
-팀원 : 1명 (iOS 1명, Android 0명, 디자이너 0명) 모집중  
-기간 : 23.04.10 ~ `v2.0.0` 업데이트    
-</div></details>
+## 저장소 구성
 
-> 프로젝트 진행에 관한 자세한내용이 궁금하시면 [Wiki / 🗂 프로젝트 정보](https://github.com/PSE-Applications/CasualConversation_iOS/wiki/🗂-프로젝트-정보) 에서 확인하실 수 있습니다.
+두 세대의 앱 코드가 한 저장소에 공존합니다.
 
-![](https://img.shields.io/badge/Target_iOS-15.0~-green) ![](https://img.shields.io/badge/Swift-5.6-orange) ![](https://img.shields.io/badge/Xcode-13.4-blue) ![](https://img.shields.io/badge/SwiftUI-3.0-puple) 
+```text
+CCRecorder/
+├── CCRecorder/          # v2 앱 — 현재 개발 대상
+├── CCRecorderTests/     # Swift Testing 기반 단위·통합 테스트
+├── CCRecorderUITests/   # XCTest 기반 UI 테스트
+├── App.xctestplan       # Xcode 기본 테스트 플랜
+├── CI-Unit.xctestplan   # Xcode Cloud 유닛 테스트 플랜
+└── Local-UI.xctestplan  # 로컬 UI 테스트 플랜
 
-## 🥇 프로젝트팀 소개
-### Team MarCoda
-<details><summary>v1 (1.0.1) - 출시 프로세스</summary><div markdown="1">
+CasualConversation/      # v1 레거시 — 마이그레이션 참고용
+Docs/                    # 개발 문서와 v2 이미지
+```
 
-|<img src="https://www.notion.so/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F1cba71b5-edd1-4247-9048-4230712e2d3d%2FProfile_1.jpeg?table=block&id=e17e3b5c-cbdd-4196-8832-38e6e1083432&spaceId=e6b8a7b9-cbae-4355-941e-ce441f218386&width=2000&userId=aaeaa0fd-5da4-499b-9277-7adf273dceea&cache=v2" width=200 height=200>|<img src="https://www.notion.so/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F8e197c5f-03be-4e4a-a777-a0e5468a1c5f%2FCoda__Design.jpg?table=block&id=458a1cfe-8d8b-4fb4-9bf9-80e5ab47ef20&spaceId=e6b8a7b9-cbae-4355-941e-ce441f218386&width=2000&userId=aaeaa0fd-5da4-499b-9277-7adf273dceea&cache=v2" width=200 height=200>|
-|:---:|:---:|
-|iOS Development/Team Leader|ProductManger/Design|
-|김용우 [@keeplo](https://github.com/keeplo) |김찬우 [@dacodaco](https://github.com/dacodaco) |
-</div></details>
+새 기능과 수정은 `CCRecorder/`의 v2 앱을 대상으로 합니다. `CasualConversation/`은 출시된 v1 데이터 구조를 확인하기 위한 레거시 코드이며 신규 개발 대상이 아닙니다.
 
-<details><summary>v2 (2.0.0) - 서비스 개선 프로세스</summary><div markdown="1">
+## 기술 구성
 
-|<img src="https://www.notion.so/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F1cba71b5-edd1-4247-9048-4230712e2d3d%2FProfile_1.jpeg?table=block&id=e17e3b5c-cbdd-4196-8832-38e6e1083432&spaceId=e6b8a7b9-cbae-4355-941e-ce441f218386&width=2000&userId=aaeaa0fd-5da4-499b-9277-7adf273dceea&cache=v2" width=200 height=200>|<img src="" width=200 height=200>|<img src="" width=200 height=200>|
-|:-:|:-:|:-:|
-|PO, iOS|Android|Design|
-|김용우 [@keeplo](https://github.com/keeplo) | 모집중 | 모집중 |
+- SwiftUI
+- SwiftData
+- Observation
+- AVFAudio (`AVAudioRecorder`, `AVAudioPlayer`, `AVAudioSession`)
+- Core Data 기반 v1 저장소 마이그레이션
+- Swift Testing, XCTest
+- Xcode Cloud
 
-</div></details>
+v2는 외부 패키지 없이 단일 Xcode 프로젝트로 구성되어 있습니다. 화면 단위 상태와 동작은 Screen 네임스페이스 아래 `Model`, `ViewModel`, `Context`, `View`로 분리합니다.
 
-## 🛠 기술 스택 
+## 실행 방법
 
-> 아래 나열된 적용 기술에 관한 자세한 내용이 궁금하시면 [Wiki / 🛠-기술-정보](https://github.com/PSE-Applications/CasualConversation_iOS/wiki/🛠-기술-정보) 에서 확인하실 수 있습니다.
+### 요구 사항
 
-<details><summary>v1 (1.0.1) - 출시 프로세스</summary><div markdown="1">
+- Xcode 26.2 이상
+- iOS 18.0 이상
+- 녹음 기능을 실행할 기기의 마이크 권한
 
-### Tool
-* Fastlane
-* Tuist
+### Xcode
 
-### Architecture & Design Pattern
-* Clean Architecture (iOS)
-   > Reference by   
-   > [The Clean Architecture by Robert C.Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)   
-   > [Clean architecture series — Part 3 _ The Cone](https://pereiren.medium.com/clean-architecture-series-part-3-a0c150551e5f)   
-   > [iOS-CleanArcitecture-MVVM](https://github.com/kudoleh/iOS-Clean-Architecture-MVVM)  
-* MVVM
-</div></details>
+1. `CCRecorder/CCRecorder.xcodeproj`를 엽니다.
+2. `App` 스킴을 선택합니다.
+3. iOS 18.0 이상의 Simulator 또는 실기기를 선택합니다.
+4. 서명이 필요한 실기기 빌드는 프로젝트의 Development Team을 설정합니다.
+5. 앱을 실행합니다.
 
-<details><summary>v2 (2.0.0) - 서비스 개선 프로세스</summary><div markdown="1">
+명령행에서 Simulator 빌드만 확인하려면 다음을 실행합니다.
 
-### Tool
-* Xcode Cloud
-* Package
+```sh
+xcodebuild build \
+  -project CCRecorder/CCRecorder.xcodeproj \
+  -scheme App \
+  -configuration Debug \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO
+```
 
-### Architecture & Design Pattern
-* MVVM-C
-* Singleton Pattern
-</div></details>
+## 테스트
 
-### Apple Framework
-* Combine
-* SwiftUI
-* AVFAudio
-   * AVAudioSession
-   * AVAudioRecorder
-   * AVAudioPlayer
-* CoreData
-   * NSManagedObject
-* FileSystem
-   * FileManager
+Xcode Cloud에서는 `CI-Unit`, 로컬 UI 테스트에서는 `Local-UI` 플랜을 사용합니다.
 
-### Dependency
-* UnitTest (BDD)
-   * Quick
-   * Nimble
-</div></details>
+```sh
+# 유닛 테스트
+xcodebuild test \
+  -project CCRecorder/CCRecorder.xcodeproj \
+  -scheme App \
+  -testPlan CI-Unit \
+  -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=18.0'
 
-## ⚙️ 기능 소개 with ScreenShots
-> 자세한 기능 시나리오가 궁금하시면 [Wiki /📱 앱 정보](https://github.com/PSE-Applications/CasualConversation_iOS/wiki/📱-앱-정보) 에서 확인하실 수 있습니다.
+# UI 테스트
+xcodebuild test \
+  -project CCRecorder/CCRecorder.xcodeproj \
+  -scheme App \
+  -testPlan Local-UI \
+  -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=18.0'
+```
 
-### 녹음기능
-- 원하는 시점 북마크를 할 수 있어요, 녹음물에 제목, 대화 주제, 참여자 등 정보를 입력할 수 있습니다.  
-<img src="https://github.com/user-attachments/assets/c06aed6f-7472-42b1-9162-d7881a7146e0" width=200> <img src="https://github.com/user-attachments/assets/23ada1bf-770a-4897-bf17-308b4cd766c0" width=200> <img src="https://github.com/user-attachments/assets/7da7b2f7-c96a-4c31-98bb-0972a2d4253d" width=200>
-- 녹음물을 관리 할 수 있습니다.  
-<img src="https://github.com/user-attachments/assets/69a04bf5-dc30-40c5-9145-e2740214cc11" width=200> <img src="https://github.com/user-attachments/assets/0da2b11b-9e1e-4342-912a-9753093a8e0c" width=200> <img src="https://github.com/user-attachments/assets/39eff515-470b-4ba4-aec2-22f6e43f1a44" width=200>
-### 재생기능 및 기록하기, 복습하기
-- 녹음물을 다시 들으며 단어, 문장을 기록할 수 있습니다.  
-<img src="https://github.com/user-attachments/assets/c27796c7-f781-4b36-b2bb-9319843f9e2a" width=200> <img src="https://github.com/user-attachments/assets/304d3dd3-1834-47d4-83e5-9bffc4a54972" width=200> <img src="https://github.com/user-attachments/assets/98f6d335-d404-4852-8d51-768563bbffca" width=200>
-- 기록한 단어, 문장 데이터를 관리하고 영한/한영 번역 만들기를 할 수 있습니다.  
-<img src="https://github.com/user-attachments/assets/d40f4aeb-173d-4bd1-b290-ecbb6200446b" width=200> <img src="https://github.com/user-attachments/assets/d22d0a72-1262-4ce4-affb-b128c2ec1124" width=200> <img src="https://github.com/user-attachments/assets/2c4fb7aa-73f1-422b-9939-96bb85e36421" width=200>
-### 설정 및 정보
-- 넘어가기 기능, 다크모드, 화면 자동잠금 등 앱 설정을 관리할 수 있습니다.  
-<img src="https://github.com/user-attachments/assets/af518748-81b9-4b61-a917-4016d67ba361" width=200> <img src="https://github.com/user-attachments/assets/a74ef057-e99d-457a-9abb-3918bcc34de5" width=200> <img src="https://github.com/user-attachments/assets/a43a83ba-dbd5-4be7-943e-e22c2c63fa49" width=200> 
+실제 마이크 입력이 필요한 테스트와 CI 운영 기준은 [테스트 운영 문서](Docs/Testing.md)를 참고하세요.
+
+## v1 데이터 마이그레이션
+
+v2는 App Store의 v1과 동일한 Bundle ID(`com.pseapplications.CasualConversation`)를 유지합니다. 첫 실행 시 기존 CoreData 저장소가 발견되면 다음 데이터를 SwiftData와 v2 녹음 디렉터리로 옮깁니다.
+
+- 대화, 참여자, 핀
+- 단어·문장 노트와 대화 연결
+- `Documents/Records`의 녹음 파일
+
+마이그레이션 도중 실패하면 v1 원본을 삭제하지 않으며, 완료 플래그가 기록되기 전까지 다음 실행에서 다시 시도할 수 있습니다.
+
+## 배포 상태
+
+| 버전 | 상태 | 주요 내용 |
+| --- | --- | --- |
+| 1.1.0 | App Store 배포 중 | 튜토리얼과 녹음 재생 안정화 |
+| 1.2.0 | v2 출시 준비 | SwiftUI·SwiftData 기반 재구성, v1 데이터 마이그레이션, 녹음·재생·노트·설정 개선 |
+
+### 1.2.0 릴리즈 노트 초안
+
+- 앱의 화면과 데이터 구조를 새롭게 구성했습니다.
+- 기존 대화, 노트, 녹음 파일을 안전하게 이전합니다.
+- 녹음과 재생 제어를 개선하고 재생 속도 및 건너뛰기 설정을 추가했습니다.
+- 빈 목록 안내와 오류 처리를 개선했습니다.
+
+## 팀
+
+- [Marco](https://github.com/Marcorable) — Team Leader · iOS Development
+- [Coda](https://github.com/dacodaco) — Project Management
