@@ -6,12 +6,10 @@ struct PinGrid: View {
     let isRecording: Bool
     let currentTime: TimeInterval
     let delete: (Int) -> Void
-    
+
     var body: some View {
         ScrollView {
-            Spacer()
-            VStack {
-                Spacer(minLength: 30)
+            LazyVStack(spacing: 0) {
                 HStack {
                     Spacer()
                     Image(systemName: "circle.fill")
@@ -22,44 +20,45 @@ struct PinGrid: View {
                         .font(.largeTitle)
                     Spacer()
                 }
-                Spacer()
-                List {
-                    ForEach(pins.indices, id: \.self) { index in
-                        HStack {
-                            Text("📌 \(pins[index].displayTime)")
-                            Spacer()
-                            Button(
-                                action: {
-                                    withAnimation {
-                                        delete(index)
-                                    }
-                                }, label: {
-                                    Image(systemName: "delete.backward")
-                                        .foregroundStyle(Color.Light.logoRed)
+                .padding(.vertical, 30)
+
+                ForEach(pins.indices, id: \.self) { index in
+                    HStack {
+                        Text("📌 \(pins[index].displayTime)")
+                        Spacer()
+                        Button(
+                            action: {
+                                withAnimation {
+                                    delete(index)
                                 }
-                            )
-                        }
-                        .listRowBackground(Color.clear)
+                            },
+                            label: {
+                                Image(systemName: "delete.backward")
+                                    .foregroundStyle(Color.Light.logoRed)
+                            }
+                        )
                     }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+
+                    Divider()
+                        .padding(.horizontal)
                 }
-                .padding()
-                .listStyle(.plain)
-                .background(Color.clear)
             }
-            Spacer()
         }
     }
 }
 
 private extension PinGrid {
-    
+
     var circleColor: Color {
         isRecording ? .Light.logoRed : .Dark.logoRed
     }
+
     var timeColor: Color {
         isRecording ? .white : .gray
     }
-  
+
 }
 
 #Preview {
