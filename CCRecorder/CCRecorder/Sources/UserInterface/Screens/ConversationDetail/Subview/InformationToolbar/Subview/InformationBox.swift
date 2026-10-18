@@ -30,7 +30,8 @@ struct InformationBox: View {
                     withAnimation {
                         isEditing.toggle()
                     }
-                }, label: {
+                },
+                label: {
                     HStack {
                         Text("Conversation Information")
                             .font(.headline)

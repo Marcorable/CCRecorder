@@ -66,7 +66,8 @@ struct ConversationInfoBox: View {
             Button(
                 action: {
                     withAnimation { isEditing.toggle() }
-                }, label: {
+                },
+                label: {
                     HStack {
                         Text("Conversation Information")
                             .font(.headline)
@@ -93,7 +94,8 @@ struct ConversationInfoBox: View {
                                     from: nil,
                                     for: nil
                                 )
-                        }, label: {
+                        },
+                        label: {
                             Image(systemName: "keyboard.chevron.compact.down")
                         }
                     )

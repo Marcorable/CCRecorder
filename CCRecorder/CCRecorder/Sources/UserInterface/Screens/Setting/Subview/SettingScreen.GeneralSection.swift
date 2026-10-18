@@ -11,29 +11,28 @@ extension SettingScreen {
         let presentTutorial: () -> Void
 
         var body: some View {
-            Section(
-                content: {
-                    Picker("화면 모드", selection: $displayMode) {
-                        ForEach(DisplayMode.allCases, id: \.self) {
-                            Text(title($0))
-                                .tag($0)
-                        }
+            Section("일반") {
+                Picker("화면 모드", selection: $displayMode) {
+                    ForEach(DisplayMode.allCases, id: \.self) {
+                        Text(title($0))
+                            .tag($0)
                     }
-                    Picker("건너뛰기 시간", selection: $skipInterval) {
-                        ForEach(SkipInterval.allCases, id: \.self) {
-                            Text("\($0.rawValue)초")
-                                .tag($0)
-                        }
+                }
+                Picker("건너뛰기 시간", selection: $skipInterval) {
+                    ForEach(SkipInterval.allCases, id: \.self) {
+                        Text("\($0.rawValue)초")
+                            .tag($0)
                     }
-                    Toggle("화면 자동 잠금 끄기", isOn: $isIdleTimerDisabled)
-                    Button(
-                        action: presentTutorial,
-                        label: { Text("앱 사용방법 다시보기") }
-                    )
-                    .tint(.primary)
-                },
-                header: { Text("일반") }
-            )
+                }
+                Toggle("화면 자동 잠금 끄기", isOn: $isIdleTimerDisabled)
+                Button(
+                    action: presentTutorial,
+                    label: {
+                        Text("앱 사용방법 다시보기")
+                    }
+                )
+                .tint(.primary)
+            }
         }
     }
 

@@ -17,7 +17,8 @@ struct SpeedMenu: View {
                         }
                     )
                 }
-            }, label: {
+            },
+            label: {
                 Spacer()
                 Text(speedDescription(of: speed))
                     .foregroundStyle(Color.Dark.logoBlue)

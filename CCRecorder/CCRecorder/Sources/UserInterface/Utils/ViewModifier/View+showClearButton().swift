@@ -21,7 +21,8 @@ struct TextFieldClearButton: ViewModifier {
                         Button(
                             action: {
                                 text = ""
-                            }, label: {
+                            },
+                            label: {
                                 Image(systemName: "multiply.circle.fill")
                             }
                         )
