@@ -1,10 +1,10 @@
+
 import SwiftUI
 
 struct NoteList: View {
-    var notes: [Note]
-    
+    let notes: [Note]
     let onDelete: (IndexSet) -> Void
-    
+
     @State private var isPresentedModal: Note?
 
     var body: some View {
@@ -18,7 +18,7 @@ struct NoteList: View {
             } else {
                 List {
                     ForEach(notes, id: \.id) { note in
-                        NoteListRow(note: note)
+                        Row(note: note)
                             .onTapGesture {
                                 isPresentedModal = note
                             }
@@ -30,21 +30,19 @@ struct NoteList: View {
         }
         .sheet(item: $isPresentedModal) { note in
             NoteDetail(note: note)
-                .presentationDetents(detents(of: note.category))
+                .presentationDetents(note.category.noteDetailPresentationDetents)
         }
     }
-    
 }
 
-private extension NoteList {
-    
-    func detents(of category: Note.Category) -> Set<PresentationDetent> {
-        switch category {
+private extension Note.Category {
+
+    var noteDetailPresentationDetents: Set<PresentationDetent> {
+        switch self {
             case .vocabulary:   [.medium]
             case .sentence:     [.medium, .large]
         }
     }
-    
 }
 
 #if DEBUG

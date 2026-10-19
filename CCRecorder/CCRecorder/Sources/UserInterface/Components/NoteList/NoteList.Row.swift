@@ -1,43 +1,47 @@
+
 import SwiftUI
 
-struct NoteListRow: View {
-    let note: Note
-    
-    var body: some View {
-        HStack {
-            Image(systemName: categoryImageName)
-                .foregroundStyle(Color.Light.logoRed)
-                .frame(width: 36, alignment: .center)
-            
-            VStack(alignment: .leading) {
-                if note.isDone {
-                    Text(note.original)
-                    Text(note.translation)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                } else {
-                    Text(noteContentLabel)
-                    Text(suggestLabel)
-                        .font(.caption)
-                        .foregroundColor(.Any.icon)
+extension NoteList {
+
+    struct Row: View {
+        let note: Note
+
+        var body: some View {
+            HStack {
+                Image(systemName: categoryImageName)
+                    .foregroundStyle(Color.Light.logoRed)
+                    .frame(width: 36, alignment: .center)
+
+                VStack(alignment: .leading) {
+                    if note.isDone {
+                        Text(note.original)
+                        Text(note.translation)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    } else {
+                        Text(noteContentLabel)
+                        Text(suggestLabel)
+                            .font(.caption)
+                            .foregroundColor(.Any.icon)
+                    }
                 }
+                Spacer()
+                Image(systemName: noteContentImageName)
+                    .foregroundStyle(noteContentColor)
             }
-            Spacer()
-            Image(systemName: noteContentImageName)
-                .foregroundStyle(noteContentColor)
+            .font(.body)
+            .listRowBackground(Color.clear)
+            .contentShape(Rectangle())
         }
-        .font(.body)
-        .listRowBackground(Color.clear)
-        .contentShape(Rectangle())
     }
-    
 }
 
-private extension NoteListRow {
+private extension NoteList.Row {
 
     var isOriginalEmpty: Bool {
         note.original.isEmpty
     }
+
     var categoryImageName: String {
         note.category == .sentence ? "text.bubble.fill" : "textformat.abc"
     }
@@ -60,16 +64,15 @@ private extension NoteListRow {
             case .sentence:         isOriginalEmpty ? "문장을 번역해보세요!" : "문장을 해석해보세요!"
         }
     }
-    
 }
 
 #if DEBUG
 #Preview("영어만 문장") {
-    NoteListRow(note: .originalOnlySentenceNote)
+    NoteList.Row(note: .originalOnlySentenceNote)
 }
 
 #Preview("한글만 단어") {
-    NoteListRow(note: .translationOnlyVocabularyNote)
+    NoteList.Row(note: .translationOnlyVocabularyNote)
 }
 
 fileprivate extension Note {
