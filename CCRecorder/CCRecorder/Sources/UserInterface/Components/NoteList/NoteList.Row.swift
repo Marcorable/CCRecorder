@@ -9,7 +9,7 @@ extension NoteList {
         var body: some View {
             HStack {
                 Image(systemName: categoryImageName)
-                    .foregroundStyle(Color.Light.logoRed)
+                    .foregroundStyle(Color.Logo.Prominent.red)
                     .frame(width: 36, alignment: .center)
 
                 VStack(alignment: .leading) {
@@ -22,7 +22,7 @@ extension NoteList {
                         Text(noteContentLabel)
                         Text(suggestLabel)
                             .font(.caption)
-                            .foregroundColor(.Any.icon)
+                            .foregroundColor(.Icon.accent)
                     }
                 }
                 Spacer()
@@ -53,7 +53,7 @@ private extension NoteList.Row {
         }
     }
     var noteContentColor: Color {
-        note.isDone ? .Light.logoBlue : .Dark.logoBlue
+        note.isDone ? .Logo.Prominent.blue : .Logo.Muted.blue
     }
     var noteContentLabel: String {
         isOriginalEmpty ? note.translation : note.original

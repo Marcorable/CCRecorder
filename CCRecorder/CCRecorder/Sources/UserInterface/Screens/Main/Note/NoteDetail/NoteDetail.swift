@@ -92,7 +92,7 @@ fileprivate struct NoteDetailToolbar: ToolbarContent {
         ToolbarItem(placement: .principal) {
             HStack {
                 Image(systemName: imageSystemName)
-                    .foregroundStyle(Color.Light.logoRed)
+                    .foregroundStyle(Color.Logo.Prominent.red)
                 Text(title)
                     .font(.headline)
             }
@@ -103,7 +103,7 @@ fileprivate struct NoteDetailToolbar: ToolbarContent {
                 label: {
                     Text("저장")
                         .font(.headline)
-                        .tint(.Dark.logoGreen)
+                        .tint(.Logo.Muted.green)
                 }
             )
             .disabled(!isEdited)

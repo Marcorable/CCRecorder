@@ -50,7 +50,7 @@ fileprivate struct InputField: View {
                     .font(.headline)
                 HStack {
                     Image(systemName: iconName)
-                        .foregroundStyle(Color.Light.logoBlue)
+                        .foregroundStyle(Color.Logo.Prominent.blue)
                     TextField(
                         title,
                         text: text,

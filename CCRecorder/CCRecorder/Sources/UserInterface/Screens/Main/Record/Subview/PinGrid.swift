@@ -34,7 +34,7 @@ struct PinGrid: View {
                             },
                             label: {
                                 Image(systemName: "delete.backward")
-                                    .foregroundStyle(Color.Light.logoRed)
+                                    .foregroundStyle(Color.Logo.Prominent.red)
                             }
                         )
                     }
@@ -52,7 +52,7 @@ struct PinGrid: View {
 private extension PinGrid {
 
     var circleColor: Color {
-        isRecording ? .Light.logoRed : .Dark.logoRed
+        isRecording ? .Logo.Prominent.red : .Logo.Muted.red
     }
 
     var timeColor: Color {

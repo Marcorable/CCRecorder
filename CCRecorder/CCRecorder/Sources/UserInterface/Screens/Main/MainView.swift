@@ -6,7 +6,6 @@ enum Tab {
 }
 
 struct MainView: View {
-    @Environment(\.colorScheme) var colorScheme
     @Environment(\.modelContext) private var modelContext
     @Environment(ViewCoordinator.self) private var viewCoordinator
     
@@ -24,7 +23,7 @@ struct MainView: View {
                 isPresentedModal: $isPresentedModal
             )
         }
-        .background(backgroudColor)
+        .background(Color.Surface.Background.primary)
         .fullScreenCover(isPresented: $isPresentedModal) {
             RecordScreen.Context(
                 viewModel: .init(
@@ -41,14 +40,6 @@ struct MainView: View {
         .toolbar {
             MainViewToolbar()
         }
-    }
-    
-}
-
-extension MainView {
-    
-    private var backgroudColor: Color {
-        colorScheme == .dark ? .Dark.background : .Light.background
     }
     
 }

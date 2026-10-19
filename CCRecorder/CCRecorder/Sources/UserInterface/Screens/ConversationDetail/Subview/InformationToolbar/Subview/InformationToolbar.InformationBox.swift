@@ -43,7 +43,7 @@ extension InformationToolbar {
                                 Text("완료")
                             }
                             Image(systemName: "chevron.right")
-                                .foregroundStyle(Color.Dark.logoGreen)
+                                .foregroundStyle(Color.Logo.Muted.green)
                                 .rotationEffect(.degrees(isEditing ? 90.0 : 0.0))
                         }
                     }
@@ -100,7 +100,7 @@ extension InformationToolbar {
                                                     action: { delete(of: party) },
                                                     label: {
                                                         Image(systemName: "xmark.circle.fill")
-                                                            .foregroundStyle(Color.Light.logoRed)
+                                                            .foregroundStyle(Color.Logo.Prominent.red)
                                                     }
                                                 )
                                             }

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct PlayTab: View {
-    @Environment(\.colorScheme) var colorScheme
     @AppStorage(.Key.skipInterval) private var skipInterval: SkipInterval = .five
 
     let player: AudioPlayer
@@ -58,7 +57,7 @@ struct PlayTab: View {
                 )
             }
         }
-        .background(colorScheme == .dark ? Color.Dark.background : Color.Light.background)
+        .background(Color.Surface.Background.primary)
         .onAppear(perform: setup)
         .onDisappear {
             player.finish()

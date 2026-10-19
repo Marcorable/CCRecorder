@@ -1,14 +1,12 @@
 import SwiftUI
 
 struct ConversationListRow: View {
-    @Environment(\.colorScheme) var colorScheme
-    
     let conversation: Conversation
         
     var body: some View {
         HStack {
             Image(systemName: "recordingtape")
-                .foregroundStyle(Color.Light.logoRed)
+                .foregroundStyle(Color.Logo.Prominent.red)
             VStack(alignment: .leading) {
                 Text(conversation.title)
                     .font(.title3)
@@ -24,7 +22,7 @@ struct ConversationListRow: View {
                     VStack(alignment: .trailing) {
                         Text("Attendees \(conversation.parties.count)")
                             .font(.caption)
-                            .tint(.Dark.logoGreen)
+                            .tint(.Logo.Muted.green)
                             .lineLimit(1)
                             .truncationMode(.tail)
                         Text(conversation.createdDate, format: Date.FormatStyle(date: .abbreviated, time: .omitted))
@@ -42,6 +40,6 @@ struct ConversationListRow: View {
     
     private var isChecked: Bool { !conversation.title.isEmpty && !conversation.topic.isEmpty && !conversation.parties.isEmpty }
     private var checkerImageName: String { isChecked ? "info.circle.fill" : "circle" }
-    private var checkImageColor: Color { isChecked ? .Light.logoBlue : .Dark.logoBlue }
+    private var checkImageColor: Color { isChecked ? .Logo.Prominent.blue : .Logo.Muted.blue }
     
 }

@@ -19,7 +19,7 @@ struct SentenceContent: View {
         VStack(alignment: .leading) {
             HStack {
                 Image(systemName: "e.circle.fill")
-                    .foregroundStyle(Color.Light.logoBlue)
+                    .foregroundStyle(Color.Logo.Prominent.blue)
                 Text("문장 Original")
             }
             TextEditor(text: $original)
@@ -29,7 +29,7 @@ struct SentenceContent: View {
                 
             HStack {
                 Image(systemName: "k.circle.fill")
-                    .foregroundStyle(Color.Light.logoBlue)
+                    .foregroundStyle(Color.Logo.Prominent.blue)
                 Text("번역 Translation")
             }
             TextEditor(text: $translation)
@@ -46,7 +46,7 @@ struct SentenceContent: View {
     }
     
     private var textEditorBackground: some View {
-        (colorScheme == .dark ? Color.Dark.background : Color.Light.groupBackground)
+        (colorScheme == .dark ? Color.Surface.Background.primary : Color.Surface.Background.grouped)
             .cornerRadius(15)
     }
 }

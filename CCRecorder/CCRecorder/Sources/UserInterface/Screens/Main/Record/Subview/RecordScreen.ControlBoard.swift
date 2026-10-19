@@ -41,12 +41,12 @@ extension RecordScreen.ControlBoard {
                     Image(systemName: "stop.fill")
                         .foregroundStyle(
                             isEnabled
-                                ? Color.Light.logoBlue
-                                : Color.Dark.logoBlue
+                                ? Color.Logo.Prominent.blue
+                                : Color.Logo.Muted.blue
                         )
                         .font(.system(size: 34))
                         .shadow(
-                            color: .Dark.logoBlue,
+                            color: .Logo.Muted.blue,
                             radius: 1,
                             x: 2,
                             y: 2
@@ -77,10 +77,10 @@ extension RecordScreen.ControlBoard {
                         if isRecording {
                             ZStack {
                                 Image(systemName: "circle.fill")
-                                    .foregroundStyle(Color.Dark.logoRed)
+                                    .foregroundStyle(Color.Logo.Muted.red)
                                     .font(.system(size: 58))
                                 Image(systemName: "pause.fill")
-                                    .foregroundStyle(Color.Light.logoRed)
+                                    .foregroundStyle(Color.Logo.Prominent.red)
                                     .font(.system(size: 34))
                             }
                             .shadow(
@@ -91,10 +91,10 @@ extension RecordScreen.ControlBoard {
                             )
                         } else {
                             Image(systemName: "circle.fill")
-                                .foregroundStyle(Color.Light.logoRed)
+                                .foregroundStyle(Color.Logo.Prominent.red)
                                 .font(.system(size: 58))
                                 .shadow(
-                                    color: .Dark.logoBlue,
+                                    color: .Logo.Muted.blue,
                                     radius: 1,
                                     x: 1,
                                     y: 1
@@ -117,12 +117,12 @@ extension RecordScreen.ControlBoard {
                     Image(systemName: "pin")
                         .foregroundStyle(
                             isEnabled
-                                ? Color.Light.logoBlue
-                                : Color.Dark.logoBlue
+                                ? Color.Logo.Prominent.blue
+                                : Color.Logo.Muted.blue
                         )
                         .font(.system(size: 26))
                         .shadow(
-                            color: .Dark.logoBlue,
+                            color: .Logo.Muted.blue,
                             radius: 1,
                             x: 2,
                             y: 2
@@ -138,7 +138,7 @@ extension RecordScreen.ControlBoard {
 
 #if DEBUG
 #Preview {
-    Color.Dark.recorder.overlay {
+    Color.Surface.Recorder.muted.overlay {
         RecordScreen.ControlBoard(viewModel: .mock)
         .padding()
     }

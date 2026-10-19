@@ -24,7 +24,7 @@ struct OnboardView: View {
                                         .tint(.white)
                                         .font(.system(size: 16, weight: .bold, design: .rounded))
                                         .padding()
-                                        .background(Color.Any.icon)
+                                        .background(Color.Icon.accent)
                                         .shadow(color: .black, radius: 1, x: 1, y: 1)
                                 }
                             )
@@ -36,7 +36,7 @@ struct OnboardView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
-        .background(Color.Light.recorder)
+        .background(Color.Surface.Recorder.prominent)
     }
     
 }

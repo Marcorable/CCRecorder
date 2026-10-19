@@ -76,12 +76,12 @@ struct ConversationInfoBox: View {
                                         action: { delete(of: index) },
                                         label: {
                                             Image(systemName: "delete.backward")
-                                                .foregroundStyle(Color.Light.logoRed)
+                                                .foregroundStyle(Color.Logo.Prominent.red)
                                         }
                                     )
                                 }
                                 .padding()
-                                .background(Color.Surface.recorderProminent)
+                                .background(Color.Surface.Recorder.prominent)
                                 .clipShape(.rect(cornerRadius: 15))
                             }
                         }

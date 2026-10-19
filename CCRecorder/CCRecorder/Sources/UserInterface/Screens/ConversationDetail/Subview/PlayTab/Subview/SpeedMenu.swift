@@ -12,7 +12,7 @@ struct SpeedMenu: View {
                         action: { select(speed) },
                         label: {
                             Text(speedDescription(of: speed))
-                                .foregroundStyle(Color.Dark.logoBlue)
+                                .foregroundStyle(Color.Logo.Muted.blue)
                                 .font(.caption)
                         }
                     )
@@ -21,7 +21,7 @@ struct SpeedMenu: View {
             label: {
                 Spacer()
                 Text(speedDescription(of: speed))
-                    .foregroundStyle(Color.Dark.logoBlue)
+                    .foregroundStyle(Color.Logo.Muted.blue)
                     .font(.headline)
                 Spacer()
             }

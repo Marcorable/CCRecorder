@@ -14,7 +14,7 @@ struct PinButton: View {
                 Spacer()
             }
         )
-        .foregroundStyle(Color.Dark.logoBlue)
+        .foregroundStyle(Color.Logo.Muted.blue)
         .disabled(pinDisabled)
         .opacity(pinDisabled ? 0.3 : 1.0)
     }
