@@ -4,6 +4,17 @@ import Foundation
 import SwiftData
 
 struct LegacyStoreMigrator {
+    static let modelName: String = "CasualConversation"
+
+    private let dependency: Dependency
+
+    init(dependency: Dependency = .live) {
+        self.dependency = dependency
+    }
+}
+
+extension LegacyStoreMigrator {
+
     enum MigrationError: Error {
         case modelNotFound
         case incompatibleStore
@@ -17,17 +28,6 @@ struct LegacyStoreMigrator {
         case noLegacyStore
         case migrated(conversations: Int, notes: Int)
     }
-
-    static let modelName: String = "CasualConversation"
-
-    private let dependency: Dependency
-
-    init(dependency: Dependency = .live) {
-        self.dependency = dependency
-    }
-}
-
-extension LegacyStoreMigrator {
 
     struct Dependency {
         let storeURL: URL
@@ -80,7 +80,7 @@ extension LegacyStoreMigrator {
 
 }
 
-private extension LegacyStoreMigrator {
+fileprivate extension LegacyStoreMigrator {
 
     struct LegacyConversation {
         let id: UUID
@@ -90,6 +90,16 @@ private extension LegacyStoreMigrator {
         let pins: [TimeInterval]
         let recordedDate: Date?
         let recordFilePath: URL?
+
+        init(object: NSManagedObject) {
+            self.id = object.value(forKey: "id") as? UUID ?? UUID()
+            self.title = object.value(forKey: "title") as? String
+            self.topic = object.value(forKey: "topic") as? String
+            self.members = object.value(forKey: "members") as? [String] ?? []
+            self.pins = object.value(forKey: "pins") as? [TimeInterval] ?? []
+            self.recordedDate = object.value(forKey: "recordedDate") as? Date
+            self.recordFilePath = object.value(forKey: "recordFilePath") as? URL
+        }
     }
 
     struct LegacyNote {
@@ -99,6 +109,15 @@ private extension LegacyStoreMigrator {
         let category: String?
         let references: [UUID]
         let createdDate: Date?
+
+        init(object: NSManagedObject) {
+            self.id = object.value(forKey: "id") as? UUID ?? UUID()
+            self.original = object.value(forKey: "original") as? String
+            self.translation = object.value(forKey: "translation") as? String
+            self.category = object.value(forKey: "category") as? String
+            self.references = object.value(forKey: "references") as? [UUID] ?? []
+            self.createdDate = object.value(forKey: "createdDate") as? Date
+        }
     }
 
     struct LegacyData {
@@ -158,9 +177,9 @@ private extension LegacyStoreMigrator {
         do {
             return LegacyData(
                 conversations: try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "ConversationEntity"))
-                    .map(Self.conversation(from:)),
+                    .map(LegacyConversation.init(object:)),
                 notes: try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "NoteEntity"))
-                    .map(Self.note(from:))
+                    .map(LegacyNote.init(object:))
             )
         } catch {
             throw MigrationError.storeLoadFailed(error)
@@ -184,29 +203,6 @@ private extension LegacyStoreMigrator {
             )
         }
         return directoryURL.appendingPathComponent(storeFileName)
-    }
-
-    static func conversation(from object: NSManagedObject) -> LegacyConversation {
-        LegacyConversation(
-            id: object.value(forKey: "id") as? UUID ?? UUID(),
-            title: object.value(forKey: "title") as? String,
-            topic: object.value(forKey: "topic") as? String,
-            members: object.value(forKey: "members") as? [String] ?? [],
-            pins: object.value(forKey: "pins") as? [TimeInterval] ?? [],
-            recordedDate: object.value(forKey: "recordedDate") as? Date,
-            recordFilePath: object.value(forKey: "recordFilePath") as? URL
-        )
-    }
-
-    static func note(from object: NSManagedObject) -> LegacyNote {
-        LegacyNote(
-            id: object.value(forKey: "id") as? UUID ?? UUID(),
-            original: object.value(forKey: "original") as? String,
-            translation: object.value(forKey: "translation") as? String,
-            category: object.value(forKey: "category") as? String,
-            references: object.value(forKey: "references") as? [UUID] ?? [],
-            createdDate: object.value(forKey: "createdDate") as? Date
-        )
     }
 
 }
@@ -244,14 +240,14 @@ private extension LegacyStoreMigrator {
                     claimedFileNames: &claimedFileNames,
                     recordChanges: &recordChanges
                 )
-                modelContext.insert(Self.conversation(
-                    from: legacy,
+                modelContext.insert(Conversation(
+                    migrating: legacy,
                     recordFileName: recordFileName,
                     noteIds: noteIdsByConversation[legacy.id] ?? []
                 ))
             }
             for legacy in newNotes {
-                modelContext.insert(Self.note(from: legacy))
+                modelContext.insert(Note(migrating: legacy))
             }
             try modelContext.save()
         } catch {
@@ -351,15 +347,19 @@ private extension LegacyStoreMigrator {
         }
     }
 
-    static func conversation(
-        from legacy: LegacyConversation,
+}
+
+fileprivate extension Conversation {
+
+    convenience init(
+        migrating legacy: LegacyStoreMigrator.LegacyConversation,
         recordFileName: String,
         noteIds: [UUID]
-    ) -> Conversation {
+    ) {
         let createdDate = legacy.recordedDate ?? .now
         let title = legacy.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
-        return Conversation(
+        self.init(
             id: legacy.id,
             createdDate: createdDate,
             recordFileName: recordFileName,
@@ -371,8 +371,12 @@ private extension LegacyStoreMigrator {
         )
     }
 
-    static func note(from legacy: LegacyNote) -> Note {
-        Note(
+}
+
+fileprivate extension Note {
+
+    convenience init(migrating legacy: LegacyStoreMigrator.LegacyNote) {
+        self.init(
             id: legacy.id,
             createdDate: legacy.createdDate ?? .now,
             original: legacy.original ?? "",
