@@ -18,7 +18,8 @@ struct OnboardView: View {
                                     withAnimation { 
                                         isPrsented.toggle()
                                     }
-                                }, label: {
+                                },
+                                label: {
                                     Text("앱 시작하기")
                                         .tint(.white)
                                         .font(.system(size: 16, weight: .bold, design: .rounded))

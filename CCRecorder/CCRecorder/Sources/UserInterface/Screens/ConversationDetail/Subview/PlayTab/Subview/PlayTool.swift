@@ -26,7 +26,8 @@ struct PlayTool: View {
                     } else {
                         play()
                     }
-                }, label: {
+                },
+                label: {
                     Spacer()
                     Image(systemName: playButtonImageName)
                         .font(.system(size: 44))

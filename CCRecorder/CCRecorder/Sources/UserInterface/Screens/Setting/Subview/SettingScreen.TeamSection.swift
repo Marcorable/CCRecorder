@@ -7,14 +7,11 @@ extension SettingScreen {
         let teamMates: [TeamMate]
 
         var body: some View {
-            Section(
-                content: {
-                    ForEach(teamMates, id: \.self) {
-                        Row(teamMate: $0)
-                    }
-                },
-                header: { Text("Team Marcoda") }
-            )
+            Section("Team Marcoda") {
+                ForEach(teamMates, id: \.self) {
+                    Row(teamMate: $0)
+                }
+            }
         }
     }
 

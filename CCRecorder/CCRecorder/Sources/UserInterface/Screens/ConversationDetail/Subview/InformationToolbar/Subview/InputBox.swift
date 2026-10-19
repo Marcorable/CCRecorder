@@ -41,7 +41,8 @@ struct InputBox: View {
                                 from: nil,
                                 for: nil
                             )
-                    }, label: {
+                    },
+                    label: {
                         Image(systemName: "keyboard.chevron.compact.down")
                     }
                 )
