@@ -11,31 +11,34 @@ struct ConversationInfoBox: View {
     var body: some View {
         GroupBox {
             if isEditing {
-                TextField(
-                    "InputTitle",
-                    text: $title,
-                    prompt: Text("녹음 제목을 입력하세요")
-                )
-                .multilineTextAlignment(.center)
-                .showClearButton($title)
-                .cornerRadius(10)
-                TextField(
-                    "InputTopic",
-                    text: $topic,
-                    prompt: Text("대화 주제를 입력하세요")
-                )
-                .multilineTextAlignment(.center)
-                .showClearButton($topic)
-                .cornerRadius(10)
-                TextField(
-                    "InputParties",
-                    text: $partyName,
-                    prompt: Text("참여자를 추가하세요")
-                )
-                .multilineTextAlignment(.center)
-                .showClearButton($partyName)
-                .cornerRadius(10)
-                .onSubmit(add)
+                ClearableTextField(text: $title) {
+                    TextField(
+                        "InputTitle",
+                        text: $title,
+                        prompt: Text("녹음 제목을 입력하세요")
+                    )
+                    .multilineTextAlignment(.center)
+                    .cornerRadius(10)
+                }
+                ClearableTextField(text: $topic) {
+                    TextField(
+                        "InputTopic",
+                        text: $topic,
+                        prompt: Text("대화 주제를 입력하세요")
+                    )
+                    .multilineTextAlignment(.center)
+                    .cornerRadius(10)
+                }
+                ClearableTextField(text: $partyName) {
+                    TextField(
+                        "InputParties",
+                        text: $partyName,
+                        prompt: Text("참여자를 추가하세요")
+                    )
+                    .multilineTextAlignment(.center)
+                    .cornerRadius(10)
+                    .onSubmit(add)
+                }
                 if !parties.isEmpty {
                     ScrollView(.horizontal, showsIndicators: true) {
                         LazyHGrid(rows: [.init(.flexible())]) {
