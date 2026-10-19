@@ -13,16 +13,24 @@ extension InformationToolbar {
         var body: some View {
             GroupBox {
                 HStack {
-                    ClearableTextField(text: $inputText) {
-                        TextField(
-                            "Input Text",
-                            text: $inputText,
-                            prompt: Text("영어 또는 한글 메모를 작성하세요")
-                        )
-                        .textFieldStyle(.roundedBorder)
-                        .focused(focuseField, equals: .inputNote)
-                        .onSubmit(addNote)
-                    }
+                    TextField(
+                        "Input Text",
+                        text: $inputText,
+                        prompt: Text("영어 또는 한글 메모를 작성하세요")
+                    )
+                    .trailingAction(
+                        of: !inputText.isEmpty,
+                        label: {
+                            Image(systemName: "multiply.circle.fill")
+                                .accessibilityLabel("입력 내용 지우기")
+                        },
+                        action: {
+                            inputText = ""
+                        }
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .focused(focuseField, equals: .inputNote)
+                    .onSubmit(addNote)
                     Button(
                         action: addNote,
                         label: {

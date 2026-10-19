@@ -11,34 +11,58 @@ struct ConversationInfoBox: View {
     var body: some View {
         GroupBox {
             if isEditing {
-                ClearableTextField(text: $title) {
-                    TextField(
-                        "InputTitle",
-                        text: $title,
-                        prompt: Text("녹음 제목을 입력하세요")
-                    )
-                    .multilineTextAlignment(.center)
-                    .cornerRadius(10)
-                }
-                ClearableTextField(text: $topic) {
-                    TextField(
-                        "InputTopic",
-                        text: $topic,
-                        prompt: Text("대화 주제를 입력하세요")
-                    )
-                    .multilineTextAlignment(.center)
-                    .cornerRadius(10)
-                }
-                ClearableTextField(text: $partyName) {
-                    TextField(
-                        "InputParties",
-                        text: $partyName,
-                        prompt: Text("참여자를 추가하세요")
-                    )
-                    .multilineTextAlignment(.center)
-                    .cornerRadius(10)
-                    .onSubmit(add)
-                }
+                TextField(
+                    "InputTitle",
+                    text: $title,
+                    prompt: Text("녹음 제목을 입력하세요")
+                )
+                .trailingAction(
+                    of: !title.isEmpty,
+                    label: {
+                        Image(systemName: "multiply.circle.fill")
+                            .accessibilityLabel("입력 내용 지우기")
+                    },
+                    action: {
+                        title = ""
+                    }
+                )
+                .multilineTextAlignment(.center)
+                .cornerRadius(10)
+                TextField(
+                    "InputTopic",
+                    text: $topic,
+                    prompt: Text("대화 주제를 입력하세요")
+                )
+                .trailingAction(
+                    of: !topic.isEmpty,
+                    label: {
+                        Image(systemName: "multiply.circle.fill")
+                            .accessibilityLabel("입력 내용 지우기")
+                    },
+                    action: {
+                        topic = ""
+                    }
+                )
+                .multilineTextAlignment(.center)
+                .cornerRadius(10)
+                TextField(
+                    "InputParties",
+                    text: $partyName,
+                    prompt: Text("참여자를 추가하세요")
+                )
+                .trailingAction(
+                    of: !partyName.isEmpty,
+                    label: {
+                        Image(systemName: "multiply.circle.fill")
+                            .accessibilityLabel("입력 내용 지우기")
+                    },
+                    action: {
+                        partyName = ""
+                    }
+                )
+                .multilineTextAlignment(.center)
+                .cornerRadius(10)
+                .onSubmit(add)
                 if !parties.isEmpty {
                     ScrollView(.horizontal, showsIndicators: true) {
                         LazyHGrid(rows: [.init(.flexible())]) {
@@ -57,7 +81,7 @@ struct ConversationInfoBox: View {
                                     )
                                 }
                                 .padding()
-                                .background(Color.Light.recorder)
+                                .background(Color.Surface.recorderProminent)
                                 .clipShape(.rect(cornerRadius: 15))
                             }
                         }
