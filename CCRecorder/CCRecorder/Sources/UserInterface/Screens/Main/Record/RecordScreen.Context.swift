@@ -32,13 +32,13 @@ extension RecordScreen {
                             parties: $parties
                         )
                     }
-                    .background(Color.Light.recorder)
+                    .background(Color.Surface.Recorder.prominent)
                     .clipShape(.rect(cornerRadius: 25))
                     .padding()
                     ControlBoard(viewModel: viewModel)
                 }
                 .padding()
-                .background(Color.Dark.recorder)
+                .background(Color.Surface.Recorder.muted)
                 .navigationTitle("녹음하기")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

@@ -16,24 +16,51 @@ struct ConversationInfoBox: View {
                     text: $title,
                     prompt: Text("녹음 제목을 입력하세요")
                 )
+                .trailingAction(
+                    of: !title.isEmpty,
+                    label: {
+                        Image(systemName: "multiply.circle.fill")
+                            .accessibilityLabel("입력 내용 지우기")
+                    },
+                    action: {
+                        title = ""
+                    }
+                )
                 .multilineTextAlignment(.center)
-                .showClearButton($title)
                 .cornerRadius(10)
                 TextField(
                     "InputTopic",
                     text: $topic,
                     prompt: Text("대화 주제를 입력하세요")
                 )
+                .trailingAction(
+                    of: !topic.isEmpty,
+                    label: {
+                        Image(systemName: "multiply.circle.fill")
+                            .accessibilityLabel("입력 내용 지우기")
+                    },
+                    action: {
+                        topic = ""
+                    }
+                )
                 .multilineTextAlignment(.center)
-                .showClearButton($topic)
                 .cornerRadius(10)
                 TextField(
                     "InputParties",
                     text: $partyName,
                     prompt: Text("참여자를 추가하세요")
                 )
+                .trailingAction(
+                    of: !partyName.isEmpty,
+                    label: {
+                        Image(systemName: "multiply.circle.fill")
+                            .accessibilityLabel("입력 내용 지우기")
+                    },
+                    action: {
+                        partyName = ""
+                    }
+                )
                 .multilineTextAlignment(.center)
-                .showClearButton($partyName)
                 .cornerRadius(10)
                 .onSubmit(add)
                 if !parties.isEmpty {
@@ -49,12 +76,12 @@ struct ConversationInfoBox: View {
                                         action: { delete(of: index) },
                                         label: {
                                             Image(systemName: "delete.backward")
-                                                .foregroundStyle(Color.Light.logoRed)
+                                                .foregroundStyle(Color.Logo.Prominent.red)
                                         }
                                     )
                                 }
                                 .padding()
-                                .background(Color.Light.recorder)
+                                .background(Color.Surface.Recorder.prominent)
                                 .clipShape(.rect(cornerRadius: 15))
                             }
                         }

@@ -44,7 +44,7 @@ struct PlayTool: View {
                 }
             )
         }
-        .foregroundStyle(Color.Light.logoBlue)
+        .foregroundStyle(Color.Logo.Prominent.blue)
         .disabled(disabledPlaying)
         .opacity(disabledPlaying ? 0.3 : 1.0)
     }

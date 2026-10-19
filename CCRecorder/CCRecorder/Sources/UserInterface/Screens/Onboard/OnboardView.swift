@@ -1,14 +1,20 @@
 import SwiftUI
 
 struct OnboardView: View {
-    @State private var pages: [Page] = (0...4).map { Page(id: $0) }
+    private let pages: [ImageResource] = [
+        .Onboarding.page0,
+        .Onboarding.page1,
+        .Onboarding.page2,
+        .Onboarding.page3,
+        .Onboarding.page4
+    ]
     
     @Binding var isPrsented: Bool
     
     var body: some View {
         TabView {
             ForEach(pages.indices, id: \.self) { index in
-                Image(pages[index].assetName)
+                Image(pages[index])
                     .resizable()
                     .scaledToFit()
                     .overlay(alignment: .bottom) {
@@ -24,7 +30,7 @@ struct OnboardView: View {
                                         .tint(.white)
                                         .font(.system(size: 16, weight: .bold, design: .rounded))
                                         .padding()
-                                        .background(Color.Any.icon)
+                                        .background(Color.Icon.accent)
                                         .shadow(color: .black, radius: 1, x: 1, y: 1)
                                 }
                             )
@@ -36,14 +42,9 @@ struct OnboardView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
-        .background(Color.Light.recorder)
+        .background(Color.Surface.Recorder.prominent)
     }
     
-}
-
-fileprivate struct Page {
-    let id: Int
-    var assetName: String { "iphoneX_\(id)" }
 }
 
 #Preview {

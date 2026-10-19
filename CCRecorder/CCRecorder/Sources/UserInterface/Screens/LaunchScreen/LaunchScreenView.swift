@@ -5,11 +5,11 @@ struct LaunchScreenView: View {
     @Binding var state: LaunchState
         
     var body: some View {
-        Image("homex_00")
+        Image(.Launch.background)
             .resizable()
             .scaledToFill()
             .background {
-                Image("homex_00")
+                Image(.Launch.background)
                     .resizable()
                     .ignoresSafeArea()
             }

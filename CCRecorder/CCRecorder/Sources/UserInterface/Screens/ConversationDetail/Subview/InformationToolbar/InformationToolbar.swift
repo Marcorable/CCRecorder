@@ -1,12 +1,6 @@
-import SwiftUI
-import Combine
 
-enum ConversationDetailField: Hashable {
-    case infoTitle
-    case infoTopic
-    case infoParty
-    case inputNote
-}
+import Combine
+import SwiftUI
 
 struct InformationToolbar: View {
     @Binding var conversation: Conversation
@@ -23,7 +17,7 @@ struct InformationToolbar: View {
         self.topicSubject = .init(conversation.wrappedValue.topic)
     }
     
-    @FocusState private var focuseField: ConversationDetailField?
+    @FocusState private var focuseField: Field?
     @State private var isPresentedAdd: Bool = false
     @State private var isEditing: Bool = false
     
@@ -79,4 +73,15 @@ struct InformationToolbar: View {
         }
     }
     
+}
+
+extension InformationToolbar {
+
+    enum Field: Hashable {
+        case infoTitle
+        case infoTopic
+        case infoParty
+        case inputNote
+    }
+
 }

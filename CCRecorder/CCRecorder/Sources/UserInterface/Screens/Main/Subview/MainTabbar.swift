@@ -42,12 +42,11 @@ struct MainTabbar: View {
     }
     
     private var backgroundColor: Color {
-        colorScheme == .dark ? .Dark.groupBackground : .Light.groupBackground
-        
+        .Surface.Background.grouped
     }
     
     private var recordButtonColor: Color {
-        colorScheme == .dark ? .Dark.logoBlue : .Light.logoBlue
+        colorScheme == .dark ? .Logo.Muted.blue : .Logo.Prominent.blue
     }
     
 }
@@ -88,8 +87,8 @@ fileprivate struct MainTabItem: View {
     
     private var currentTintColor: Color {
         switch tab {
-            case .conversationList:     isSelected ? .Light.logoGreen : .Dark.logoGreen
-            case .noteList:             isSelected ? .Light.logoRed : .Dark.logoRed
+            case .conversationList:     isSelected ? .Logo.Prominent.green : .Logo.Muted.green
+            case .noteList:             isSelected ? .Logo.Prominent.red : .Logo.Muted.red
         }
     }
     
