@@ -1,0 +1,15 @@
+{
+  "originHash" : "e56c221ffbd691755d9eeb48cf2d5929e434516af59f2863dc4f8c82bfe3d26d",
+  "pins" : [
+    {
+      "identity" : "marcorable-mvvm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Marcorable/marcorable-mvvm.git",
+      "state" : {
+        "revision" : "2a38ad2f23dfe0d5972cf539fe13914c271a3a92",
+        "version" : "0.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}

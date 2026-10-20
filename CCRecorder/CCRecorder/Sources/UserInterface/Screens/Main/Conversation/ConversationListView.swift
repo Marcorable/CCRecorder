@@ -1,8 +1,11 @@
+
 import SwiftUI
 import SwiftData
 
+import NavigationCoordinator
+
 struct ConversationListView: View {
-    @Environment(ViewCoordinator.self) private var viewCoordinator
+    @Environment(Navigator<Screen>.self) private var navigator
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Conversation.createdDate) private var conversations: [Conversation]
 
@@ -11,7 +14,7 @@ struct ConversationListView: View {
     init(deletionService: ConversationDeletionService = .init()) {
         self.deletionService = deletionService
     }
-    
+
     var body: some View {
         Group {
             if conversations.isEmpty {
@@ -25,7 +28,7 @@ struct ConversationListView: View {
                     ForEach(conversations, id: \.id) { conversation in
                         ConversationListRow(conversation: conversation)
                             .onTapGesture {
-                                viewCoordinator.push(.conversationDetail(conversation))
+                                navigator.push(.conversationDetail(conversation))
                             }
                             .listRowBackground(Color.clear)
                     }
@@ -36,7 +39,6 @@ struct ConversationListView: View {
         }
         .navigationTitle("Conversation")
     }
-    
 }
 
 extension ConversationListView {
@@ -54,5 +56,5 @@ extension ConversationListView {
 
 #Preview {
     ConversationListView()
-        .environment(ViewCoordinator())
+        .environment(Navigator<Screen>())
 }

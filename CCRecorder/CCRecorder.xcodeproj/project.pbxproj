@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A9770001308E000100000001 /* NavigationCoordinator in Frameworks */ = {isa = PBXBuildFile; productRef = A9770003308E000100000001 /* NavigationCoordinator */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A9DA8CD62C8A9C3600D1141C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -54,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9770001308E000100000001 /* NavigationCoordinator in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +120,9 @@
 				A9DA8CC52C8A9C3500D1141C /* CCRecorder */,
 			);
 			name = CCRecorder;
+			packageProductDependencies = (
+				A9770003308E000100000001 /* NavigationCoordinator */,
+			);
 			productName = CCRecorder;
 			productReference = A9DA8CC32C8A9C3500D1141C /* CCRecorder.app */;
 			productType = "com.apple.product-type.application";
@@ -185,13 +193,16 @@
 				};
 			};
 			buildConfigurationList = A9DA8CBE2C8A9C3500D1141C /* Build configuration list for PBXProject "CCRecorder" */;
-			preferredProjectObjectVersion = 77;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
 			mainGroup = A9DA8CBA2C8A9C3500D1141C;
+			packageReferences = (
+				A9770002308E000100000001 /* XCRemoteSwiftPackageReference "marcorable-mvvm" */,
+			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = A9DA8CC42C8A9C3500D1141C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -568,6 +579,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A9770002308E000100000001 /* XCRemoteSwiftPackageReference "marcorable-mvvm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Marcorable/marcorable-mvvm.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A9770003308E000100000001 /* NavigationCoordinator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9770002308E000100000001 /* XCRemoteSwiftPackageReference "marcorable-mvvm" */;
+			productName = NavigationCoordinator;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A9DA8CBB2C8A9C3500D1141C /* Project object */;
 }
