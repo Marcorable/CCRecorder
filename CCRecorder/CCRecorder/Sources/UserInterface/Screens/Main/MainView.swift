@@ -1,4 +1,7 @@
+
 import SwiftUI
+
+import NavigationCoordinator
 
 enum Tab {
     case conversationList
@@ -7,8 +10,7 @@ enum Tab {
 
 struct MainView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(ViewCoordinator.self) private var viewCoordinator
-    
+
     @State private var selectedTab: Tab = .conversationList
     @State private var isPresentedModal: Bool = false
 
@@ -41,28 +43,26 @@ struct MainView: View {
             MainViewToolbar()
         }
     }
-    
 }
 
 fileprivate struct MainViewToolbar: ToolbarContent {
-    @Environment(ViewCoordinator.self) private var viewCoordinator
-    
+    @Environment(Navigator<Screen>.self) private var navigator
+
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button(
-                action: { viewCoordinator.push(.setting) },
-                label: { 
+                action: { navigator.push(.setting) },
+                label: {
                     Image(systemName: "gear")
                         .foregroundStyle(.accent)
                 }
             )
         }
     }
-    
 }
 
 
 #Preview {
     MainView()
-        .environment(ViewCoordinator())
+        .environment(Navigator<Screen>())
 }
