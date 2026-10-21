@@ -64,11 +64,11 @@ extension SearchScreen {
 ## 중첩 타입
 
 화면에 딸린 타입은 전역에 두지 않고 화면 타입 안에 중첩한다.
-`MartInfoView.BusinessInfoSection`, `BarcodeRegisterScreen.Model` 처럼 쓴다.
+`MartInfoScreen.BusinessInfoSection`, `BarcodeRegisterScreen.Model` 처럼 쓴다.
 긴 중첩 이름은 `typealias` 로 줄인다.
 
 ```swift
-typealias SalesInfoViewModel = MartInfoView.SalesInfoSection.ViewModel
+typealias SalesInfoViewModel = MartInfoScreen.SalesInfoSection.ViewModel
 ```
 
 ## 확장 파일 이름

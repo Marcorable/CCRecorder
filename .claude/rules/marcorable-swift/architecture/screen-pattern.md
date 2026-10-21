@@ -21,6 +21,20 @@ Search/
 └── SearchScreen.ViewController.swift   # UIKit 만 — 바인딩, 화면 전환
 ```
 
+로직이 아직 없는 화면은 네임스페이스와 `Context` 만으로 시작해도 된다. `Model`, `ViewModel` 은 필요해질 때 더한다.
+
+```swift
+enum ConversationListScreen {}
+
+extension ConversationListScreen {
+
+    struct Context: View { ... }
+
+}
+```
+
+화면 단위 타입에 `View` 접미사를 붙이지 않는다. 폴더 배치와 컴포넌트와의 경계는 `agent-common/marcorable-swift/rules/architecture/ui-layout.md` 를 따른다.
+
 ## `<Name>Screen` — 네임스페이스
 
 화면 안에서 같이 쓰는 타입과 상수만 둔다.
@@ -90,7 +104,7 @@ extension SearchScreen.Model {
 - SwiftUI 는 `@MainActor @Observable final class`, UIKit 은 `final class: ObservableObject` + `@Published`
 - 표시 상태는 모두 `private(set)` 이다. 바꾸는 길은 `reduce(by intent:)` 하나뿐이다
 - `Model` 을 소유하고, 받은 `Result` 를 표시 상태로 옮긴다. `Status` 는 `private func update(by status:)` 에서 푼다
-- 알럿은 문구가 아니라 **case** 로 갖는다 — `alert: Status.Alert?`. 문구는 `Context` 가 정한다 (`.claude/rules/marcorable-swift/architecture/section-subview.md`)
+- 알럿은 문구가 아니라 **case** 로 갖는다 — `alert: Status.Alert?`. 문구는 `Context` 가 정한다 (`agent-common/marcorable-swift/rules/architecture/section-subview.md`)
 - 화면 전환은 직접 하지 않고 `route` 에 다음 화면을 넣는다
 
 ```swift
@@ -191,7 +205,7 @@ extension SearchScreen.Context {
 
 ## Mock
 
-`Model`, `ViewModel` 에 `#if DEBUG` 로 `static var mock` 을 두고 프리뷰와 테스트에 쓴다. 의존성은 `Mock<프로토콜>` 로 채운다 (`.claude/rules/marcorable-swift/swift/testing.md`).
+`Model`, `ViewModel` 에 `#if DEBUG` 로 `static var mock` 을 두고 프리뷰와 테스트에 쓴다. 의존성은 `Mock<프로토콜>` 로 채운다 (`agent-common/marcorable-swift/rules/swift/testing.md`).
 
 ```swift
 #if DEBUG

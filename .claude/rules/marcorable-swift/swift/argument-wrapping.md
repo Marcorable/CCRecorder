@@ -50,6 +50,29 @@ AWMText("사업자 정보",
         font: .emphasisText)
 ```
 
+클로저 인자도 같은 규칙을 따른다. 앞선 클로저의 닫는 중괄호와 다음 레이블을 같은 줄에 쓰지 않는다.
+
+```swift
+// ✅
+Button(
+    action: {
+        isPresented.toggle()
+    },
+    label: {
+        Text("앱 시작하기")
+    }
+)
+
+// ❌
+Button(
+    action: {
+        isPresented.toggle()
+    }, label: {
+        Text("앱 시작하기")
+    }
+)
+```
+
 ## 여러 줄 문자열
 
 긴 안내 문구는 배열로 나눈 뒤 `joined` 한다. 줄바꿈이 필요하면 `separator: "\n"`,

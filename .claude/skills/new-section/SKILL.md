@@ -5,13 +5,13 @@ description: 화면에 들어갈 섹션 서브뷰(View + 중첩 ViewModel + Mode
 
 # 섹션 서브뷰 생성
 
-`.claude/rules/marcorable-swift/architecture/section-subview.md` 의 구조를 따른다.
+`agent-common/marcorable-swift/rules/architecture/section-subview.md` 의 구조를 따른다.
 
 ## 1. 입력 확인
 
 다음이 정해지지 않았으면 묻는다.
 
-- 부모 타입 — `MartInfoView`, `BarcodeRegisterScreen` 등
+- 부모 타입 — `MartInfoScreen`, `BarcodeRegisterScreen` 등
 - 섹션 이름 — `BusinessInfoSection`, `Board` 등
 - 표시할 필드 — 디자인(Figma) 또는 Entity 에서
 - 디자인시스템 모듈 — 이미 쓰는 화면의 import 를 따른다

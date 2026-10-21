@@ -30,7 +30,7 @@ extension MartInfoViewModel {
 ```
 
 필요한 `Mock*` 이 없으면 만든다. 프리뷰를 위해 실제 Usecase 를 주입하지 않는다.
-`Mock*` 은 테스트와 같이 쓴다. 만드는 방법은 `.claude/rules/marcorable-swift/swift/testing.md` 의 "Mock" 을 따른다.
+`Mock*` 은 테스트와 같이 쓴다. 만드는 방법은 `agent-common/marcorable-swift/rules/swift/testing.md` 의 "Mock" 을 따른다.
 
 ## 컨테이너
 
@@ -39,7 +39,7 @@ extension MartInfoViewModel {
 ```swift
 #Preview {
     TooltipContainerView {
-        MartInfoView(viewModel: .mock)
+        MartInfoScreen.Context(viewModel: .mock)
     }
 }
 ```
@@ -51,7 +51,7 @@ extension MartInfoViewModel {
 ```swift
 #Preview {
     Color.black.overlay {
-        MartInfoView.BusinessInfoSection(viewModel: .init(model: .init(...)))
+        MartInfoScreen.BusinessInfoSection(viewModel: .init(model: .init(...)))
             .background(.white)
     }
 }

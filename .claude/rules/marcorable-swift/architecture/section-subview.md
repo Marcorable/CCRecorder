@@ -9,14 +9,14 @@ paths:
 
 ## 파일과 이름
 
-- 파일명: `<부모>.<섹션>.swift` — 예) `MartInfoView.BusinessInfoSection.swift`, `BarcodeRegisterScreen.Board.swift`
+- 파일명: `<부모>.<섹션>.swift` — 예) `MartInfoScreen.BusinessInfoSection.swift`, `BarcodeRegisterScreen.Board.swift`
 - 위치: 부모 폴더의 `Subview/` (섹션이 여럿이면 `Subview/Section/`)
 - 선언: `extension <부모> { struct <섹션>: View { ... } }`
 
 ## 한 파일 안의 구성 순서
 
 ```swift
-extension MartInfoView {
+extension MartInfoScreen {
 
     struct BusinessInfoSection: View {
         let viewModel: ViewModel          // 또는 @Environment(ViewModel.self)
@@ -26,7 +26,7 @@ extension MartInfoView {
 
 }
 
-extension MartInfoView.BusinessInfoSection {
+extension MartInfoScreen.BusinessInfoSection {
 
     @Observable
     @MainActor
@@ -45,7 +45,7 @@ extension MartInfoView.BusinessInfoSection {
 
 }
 
-extension MartInfoView.BusinessInfoSection.ViewModel {
+extension MartInfoScreen.BusinessInfoSection.ViewModel {
 
     var representative: String { model?.representative ?? "" }
 
@@ -55,7 +55,7 @@ extension MartInfoView.BusinessInfoSection.ViewModel {
 
 }
 
-extension MartInfoView.BusinessInfoSection {
+extension MartInfoScreen.BusinessInfoSection {
 
     func deliveryText(_ state: ViewModel.DeliveryState) -> String {   // 문구는 View 쪽
         switch state {
@@ -80,7 +80,7 @@ extension MartInfoView.BusinessInfoSection {
 - 상위 Model/ViewModel 이 섹션 ViewModel 을 소유하고, 데이터를 받으면 `model = .init(...)` 으로 갱신한다
 - `Model` 은 Domain Entity 를 그대로 노출하지 않는다. 필요한 필드만 복사한다
 - 섹션 하나에 `#Preview` 하나를 두고, 실제와 비슷한 샘플 값을 넣는다
-- 두 화면 이상에서 같은 섹션이 쓰이면 공용 컴포넌트로 뺀다 (예: `BottomButtonSection`, `TextFieldSection`)
+- 두 화면 이상에서 같은 섹션이 쓰이면 공용 컴포넌트로 뺀다 (예: `BottomButtonSection`, `TextFieldSection`). 컴포넌트는 화면의 타입을 몰라야 한다 (`agent-common/marcorable-swift/rules/architecture/ui-layout.md`)
 
 ## View 나누기
 

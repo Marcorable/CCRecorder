@@ -11,7 +11,7 @@ paths:
 `map`, `compactMap`, `flatMap`, `filter`, `reduce`, `sorted(by:)`, `first(where:)`, `contains(where:)`, `allSatisfy` 등이다.
 체이닝은 연산자마다 줄을 바꾼다.
 
-클로저도 인자 하나로 센다. 다른 인자와 함께 받으면 `.claude/rules/marcorable-swift/swift/argument-wrapping.md` 대로 첫 인자부터 한 줄에 하나씩 쓴다.
+클로저도 인자 하나로 센다. 다른 인자와 함께 받으면 `agent-common/marcorable-swift/rules/swift/argument-wrapping.md` 대로 첫 인자부터 한 줄에 하나씩 쓴다.
 
 ```swift
 // ✅
@@ -91,11 +91,23 @@ viewModel.$state.sink(receiveValue: { [weak self] state in ... })
 ```swift
 // ✅
 Button(
-    action: { ... },
-    label: { ... }
+    action: {
+        ...
+    },
+    label: {
+        ...
+    }
 )
 
 // ❌
+Button(
+    action: {
+        ...
+    }, label: {
+        ...
+    }
+)
+
 Button { ... } label: { ... }
 ```
 
