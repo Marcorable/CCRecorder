@@ -17,7 +17,7 @@ extension RecordScreen {
                         Image(systemName: "circle.fill")
                             .foregroundStyle(circleColor)
                             .opacity(isRecording ? Int(currentTime) % 2 == 0 ? 1.0 : 0.0 : 1.0)
-                        Text(currentTime.displayTime)
+                        Text(currentTime, format: .playbackTime)
                             .foregroundStyle(timeColor)
                             .font(.largeTitle)
                         Spacer()
@@ -26,7 +26,10 @@ extension RecordScreen {
 
                     ForEach(pins.indices, id: \.self) { index in
                         HStack {
-                            Text("📌 \(pins[index].displayTime)")
+                            HStack(spacing: 4) {
+                                Text("📌")
+                                Text(pins[index], format: .playbackTime)
+                            }
                             Spacer()
                             Button(
                                 action: {

@@ -25,9 +25,9 @@ extension ConversationDetailScreen {
                 .padding(.horizontal)
                 .disabled(disabledPlaying)
                 HStack(alignment: .top) {
-                    Text(displayedTime.displayTime)
+                    Text(displayedTime, format: .playbackTime)
                     Spacer()
-                    Text(player.duration.displayTime)
+                    Text(player.duration, format: .playbackTime)
                 }
                 .padding([.leading, .trailing])
                 .foregroundColor(.gray)
