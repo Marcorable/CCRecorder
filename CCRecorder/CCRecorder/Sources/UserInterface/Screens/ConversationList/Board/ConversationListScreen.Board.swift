@@ -3,7 +3,7 @@ import SwiftUI
 
 extension ConversationListScreen {
 
-    struct Conversations: View {
+    struct Board: View {
         let conversations: [Conversation]
         let select: (Conversation) -> Void
         let onDelete: (IndexSet) -> Void
@@ -37,7 +37,7 @@ extension ConversationListScreen {
 
 #if DEBUG
 #Preview {
-    ConversationListScreen.Conversations(
+    ConversationListScreen.Board(
         conversations: [.preview],
         select: { _ in },
         onDelete: { _ in }
