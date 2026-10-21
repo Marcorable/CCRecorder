@@ -3,7 +3,7 @@ import SwiftUI
 
 extension ConversationDetailScreen {
 
-    struct PlayTab: View {
+    struct PlaybackPanel: View {
         @AppStorage(.skipInterval) private var skipInterval: SkipInterval = .five
 
         let player: AudioPlayer
@@ -80,7 +80,7 @@ extension ConversationDetailScreen {
 
 }
 
-private extension ConversationDetailScreen.PlayTab {
+private extension ConversationDetailScreen.PlaybackPanel {
 
     var disabledPlaying: Bool { player.duration == .zero }
 
@@ -152,7 +152,7 @@ private extension ConversationDetailScreen.PlayTab {
 }
 
 #Preview {
-    ConversationDetailScreen.PlayTab(
+    ConversationDetailScreen.PlaybackPanel(
         player: .init(),
         filePath: .init(filePath: "/dev/null"),
         pins: [3.0, 8.5]

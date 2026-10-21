@@ -19,7 +19,7 @@ extension ConversationDetailScreen {
                     notes: filteredNotes,
                     onDelete: onDelete(of:)
                 )
-                PlayTab(
+                PlaybackPanel(
                     player: player,
                     filePath: RecordFileStore().fileURL(of: conversation.recordFileName),
                     pins: conversation.pins

@@ -3,7 +3,7 @@ import SwiftUI
 
 extension RecordScreen {
 
-    struct ControlBoard: View {
+    struct RecordingPanel: View {
         let viewModel: ViewModel
 
         var body: some View {
@@ -28,7 +28,7 @@ extension RecordScreen {
 
 }
 
-extension RecordScreen.ControlBoard {
+extension RecordScreen.RecordingPanel {
 
     struct StopButton: View {
         let isEnabled: Bool
@@ -139,7 +139,7 @@ extension RecordScreen.ControlBoard {
 #if DEBUG
 #Preview {
     Color.Surface.Recorder.muted.overlay {
-        RecordScreen.ControlBoard(viewModel: .mock)
+        RecordScreen.RecordingPanel(viewModel: .mock)
         .padding()
     }
 }

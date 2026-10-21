@@ -35,7 +35,7 @@ extension RecordScreen {
                     .background(Color.Surface.Recorder.prominent)
                     .clipShape(.rect(cornerRadius: 25))
                     .padding()
-                    ControlBoard(viewModel: viewModel)
+                    RecordingPanel(viewModel: viewModel)
                 }
                 .padding()
                 .background(Color.Surface.Recorder.muted)

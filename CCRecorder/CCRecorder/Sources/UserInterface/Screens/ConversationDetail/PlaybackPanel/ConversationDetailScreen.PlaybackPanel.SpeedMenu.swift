@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-extension ConversationDetailScreen.PlayTab {
+extension ConversationDetailScreen.PlaybackPanel {
 
     struct SpeedMenu: View {
         let speed: Speed
@@ -34,8 +34,8 @@ extension ConversationDetailScreen.PlayTab {
 
 }
 
-extension ConversationDetailScreen.PlayTab.SpeedMenu {
-    typealias Speed = ConversationDetailScreen.PlayTab.Speed
+extension ConversationDetailScreen.PlaybackPanel.SpeedMenu {
+    typealias Speed = ConversationDetailScreen.PlaybackPanel.Speed
 
     private func speedDescription(of speed: Speed) -> String {
         let format: String
@@ -52,7 +52,7 @@ extension ConversationDetailScreen.PlayTab.SpeedMenu {
 }
 
 #Preview {
-    ConversationDetailScreen.PlayTab.SpeedMenu(
+    ConversationDetailScreen.PlaybackPanel.SpeedMenu(
         speed: .default,
         select: { _ in }
     )

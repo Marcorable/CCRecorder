@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-extension ConversationDetailScreen.PlayTab {
+extension ConversationDetailScreen.PlaybackPanel {
 
     struct PinButton: View {
         let pinDisabled: Bool
@@ -26,7 +26,7 @@ extension ConversationDetailScreen.PlayTab {
 }
 
 #Preview {
-    ConversationDetailScreen.PlayTab.PinButton(
+    ConversationDetailScreen.PlaybackPanel.PinButton(
         pinDisabled: false,
         jump: {}
     )

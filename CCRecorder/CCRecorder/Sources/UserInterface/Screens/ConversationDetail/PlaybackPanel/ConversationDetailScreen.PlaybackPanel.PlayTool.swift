@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-extension ConversationDetailScreen.PlayTab {
+extension ConversationDetailScreen.PlaybackPanel {
 
     struct PlayTool: View {
         let isPlaying: Bool
@@ -55,7 +55,7 @@ extension ConversationDetailScreen.PlayTab {
 
 }
 
-extension ConversationDetailScreen.PlayTab.PlayTool {
+extension ConversationDetailScreen.PlaybackPanel.PlayTool {
 
     enum Direction {
         case back
@@ -64,7 +64,7 @@ extension ConversationDetailScreen.PlayTab.PlayTool {
 
 }
 
-private extension ConversationDetailScreen.PlayTab.PlayTool {
+private extension ConversationDetailScreen.PlaybackPanel.PlayTool {
 
     var skipTime: String {
         "\(Int(skipInterval))"
@@ -82,7 +82,7 @@ private extension ConversationDetailScreen.PlayTab.PlayTool {
 
 #Preview {
     HStack {
-        ConversationDetailScreen.PlayTab.PlayTool(
+        ConversationDetailScreen.PlaybackPanel.PlayTool(
             isPlaying: false,
             disabledPlaying: false,
             skipInterval: 5,

@@ -1,5 +1,5 @@
 
-extension ConversationDetailScreen.PlayTab {
+extension ConversationDetailScreen.PlaybackPanel {
 
     enum Speed: Float, CaseIterable {
         case half = 0.5
