@@ -35,6 +35,7 @@ extension ConversationDetailScreen.PlayTab {
 }
 
 extension ConversationDetailScreen.PlayTab.SpeedMenu {
+    typealias Speed = ConversationDetailScreen.PlayTab.Speed
 
     private func speedDescription(of speed: Speed) -> String {
         let format: String
