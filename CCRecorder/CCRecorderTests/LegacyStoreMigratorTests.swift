@@ -159,7 +159,7 @@ extension LegacyStoreMigratorTests {
             insertConversation(into: context, fileName: "a.m4a")
         }
         _ = try makeSUT().migrateIfNeeded(into: modelContext)
-        userDefaults.removeObject(forKey: .Key.isLegacyStoreMigrated)
+        userDefaults.removeObject(forKey: .isLegacyStoreMigrated)
 
         // when
         let outcome = try makeSUT().migrateIfNeeded(into: modelContext)
@@ -178,7 +178,7 @@ extension LegacyStoreMigratorTests {
 
         // then
         #expect(outcome == .noLegacyStore)
-        #expect(userDefaults.bool(forKey: .Key.isLegacyStoreMigrated))
+        #expect(userDefaults.bool(forKey: .isLegacyStoreMigrated))
     }
 
     @Test("v1 저장소를 읽지 못하면 원본을 보존하고 다음 실행에 다시 시도한다")
@@ -193,7 +193,7 @@ extension LegacyStoreMigratorTests {
         #expect(throws: LegacyStoreMigrator.MigrationError.self) {
             try makeSUT().migrateIfNeeded(into: modelContext)
         }
-        #expect(!userDefaults.bool(forKey: .Key.isLegacyStoreMigrated))
+        #expect(!userDefaults.bool(forKey: .isLegacyStoreMigrated))
         #expect(try Data(contentsOf: storeURL) == original)
     }
 

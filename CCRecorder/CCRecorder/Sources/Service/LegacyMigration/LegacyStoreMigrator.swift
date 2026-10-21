@@ -64,17 +64,17 @@ extension LegacyStoreMigrator {
 
     @MainActor
     func migrateIfNeeded(into modelContext: ModelContext) throws -> Outcome {
-        guard !dependency.userDefaults.bool(forKey: .Key.isLegacyStoreMigrated) else {
+        guard !dependency.userDefaults.bool(forKey: .isLegacyStoreMigrated) else {
             return .alreadyMigrated
         }
         guard dependency.fileManager.fileExists(atPath: dependency.storeURL.path(percentEncoded: false)) else {
-            dependency.userDefaults.set(true, forKey: .Key.isLegacyStoreMigrated)
+            dependency.userDefaults.set(true, forKey: .isLegacyStoreMigrated)
             return .noLegacyStore
         }
 
         let legacyData = try loadLegacyData()
         let outcome = try insert(legacyData, into: modelContext)
-        dependency.userDefaults.set(true, forKey: .Key.isLegacyStoreMigrated)
+        dependency.userDefaults.set(true, forKey: .isLegacyStoreMigrated)
         return outcome
     }
 

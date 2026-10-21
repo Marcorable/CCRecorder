@@ -4,7 +4,7 @@ import SwiftUI
 extension ConversationDetailScreen {
 
     struct PlayTab: View {
-        @AppStorage(.Key.skipInterval) private var skipInterval: SkipInterval = .five
+        @AppStorage(.skipInterval) private var skipInterval: SkipInterval = .five
 
         let player: AudioPlayer
         let filePath: URL?

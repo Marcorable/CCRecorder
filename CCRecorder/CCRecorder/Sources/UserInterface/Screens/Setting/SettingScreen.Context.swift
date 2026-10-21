@@ -4,9 +4,9 @@ import SwiftUI
 extension SettingScreen {
 
     struct Context: View {
-        @AppStorage(.Key.displayMode) private var displayMode: DisplayMode = .system
-        @AppStorage(.Key.skipInterval) private var skipInterval: SkipInterval = .five
-        @AppStorage(.Key.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
+        @AppStorage(.displayMode) private var displayMode: DisplayMode = .system
+        @AppStorage(.skipInterval) private var skipInterval: SkipInterval = .five
+        @AppStorage(.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
 
         @State private var viewModel: ViewModel
 
