@@ -18,7 +18,7 @@ extension ConversationListScreen {
         }
 
         var body: some View {
-            ConversationList(
+            Conversations(
                 conversations: conversations,
                 select: { navigator.push(.conversationDetail($0)) },
                 onDelete: onDelete(at:)

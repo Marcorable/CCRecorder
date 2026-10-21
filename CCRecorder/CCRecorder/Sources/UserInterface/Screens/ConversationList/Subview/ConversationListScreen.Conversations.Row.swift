@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-extension ConversationList {
+extension ConversationListScreen.Conversations {
 
     struct Row: View {
         let conversation: Conversation
@@ -44,7 +44,7 @@ extension ConversationList {
 
 }
 
-extension ConversationList.Row {
+extension ConversationListScreen.Conversations.Row {
 
     private var isChecked: Bool { !conversation.title.isEmpty && !conversation.topic.isEmpty && !conversation.parties.isEmpty }
     private var checkerImageName: String { isChecked ? "info.circle.fill" : "circle" }
@@ -54,6 +54,6 @@ extension ConversationList.Row {
 
 #if DEBUG
 #Preview {
-    ConversationList.Row(conversation: .preview)
+    ConversationListScreen.Conversations.Row(conversation: .preview)
 }
 #endif

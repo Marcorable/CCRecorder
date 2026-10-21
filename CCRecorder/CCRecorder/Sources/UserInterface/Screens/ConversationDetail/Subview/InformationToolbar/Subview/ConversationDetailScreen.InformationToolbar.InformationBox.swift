@@ -2,18 +2,18 @@
 import Combine
 import SwiftUI
 
-extension InformationToolbar {
+extension ConversationDetailScreen.InformationToolbar {
 
     struct InformationBox: View {
         @Binding var conversation: Conversation
         @Binding var isEditing: Bool
-        let focuseField: FocusState<InformationToolbar.Field?>.Binding
+        let focuseField: FocusState<Field?>.Binding
         let topicSubject: CurrentValueSubject<String, Never>
 
         init(
             conversation: Binding<Conversation>,
             isEditing: Binding<Bool>,
-            focuseField: FocusState<InformationToolbar.Field?>.Binding,
+            focuseField: FocusState<Field?>.Binding,
             topicSubject: CurrentValueSubject<String, Never>
         ) {
             self._conversation = conversation
@@ -125,7 +125,7 @@ extension InformationToolbar {
 
 }
 
-private extension InformationToolbar.InformationBox {
+private extension ConversationDetailScreen.InformationToolbar.InformationBox {
 
     func addParty() {
         conversation.parties.append(.init(name: party))

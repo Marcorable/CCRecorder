@@ -1,12 +1,12 @@
 
 import SwiftUI
 
-extension InformationToolbar {
+extension ConversationDetailScreen.InformationToolbar {
 
     struct InputBox: View {
         @Environment(\.modelContext) var modelContext
         @Binding var conversation: Conversation
-        let focuseField: FocusState<InformationToolbar.Field?>.Binding
+        let focuseField: FocusState<Field?>.Binding
 
         @State private var inputText: String = ""
 
@@ -71,7 +71,7 @@ extension InformationToolbar {
     }
 }
 
-private extension InformationToolbar.InputBox {
+private extension ConversationDetailScreen.InformationToolbar.InputBox {
 
     func addNote() {
         guard !inputText.isEmpty else {
@@ -120,7 +120,7 @@ private extension InformationToolbar.InputBox {
     }
 }
 
-extension InformationToolbar.InputBox {
+extension ConversationDetailScreen.InformationToolbar.InputBox {
 
     enum Language {
         case korean

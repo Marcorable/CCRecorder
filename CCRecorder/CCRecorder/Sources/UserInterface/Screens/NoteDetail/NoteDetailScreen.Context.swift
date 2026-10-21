@@ -3,8 +3,6 @@ import SwiftUI
 import Combine
 import SwiftData
 
-typealias NoteTextSubject = CurrentValueSubject<(original: String, translation: String), Never>
-
 extension NoteDetailScreen {
 
     struct Context: View {
@@ -15,7 +13,7 @@ extension NoteDetailScreen {
 
         let note: Note
 
-        private let textSubject: NoteTextSubject
+        private let textSubject: TextSubject
         @State private var isEdited: Bool = false
         @State private var isPrsentedAlert: Bool = false
 
