@@ -1,27 +1,31 @@
+
 import SwiftUI
 
-struct LaunchScreenView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Binding var state: LaunchState
-        
-    var body: some View {
-        Image(.Launch.background)
-            .resizable()
-            .scaledToFill()
-            .background {
-                Image(.Launch.background)
-                    .resizable()
-                    .ignoresSafeArea()
-            }
-            .task {
-                await launch()
-            }
+extension LaunchScreen {
+
+    struct Context: View {
+        @Environment(\.modelContext) private var modelContext
+        @Binding var state: LaunchState
+
+        var body: some View {
+            Image(.Launch.background)
+                .resizable()
+                .scaledToFill()
+                .background {
+                    Image(.Launch.background)
+                        .resizable()
+                        .ignoresSafeArea()
+                }
+                .task {
+                    await launch()
+                }
+        }
     }
-    
+
 }
 
-extension LaunchScreenView {
-    
+extension LaunchScreen.Context {
+
     private func launch() async {
         do {
             try AudioSessionController.configure()
@@ -44,9 +48,9 @@ extension LaunchScreenView {
 
         }
     }
-    
+
 }
 
 #Preview {
-    LaunchScreenView(state: .constant(.preprocess))
+    LaunchScreen.Context(state: .constant(.preprocess))
 }

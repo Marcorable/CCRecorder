@@ -28,7 +28,7 @@ extension SettingScreen {
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)
             .fullScreenCover(isPresented: isPresentedTutorial) {
-                OnboardView(isPrsented: isPresentedTutorial)
+                OnboardScreen.Context(isPrsented: isPresentedTutorial)
             }
         }
     }

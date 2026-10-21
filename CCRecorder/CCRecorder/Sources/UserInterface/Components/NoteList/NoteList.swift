@@ -29,7 +29,7 @@ struct NoteList: View {
             }
         }
         .sheet(item: $isPresentedModal) { note in
-            NoteDetail(note: note)
+            NoteDetailScreen.Context(note: note)
                 .presentationDetents(note.category.noteDetailPresentationDetents)
         }
     }

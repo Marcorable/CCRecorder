@@ -34,13 +34,13 @@ struct CCRecorderApp: App {
         WindowGroup {
             switch state {
                 case .preprocess:
-                    LaunchScreenView(state: $state)
+                    LaunchScreen.Context(state: $state)
                     
                 case .launched:
                     MainNavigationStack()
                         .overlay {
                             if isFirstLaunched {
-                                OnboardView(isPrsented: $isFirstLaunched)
+                                OnboardScreen.Context(isPrsented: $isFirstLaunched)
                                     .transition(.opacity)
                             }
                         }

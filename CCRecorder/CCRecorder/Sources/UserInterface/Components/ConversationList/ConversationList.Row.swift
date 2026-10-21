@@ -1,0 +1,59 @@
+
+import SwiftUI
+
+extension ConversationList {
+
+    struct Row: View {
+        let conversation: Conversation
+
+        var body: some View {
+            HStack {
+                Image(systemName: "recordingtape")
+                    .foregroundStyle(Color.Logo.Prominent.red)
+                VStack(alignment: .leading) {
+                    Text(conversation.title)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    HStack(alignment: .center) {
+                        Text(conversation.topic)
+                            .font(.body)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        Spacer()
+                        VStack(alignment: .trailing) {
+                            Text("Attendees \(conversation.parties.count)")
+                                .font(.caption)
+                                .tint(.Logo.Muted.green)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            Text(conversation.createdDate, format: Date.FormatStyle(date: .abbreviated, time: .omitted))
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
+                Spacer()
+                Image(systemName: checkerImageName)
+                    .foregroundStyle(checkImageColor)
+            }
+            .contentShape(Rectangle())
+        }
+    }
+
+}
+
+extension ConversationList.Row {
+
+    private var isChecked: Bool { !conversation.title.isEmpty && !conversation.topic.isEmpty && !conversation.parties.isEmpty }
+    private var checkerImageName: String { isChecked ? "info.circle.fill" : "circle" }
+    private var checkImageColor: Color { isChecked ? .Logo.Prominent.blue : .Logo.Muted.blue }
+
+}
+
+#if DEBUG
+#Preview {
+    ConversationList.Row(conversation: .preview)
+}
+#endif
