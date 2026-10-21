@@ -4,6 +4,10 @@ import SwiftUI
 extension OnboardScreen {
 
     struct Context: View {
+        @AppStorage(.isFirstLaunched) private var isFirstLaunched: Bool = true
+
+        @Environment(\.dismiss) private var dismissAction
+
         private let pages: [ImageResource] = [
             .Onboarding.page0,
             .Onboarding.page1,
@@ -11,8 +15,6 @@ extension OnboardScreen {
             .Onboarding.page3,
             .Onboarding.page4
         ]
-
-        @Binding var isPrsented: Bool
 
         var body: some View {
             TabView {
@@ -25,7 +27,10 @@ extension OnboardScreen {
                                 Button(
                                     action: {
                                         withAnimation {
-                                            isPrsented.toggle()
+                                            if isFirstLaunched {
+                                                isFirstLaunched = false
+                                            }
+                                            dismissAction()
                                         }
                                     },
                                     label: {
@@ -52,5 +57,5 @@ extension OnboardScreen {
 }
 
 #Preview {
-    OnboardScreen.Context(isPrsented: .constant(true))
+    OnboardScreen.Context()
 }

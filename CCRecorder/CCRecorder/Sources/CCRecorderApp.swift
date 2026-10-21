@@ -40,7 +40,7 @@ struct CCRecorderApp: App {
                     MainNavigationStack()
                         .overlay {
                             if isFirstLaunched {
-                                OnboardScreen.Context(isPrsented: $isFirstLaunched)
+                                OnboardScreen.Context()
                                     .transition(.opacity)
                             }
                         }

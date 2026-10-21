@@ -7,7 +7,7 @@ extension SettingScreen {
     @MainActor
     @Observable
     final class ViewModel {
-        private(set) var isPresentedTutorial: Bool = false
+        var presentedFullScreenCover: Status.FullScreenCover?
 
         @ObservationIgnored private let model: Model
 
@@ -20,7 +20,13 @@ extension SettingScreen {
 
 extension SettingScreen.ViewModel {
 
-    var appVersion: String? { model.appVersion }
+    var informationSection: SettingScreen.InformationSection.ViewModel {
+        .init(model: model.informationSection)
+    }
+
+    var teamSection: SettingScreen.TeamSection.ViewModel {
+        .init(model: model.teamSection)
+    }
 
 }
 
@@ -29,11 +35,8 @@ extension SettingScreen.ViewModel {
 
     func reduce(by intent: Intent) {
         switch intent {
-            case .presentTutorial:
-                isPresentedTutorial = true
-
-            case .dismissTutorial:
-                isPresentedTutorial = false
+            case .rewindButtonTapped:
+                presentedFullScreenCover = .tutorial
         }
     }
 

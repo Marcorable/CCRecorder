@@ -4,13 +4,13 @@ import SwiftUI
 extension SettingScreen {
 
     struct InformationSection: View {
-        let appVersion: String?
+        let viewModel: ViewModel
 
         var body: some View {
             Section("앱 정보") {
-                LabeledContent("버전", value: appVersion ?? "알 수 없음")
+                LabeledContent("버전", value: viewModel.appVersion)
                 Link(
-                    destination: SettingScreen.instagramURL,
+                    destination: viewModel.instagramURL,
                     label: {
                         Label(
                             "인스타그램 소통하기",
@@ -19,7 +19,7 @@ extension SettingScreen {
                     }
                 )
                 Link(
-                    destination: SettingScreen.mailURL,
+                    destination: viewModel.mailURL,
                     label: {
                         Label(
                             "문의하기",
@@ -34,8 +34,41 @@ extension SettingScreen {
 
 }
 
+extension SettingScreen.InformationSection {
+
+    struct Model {
+        let appVersion: String?
+        let instagramURL: URL
+        let mailURL: URL
+    }
+
+    struct ViewModel {
+        let model: Model
+    }
+
+}
+
+extension SettingScreen.InformationSection.ViewModel {
+
+    var appVersion: String {
+        model.appVersion ?? "알 수 없음"
+    }
+
+    var instagramURL: URL { model.instagramURL }
+    var mailURL: URL { model.mailURL }
+
+}
+
 #Preview {
     Form {
-        SettingScreen.InformationSection(appVersion: "1.0")
+        SettingScreen.InformationSection(
+            viewModel: .init(
+                model: .init(
+                    appVersion: "1.0",
+                    instagramURL: URL(string: "https://www.instagram.com")!,
+                    mailURL: URL(string: "mailto:preview@example.com")!
+                )
+            )
+        )
     }
 }

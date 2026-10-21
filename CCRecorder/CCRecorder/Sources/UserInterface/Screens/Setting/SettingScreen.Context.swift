@@ -19,32 +19,21 @@ extension SettingScreen {
                 GeneralSection(
                     displayMode: $displayMode,
                     skipInterval: $skipInterval,
-                    isIdleTimerDisabled: $isIdleTimerDisabled,
-                    presentTutorial: { viewModel.reduce(by: .presentTutorial) }
+                    isIdleTimerDisabled: $isIdleTimerDisabled
                 )
-                InformationSection(appVersion: viewModel.appVersion)
-                TeamSection(teamMates: SettingScreen.teamMates)
+                InformationSection(viewModel: viewModel.informationSection)
+                TeamSection(viewModel: viewModel.teamSection)
             }
+            .environment(viewModel)
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)
-            .fullScreenCover(isPresented: isPresentedTutorial) {
-                OnboardScreen.Context(isPrsented: isPresentedTutorial)
+            .fullScreenCover(item: $viewModel.presentedFullScreenCover) {
+                switch $0 {
+                    case .tutorial:
+                        OnboardScreen.Context()
+                }
             }
         }
-    }
-
-}
-
-extension SettingScreen.Context {
-
-    private var isPresentedTutorial: Binding<Bool> {
-        .init(
-            get: { viewModel.isPresentedTutorial },
-            set: { isPresented in
-                guard !isPresented else { return }
-                viewModel.reduce(by: .dismissTutorial)
-            }
-        )
     }
 
 }

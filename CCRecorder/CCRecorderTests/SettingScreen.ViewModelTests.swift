@@ -14,24 +14,17 @@ extension SettingScreenViewModelTests {
 
     @Test("튜토리얼 다시보기를 누르면 온보딩을 띄운다")
     func presentTutorial() {
-        viewModel.reduce(by: .presentTutorial)
+        viewModel.reduce(by: .rewindButtonTapped)
 
-        #expect(viewModel.isPresentedTutorial)
-    }
-
-    @Test("온보딩을 닫으면 튜토리얼 표시를 끝낸다")
-    func dismissTutorial() {
-        viewModel.reduce(by: .presentTutorial)
-
-        viewModel.reduce(by: .dismissTutorial)
-
-        #expect(!viewModel.isPresentedTutorial)
+        #expect(viewModel.presentedFullScreenCover == .tutorial)
     }
 
     @Test("앱 번들의 버전을 보여준다")
     func appVersion_fromBundle() {
-        #expect(viewModel.appVersion == Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)
-        #expect(viewModel.appVersion != nil)
+        let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+
+        #expect(viewModel.informationSection.appVersion == appVersion)
+        #expect(viewModel.informationSection.appVersion != "알 수 없음")
     }
 
     @Test("버전 정보가 없는 번들이면 버전을 비워 둔다")
@@ -46,7 +39,7 @@ extension SettingScreenViewModelTests {
             model: .init(dependency: .init(bundle: bundle))
         )
 
-        #expect(viewModel.appVersion == nil)
+        #expect(viewModel.informationSection.appVersion == "알 수 없음")
     }
 
 }

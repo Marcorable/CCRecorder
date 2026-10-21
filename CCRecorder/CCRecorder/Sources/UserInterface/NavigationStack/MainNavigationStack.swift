@@ -41,3 +41,7 @@ extension MainNavigationStack {
     }
 
 }
+
+#Preview {
+    MainNavigationStack()
+}

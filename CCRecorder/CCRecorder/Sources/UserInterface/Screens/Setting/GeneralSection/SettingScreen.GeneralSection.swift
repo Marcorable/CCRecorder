@@ -4,11 +4,11 @@ import SwiftUI
 extension SettingScreen {
 
     struct GeneralSection: View {
+        @Environment(SettingScreen.ViewModel.self) private var viewModel
+
         @Binding var displayMode: DisplayMode
         @Binding var skipInterval: SkipInterval
         @Binding var isIdleTimerDisabled: Bool
-
-        let presentTutorial: () -> Void
 
         var body: some View {
             Section("일반") {
@@ -26,7 +26,7 @@ extension SettingScreen {
                 }
                 Toggle("화면 자동 잠금 끄기", isOn: $isIdleTimerDisabled)
                 Button(
-                    action: presentTutorial,
+                    action: { viewModel.reduce(by: .rewindButtonTapped) },
                     label: {
                         Text("앱 사용방법 다시보기")
                     }
@@ -60,8 +60,8 @@ extension SettingScreen.GeneralSection {
         SettingScreen.GeneralSection(
             displayMode: .constant(.system),
             skipInterval: .constant(.five),
-            isIdleTimerDisabled: .constant(false),
-            presentTutorial: {}
+            isIdleTimerDisabled: .constant(false)
         )
+        .environment(SettingScreen.ViewModel.mock)
     }
 }
