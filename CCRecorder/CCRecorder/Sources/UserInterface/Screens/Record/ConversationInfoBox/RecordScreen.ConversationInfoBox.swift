@@ -156,3 +156,17 @@ private extension RecordScreen.ConversationInfoBox {
     }
 
 }
+
+#Preview {
+    @Previewable @State var title = "영어 회화"
+    @Previewable @State var topic = "여행"
+    @Previewable @State var parties = [Party(name: "Marco")]
+
+    Color.Surface.Recorder.muted.overlay {
+        RecordScreen.ConversationInfoBox(
+            title: $title,
+            topic: $topic,
+            parties: $parties
+        )
+    }
+}

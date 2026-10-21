@@ -79,3 +79,16 @@ private extension ConversationDetailScreen.PlayTab.PlayTool {
     }
 
 }
+
+#Preview {
+    HStack {
+        ConversationDetailScreen.PlayTab.PlayTool(
+            isPlaying: false,
+            disabledPlaying: false,
+            skipInterval: 5,
+            play: {},
+            pause: {},
+            skip: { _ in }
+        )
+    }
+}

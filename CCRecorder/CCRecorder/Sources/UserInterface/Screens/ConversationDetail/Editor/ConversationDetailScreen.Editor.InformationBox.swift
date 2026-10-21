@@ -2,7 +2,7 @@
 import Combine
 import SwiftUI
 
-extension ConversationDetailScreen.InformationToolbar {
+extension ConversationDetailScreen.Editor {
 
     struct InformationBox: View {
         @Binding var conversation: Conversation
@@ -125,7 +125,7 @@ extension ConversationDetailScreen.InformationToolbar {
 
 }
 
-private extension ConversationDetailScreen.InformationToolbar.InformationBox {
+private extension ConversationDetailScreen.Editor.InformationBox {
 
     func addParty() {
         conversation.parties.append(.init(name: party))
@@ -138,3 +138,18 @@ private extension ConversationDetailScreen.InformationToolbar.InformationBox {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var conversation = Conversation.preview
+    @Previewable @State var isEditing = true
+    @Previewable @FocusState var focuseField: ConversationDetailScreen.Editor.Field?
+
+    ConversationDetailScreen.Editor.InformationBox(
+        conversation: $conversation,
+        isEditing: $isEditing,
+        focuseField: $focuseField,
+        topicSubject: .init(conversation.topic)
+    )
+}
+#endif

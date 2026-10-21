@@ -50,3 +50,10 @@ extension ConversationDetailScreen.PlayTab.SpeedMenu {
     }
 
 }
+
+#Preview {
+    ConversationDetailScreen.PlayTab.SpeedMenu(
+        speed: .default,
+        select: { _ in }
+    )
+}

@@ -4,7 +4,7 @@ import SwiftUI
 
 extension ConversationDetailScreen {
 
-    struct InformationToolbar: View {
+    struct Editor: View {
         @Binding var conversation: Conversation
 
         @State private var title: String
@@ -78,7 +78,7 @@ extension ConversationDetailScreen {
 
 }
 
-extension ConversationDetailScreen.InformationToolbar {
+extension ConversationDetailScreen.Editor {
 
     enum Field: Hashable {
         case infoTitle
@@ -88,3 +88,17 @@ extension ConversationDetailScreen.InformationToolbar {
     }
 
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var conversation = Conversation.preview
+
+    NavigationStack {
+        ConversationDetailScreen.Editor(conversation: $conversation)
+    }
+    .modelContainer(
+        for: [Conversation.self, Note.self, Party.self],
+        inMemory: true
+    )
+}
+#endif

@@ -44,3 +44,16 @@ private struct TrailingActionModifier<Label: View>: ViewModifier {
             }
     }
 }
+
+#Preview {
+    TextField("Title", text: .constant("Conversation"))
+        .trailingAction(
+            of: true,
+            label: {
+                Image(systemName: "multiply.circle.fill")
+            },
+            action: {}
+        )
+        .textFieldStyle(.roundedBorder)
+        .padding()
+}

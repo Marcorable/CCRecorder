@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-extension ConversationDetailScreen.InformationToolbar {
+extension ConversationDetailScreen.Editor {
 
     struct InputBox: View {
         @Environment(\.modelContext) var modelContext
@@ -71,7 +71,7 @@ extension ConversationDetailScreen.InformationToolbar {
     }
 }
 
-private extension ConversationDetailScreen.InformationToolbar.InputBox {
+private extension ConversationDetailScreen.Editor.InputBox {
 
     func addNote() {
         guard !inputText.isEmpty else {
@@ -120,7 +120,7 @@ private extension ConversationDetailScreen.InformationToolbar.InputBox {
     }
 }
 
-extension ConversationDetailScreen.InformationToolbar.InputBox {
+extension ConversationDetailScreen.Editor.InputBox {
 
     enum Language {
         case korean
@@ -129,3 +129,19 @@ extension ConversationDetailScreen.InformationToolbar.InputBox {
     }
 
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var conversation = Conversation.preview
+    @Previewable @FocusState var focuseField: ConversationDetailScreen.Editor.Field?
+
+    ConversationDetailScreen.Editor.InputBox(
+        conversation: $conversation,
+        focuseField: $focuseField
+    )
+    .modelContainer(
+        for: [Conversation.self, Note.self, Party.self],
+        inMemory: true
+    )
+}
+#endif

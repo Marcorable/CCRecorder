@@ -14,7 +14,7 @@ extension ConversationDetailScreen {
 
         var body: some View {
             VStack {
-                InformationToolbar(conversation: $conversation)
+                Editor(conversation: $conversation)
                 NoteList(
                     notes: filteredNotes,
                     onDelete: onDelete(of:)

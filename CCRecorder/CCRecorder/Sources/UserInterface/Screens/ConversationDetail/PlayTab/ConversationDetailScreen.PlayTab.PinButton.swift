@@ -24,3 +24,10 @@ extension ConversationDetailScreen.PlayTab {
     }
 
 }
+
+#Preview {
+    ConversationDetailScreen.PlayTab.PinButton(
+        pinDisabled: false,
+        jump: {}
+    )
+}

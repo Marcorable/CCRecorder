@@ -70,3 +70,15 @@ extension NoteDetailScreen.VocabularyContent {
     }
 
 }
+
+#Preview {
+    NoteDetailScreen.VocabularyContent(
+        textSubject: .init(
+            (
+                original: "conversation",
+                translation: "대화"
+            )
+        )
+    )
+    .padding(.horizontal)
+}
