@@ -24,9 +24,9 @@ struct CCRecorderApp: App {
         }
     }()
     
-    @AppStorage(.Key.isFirstLaunched) private var isFirstLaunched: Bool = true
-    @AppStorage(.Key.displayMode) private var displayMode: DisplayMode = .system
-    @AppStorage(.Key.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
+    @AppStorage(.isFirstLaunched) private var isFirstLaunched: Bool = true
+    @AppStorage(.displayMode) private var displayMode: DisplayMode = .system
+    @AppStorage(.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
 
     @State private var state: LaunchState = .preprocess
 
@@ -34,13 +34,13 @@ struct CCRecorderApp: App {
         WindowGroup {
             switch state {
                 case .preprocess:
-                    LaunchScreenView(state: $state)
+                    LaunchScreen.Context(state: $state)
                     
                 case .launched:
                     MainNavigationStack()
                         .overlay {
                             if isFirstLaunched {
-                                OnboardView(isPrsented: $isFirstLaunched)
+                                OnboardScreen.Context()
                                     .transition(.opacity)
                             }
                         }

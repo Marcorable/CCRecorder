@@ -13,16 +13,10 @@ ViewModel/Model 에 `#if DEBUG` 로 감싼 `static var mock` 을 두고, 의존�
 
 ```swift
 #if DEBUG
-extension MartInfoViewModel {
+extension MartInfoScreen.ViewModel {
 
     static var mock: Self {
-        .init(
-            dependency: .init(
-                mainUsecase: MockManagingMartInfoUsecase(),
-                loginUsecase: MockManagingLoginUsecase(),
-                channelTalkService: MockChannelTalkService()
-            )
-        )
+        .init(model: .mock)
     }
 
 }
@@ -30,7 +24,7 @@ extension MartInfoViewModel {
 ```
 
 필요한 `Mock*` 이 없으면 만든다. 프리뷰를 위해 실제 Usecase 를 주입하지 않는다.
-`Mock*` 은 테스트와 같이 쓴다. 만드는 방법은 `.claude/rules/marcorable-swift/swift/testing.md` 의 "Mock" 을 따른다.
+`Mock*` 은 테스트와 같이 쓴다. 만드는 방법은 `agent-common/marcorable-swift/rules/swift/testing.md` 의 "Mock" 을 따른다.
 
 ## 컨테이너
 
@@ -39,7 +33,7 @@ extension MartInfoViewModel {
 ```swift
 #Preview {
     TooltipContainerView {
-        MartInfoView(viewModel: .mock)
+        MartInfoScreen.Context(viewModel: .mock)
     }
 }
 ```
@@ -51,7 +45,7 @@ extension MartInfoViewModel {
 ```swift
 #Preview {
     Color.black.overlay {
-        MartInfoView.BusinessInfoSection(viewModel: .init(model: .init(...)))
+        MartInfoScreen.BusinessInfoSection(viewModel: .init(model: .init(...)))
             .background(.white)
     }
 }
@@ -59,4 +53,4 @@ extension MartInfoViewModel {
 
 ## 상태별 확인
 
-데이터를 불러오기 전(`model == nil`) 상태도 프리뷰에서 깨지지 않아야 한다. 빈 문자열이나 플레이스홀더가 보여야 한다.
+불러오기 전·값 없음 상태도 프리뷰에서 깨지지 않아야 한다. 화면 목록의 `nil` 과 하위 `Model` 의 Optional 필드는 ViewModel 이 빈 문자열이나 플레이스홀더로 바꾼다 (`agent-common/marcorable-swift/rules/architecture/section-subview.md`).

@@ -6,6 +6,7 @@ paths:
 # switch 들여쓰기
 
 `case` 는 `switch` 보다 **한 단계 들여쓴다.** Xcode 기본값(`case` 를 `switch` 와 같은 열에 두기)과 다르다.
+Xcode 에서는 Settings › Text Editing › Indentation 의 **Indent switch/case labels in Swift** 를 켜면 재들여쓰기(⌃I) 해도 유지된다.
 
 ```swift
 // ✅

@@ -9,7 +9,7 @@ struct MainNavigationStack: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            MainView()
+            MainScreen.Context()
                 .navigationDestination(for: Screen.self) {
                     ScreenFactory.make(by: $0)
                 }
@@ -40,4 +40,8 @@ extension MainNavigationStack {
         }
     }
 
+}
+
+#Preview {
+    MainNavigationStack()
 }
