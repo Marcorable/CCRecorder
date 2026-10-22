@@ -1,32 +1,31 @@
 
 import Foundation
-import Observation
 
-/// 녹음 화면이 쓰는 녹음 엔진 인터페이스. 구현은 `AudioRecorder`.
+enum RecorderServiceFailure: Error {
+    case permissionDenied
+    case prepareFailed
+    case notPrepared
+}
+
 @MainActor
-protocol AudioRecording: AnyObject {
+protocol RecorderService: AnyObject {
     var isRecording: Bool { get }
     var currentTime: TimeInterval { get }
-    var pins: [TimeInterval] { get }
 
     func prepare() async throws
     func start()
     func pause()
-    func addPin()
-    func removePin(at index: Int)
     func finish() throws -> URL
     func cancel()
 }
 
-extension AudioRecorder: AudioRecording {}
+extension AudioRecorder: RecorderService {}
 
 #if DEBUG
 @MainActor
-@Observable
-final class MockAudioRecording: AudioRecording {
+final class MockRecorderService: RecorderService {
     var isRecording: Bool
     var currentTime: TimeInterval
-    var pins: [TimeInterval]
     var error: Error?
     var delay: Duration
 
@@ -35,13 +34,11 @@ final class MockAudioRecording: AudioRecording {
     init(
         isRecording: Bool = false,
         currentTime: TimeInterval = 12.3,
-        pins: [TimeInterval] = [3.0, 8.5],
         error: Error? = nil,
         delay: Duration = .zero
     ) {
         self.isRecording = isRecording
         self.currentTime = currentTime
-        self.pins = pins
         self.error = error
         self.delay = delay
     }
@@ -61,18 +58,6 @@ final class MockAudioRecording: AudioRecording {
         isRecording = false
     }
 
-    func addPin() {
-        guard isRecording else { return }
-
-        pins.append(currentTime)
-    }
-
-    func removePin(at index: Int) {
-        guard pins.indices.contains(index) else { return }
-
-        pins.remove(at: index)
-    }
-
     func finish() throws -> URL {
         if let error {
             throw error
@@ -85,7 +70,6 @@ final class MockAudioRecording: AudioRecording {
         isRecording = false
         isCanceled = true
         currentTime = .zero
-        pins = []
     }
 }
 #endif

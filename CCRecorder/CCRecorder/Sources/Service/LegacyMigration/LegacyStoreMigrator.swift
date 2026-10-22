@@ -357,14 +357,16 @@ fileprivate extension Conversation {
         noteIds: [UUID]
     ) {
         let createdDate = legacy.recordedDate ?? .now
-        let title = legacy.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-
+        let title = legacy.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? Date.now.formatted(
+            date: .abbreviated,
+            time: .omitted
+        )
         self.init(
             id: legacy.id,
             createdDate: createdDate,
             recordFileName: recordFileName,
             pins: legacy.pins,
-            title: title.isEmpty ? RecordScreen.defaultTitle(of: createdDate) : title,
+            title: title,
             topic: legacy.topic ?? "",
             notes: noteIds,
             parties: legacy.members.map { Party(name: $0) }

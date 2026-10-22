@@ -1,40 +1,42 @@
 
 import SwiftUI
 
+import ComposableArchitecture
+
 extension RecordScreen {
 
     struct PinGrid: View {
-        let pins: [TimeInterval]
-        let isRecording: Bool
-        let currentTime: TimeInterval
-        let delete: (Int) -> Void
+        let store: StoreOf<Root.Feature>
 
         var body: some View {
-            ScrollView {
+            ScrollView(
+                .vertical,
+                showsIndicators: true
+            ) {
                 LazyVStack(spacing: 0) {
                     HStack {
                         Spacer()
                         Image(systemName: "circle.fill")
                             .foregroundStyle(circleColor)
-                            .opacity(isRecording ? Int(currentTime) % 2 == 0 ? 1.0 : 0.0 : 1.0)
-                        Text(currentTime, format: .playbackTime)
+                            .opacity(store.isRecording ? Int(store.currentTime) % 2 == 0 ? 1.0 : 0.0 : 1.0)
+                        Text(store.currentTime, format: .playbackTime)
                             .foregroundStyle(timeColor)
                             .font(.largeTitle)
                         Spacer()
                     }
                     .padding(.vertical, 30)
 
-                    ForEach(pins.indices, id: \.self) { index in
+                    ForEach(store.pins.indices, id: \.self) { index in
                         HStack {
                             HStack(spacing: 4) {
                                 Text("📌")
-                                Text(pins[index], format: .playbackTime)
+                                Text(store.pins[index], format: .playbackTime)
                             }
                             Spacer()
                             Button(
                                 action: {
                                     withAnimation {
-                                        delete(index)
+                                        _ = store.send(.view(.removePinButtonTapped(index)))
                                     }
                                 },
                                 label: {
@@ -59,20 +61,24 @@ extension RecordScreen {
 private extension RecordScreen.PinGrid {
 
     var circleColor: Color {
-        isRecording ? .Logo.Prominent.red : .Logo.Muted.red
+        store.isRecording ? .Logo.Prominent.red : .Logo.Muted.red
     }
 
     var timeColor: Color {
-        isRecording ? .white : .gray
+        store.isRecording ? .white : .gray
     }
 
 }
 
 #Preview {
     RecordScreen.PinGrid(
-        pins: [3.0, 2.1],
-        isRecording: true,
-        currentTime: .init(),
-        delete: { _ in }
+        store: .init(
+            initialState: .init(
+                phase: .recording,
+                currentTime: 3,
+                pins: [3.0, 2.1]
+            ),
+            reducer: { RecordScreen.Root.Feature() }
+        )
     )
 }
