@@ -7,7 +7,7 @@ description: 레거시 폴더의 화면을 레이어 모듈(Presentation)로 옮
 
 Partners #473 #476 #478 #480 에서 반복한 흐름이다. **커밋을 단계별로 나눈다** — 이동과 구조 변경을 한 커밋에 섞지 않는다.
 
-먼저 `agent-common/marcorable-swift/rules/architecture/screen-pattern.md` 와 `section-subview.md` 를 읽는다.
+먼저 `agent-common/marcorable-swift/rules/architecture/screen-pattern.md`, `section-subview.md`, `ui-layout.md` 를 읽는다.
 
 ## 0. 범위 확인
 
@@ -55,11 +55,12 @@ case .notification:     "notification"      /// AOS confirmed
 
 ## 2. 구조 개선 — 커밋: `refactor: <화면명> 화면 MVVMC 적용` / `구조 정리`
 
-1. `<Name>View` + `ViewModel` 을 `<Name>Screen`(네임스페이스) / `.Model` / `.ViewModel` / `.Context` (UIKit 이면 `.ViewController` 도) 로 나눈다
+1. `<Name>View` + `ViewModel` 을 `<Name>Screen`(네임스페이스) / `.Model` / `.ViewModel` / `.Context` (UIKit 이면 `.ViewController` 도) 로 나눈다. 화면 타입에 `View` 접미사를 붙이지 않는다
 2. 뷰에 있던 로직(`Task { await viewModel.x() }`)을 `Intent` case 로 바꾸고 `viewModel.reduce(by:)` 로 보낸다. 서버 호출과 에러 변환은 `Model` 로 옮긴다
-3. 화면 전용 enum 이 Domain 개념이면 Domain 레이어의 Entity 로 옮기고, 문구는 Presentation 레이어의 extension 에 둔다
-4. 프리뷰 추가 (`agent-common/marcorable-swift/rules/architecture/preview.md`)
-5. 빌드
+3. 한 화면에서만 쓰는 타입·enum 은 그 화면에 중첩한다. 여러 화면이 함께 쓰는 Domain 개념만 Domain 레이어의 Entity 로 옮기고, 문구는 Presentation 레이어의 extension 에 둔다
+4. 화면 폴더는 평평하게 두고, 전용 서브뷰는 `Subview/` 가 아니라 서브뷰 이름 폴더에 둔다 (`agent-common/marcorable-swift/rules/architecture/ui-layout.md`)
+5. 프리뷰 추가 (`agent-common/marcorable-swift/rules/architecture/preview.md`)
+6. 빌드
 
 ## 3. 중복 정리 (필요할 때) — 커밋: `refactor: <컴포넌트> 중복 컴포넌트 구성`
 

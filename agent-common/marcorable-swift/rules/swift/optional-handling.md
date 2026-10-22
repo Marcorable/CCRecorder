@@ -26,10 +26,10 @@ if let deliveryNotice = viewModel.deliveryNotice {
 
 ## 표시용 ViewModel 프로퍼티
 
-Optional `model` 을 들고 있는 ViewModel 은 표시용 computed property 에서 기본값을 정한다. 뷰는 Optional 을 몰라도 되게 한다.
+하위 View 의 `Model` 은 원본 Optional 을 필드에 그대로 둔다. 표시용 기본값은 ViewModel 의 computed property 에서 정하고, 뷰는 Optional 을 몰라도 되게 한다 (`agent-common/marcorable-swift/rules/architecture/section-subview.md`).
 
 ```swift
-var representative: String { model?.representative ?? "" }
+var representative: String { model.representative ?? "" }
 ```
 
 ## guard

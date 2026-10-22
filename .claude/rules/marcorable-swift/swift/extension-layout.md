@@ -15,7 +15,7 @@ paths:
 4. private 헬퍼
 5. `#if DEBUG` 로 감싼 `static var mock`
 
-중첩 타입·`action`·헬퍼·`mock` 은 각각 **별도 extension** 으로 둔다. 구분은 extension 으로 하고 `// MARK:` 주석은 달지 않는다.
+중첩 타입·`action`·헬퍼·`mock` 은 각각 **별도 extension** 으로 둔다. 구분은 extension 으로 하고 `// MARK:` 주석은 달지 않는다. 한 선언 안에서 case 를 용도별로 묶을 때만 `// MARK:` 를 쓴다 (`agent-common/marcorable-swift/rules/swift/declaration.md` 의 "저장 키").
 
 ## 공백
 
