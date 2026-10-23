@@ -1,82 +1,83 @@
 
 import SwiftUI
 
+import ComposableArchitecture
+
 extension RecordScreen {
 
     struct ConversationInfoBox: View {
-        @Binding var title: String
-        @Binding var topic: String
-        @Binding var parties: [Party]
-
-        @State private var partyName: String = ""
-        @State private var isEditing: Bool = false
+        @Bindable var store: StoreOf<ConversationInfoBox.Feature>
 
         var body: some View {
             GroupBox {
-                if isEditing {
+                if store.isEditing {
                     TextField(
                         "InputTitle",
-                        text: $title,
+                        text: $store.title,
                         prompt: Text("녹음 제목을 입력하세요")
                     )
                     .trailingAction(
-                        of: !title.isEmpty,
+                        of: !store.title.isEmpty,
                         label: {
                             Image(systemName: "multiply.circle.fill")
                                 .accessibilityLabel("입력 내용 지우기")
                         },
                         action: {
-                            title = ""
+                            store.send(.view(.clearTitleButtonTapped))
                         }
                     )
                     .multilineTextAlignment(.center)
                     .cornerRadius(10)
                     TextField(
                         "InputTopic",
-                        text: $topic,
+                        text: $store.topic,
                         prompt: Text("대화 주제를 입력하세요")
                     )
                     .trailingAction(
-                        of: !topic.isEmpty,
+                        of: !store.topic.isEmpty,
                         label: {
                             Image(systemName: "multiply.circle.fill")
                                 .accessibilityLabel("입력 내용 지우기")
                         },
                         action: {
-                            topic = ""
+                            store.send(.view(.clearTopicButtonTapped))
                         }
                     )
                     .multilineTextAlignment(.center)
                     .cornerRadius(10)
                     TextField(
                         "InputParties",
-                        text: $partyName,
+                        text: $store.partyName,
                         prompt: Text("참여자를 추가하세요")
                     )
                     .trailingAction(
-                        of: !partyName.isEmpty,
+                        of: !store.partyName.isEmpty,
                         label: {
                             Image(systemName: "multiply.circle.fill")
                                 .accessibilityLabel("입력 내용 지우기")
                         },
                         action: {
-                            partyName = ""
+                            store.send(.view(.clearPartyNameButtonTapped))
                         }
                     )
                     .multilineTextAlignment(.center)
                     .cornerRadius(10)
-                    .onSubmit(add)
-                    if !parties.isEmpty {
+                    .onSubmit {
+                        store.send(.view(.addParty))
+                    }
+                    if !store.parties.isEmpty {
                         ScrollView(.horizontal, showsIndicators: true) {
                             LazyHGrid(rows: [.init(.flexible())]) {
-                                ForEach(parties.indices, id: \.self) { index in
+                                ForEach(store.parties.indices, id: \.self) { index in
                                     HStack {
                                         Text(randomEmoji)
-                                        Text(parties[index].name)
+                                        Text(store.parties[index])
                                             .font(.headline)
                                             .foregroundStyle(.white)
                                         Button(
-                                            action: { delete(of: index) },
+                                            action: {
+                                                store.send(.view(.removePartyButtonTapped(index)))
+                                            },
                                             label: {
                                                 Image(systemName: "delete.backward")
                                                     .foregroundStyle(Color.Logo.Prominent.red)
@@ -95,7 +96,9 @@ extension RecordScreen {
                 }
                 Button(
                     action: {
-                        withAnimation { isEditing.toggle() }
+                        withAnimation {
+                            _ = store.send(.view(.editingButtonTapped))
+                        }
                     },
                     label: {
                         HStack {
@@ -105,7 +108,7 @@ extension RecordScreen {
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundStyle(.accent)
-                                .rotationEffect(.degrees(isEditing ? -90.0 : 0.0))
+                                .rotationEffect(.degrees(store.isEditing ? -90.0 : 0.0))
                         }
                     }
                 )
@@ -145,28 +148,20 @@ private extension RecordScreen.ConversationInfoBox {
         return .init(Array(emoji)[Int.random(in: 0..<emoji.count)])
     }
 
-    func add() {
-        guard !partyName.isEmpty else { return  }
-        parties.insert(.init(name: partyName), at: 0)
-        partyName.removeAll()
-    }
-
-    func delete(of index: Int) {
-        parties.remove(at: index)
-    }
-
 }
 
 #Preview {
-    @Previewable @State var title = "영어 회화"
-    @Previewable @State var topic = "여행"
-    @Previewable @State var parties = [Party(name: "Marco")]
-
     Color.Surface.Recorder.muted.overlay {
         RecordScreen.ConversationInfoBox(
-            title: $title,
-            topic: $topic,
-            parties: $parties
+            store: .init(
+                initialState: .init(
+                    title: "영어 회화",
+                    topic: "여행",
+                    parties: ["Marco"],
+                    isEditing: true
+                ),
+                reducer: { RecordScreen.ConversationInfoBox.Feature() }
+            )
         )
     }
 }

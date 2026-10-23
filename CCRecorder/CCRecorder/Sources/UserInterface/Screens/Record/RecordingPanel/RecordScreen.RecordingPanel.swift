@@ -1,26 +1,29 @@
 
 import SwiftUI
 
+import ComposableArchitecture
+
 extension RecordScreen {
 
     struct RecordingPanel: View {
-        let viewModel: ViewModel
+        let store: StoreOf<Root.Feature>
 
         var body: some View {
             HStack(alignment: .center) {
                 StopButton(
-                    isEnabled: viewModel.isAbleToSave,
-                    action: { viewModel.reduce(by: .requestSave) }
+                    isEnabled: store.isAbleToSave,
+                    action: { store.send(.view(.requestSaveButtonTapped)) }
                 )
                 Spacer()
                 RecordButton(
-                    isRecording: viewModel.isRecording,
-                    action: { viewModel.reduce(by: .toggleRecording) }
+                    isEnabled: store.isAbleToToggleRecording,
+                    isRecording: store.isRecording,
+                    action: { store.send(.view(.toggleRecordingButtonTapped)) }
                 )
                 Spacer()
                 PinButton(
-                    isEnabled: viewModel.isRecording,
-                    action: { viewModel.reduce(by: .addPin) }
+                    isEnabled: store.isRecording,
+                    action: { store.send(.view(.addPinButtonTapped)) }
                 )
             }
         }
@@ -59,6 +62,7 @@ extension RecordScreen.RecordingPanel {
     }
 
     struct RecordButton: View {
+        let isEnabled: Bool
         let isRecording: Bool
         let action: () -> Void
 
@@ -103,6 +107,7 @@ extension RecordScreen.RecordingPanel {
                     }
                 }
             )
+            .disabled(!isEnabled)
         }
     }
 
@@ -139,7 +144,23 @@ extension RecordScreen.RecordingPanel {
 #if DEBUG
 #Preview {
     Color.Surface.Recorder.muted.overlay {
-        RecordScreen.RecordingPanel(viewModel: .mock)
+        RecordScreen.RecordingPanel(
+            store: .init(
+                initialState: .init(
+                    phase: .recording,
+                    currentTime: 3
+                ),
+                reducer: { RecordScreen.Root.Feature() },
+                withDependencies: {
+                    $0.recordUsecase = .live(
+                        service: MockRecorderService(
+                            isRecording: true,
+                            currentTime: 3
+                        )
+                    )
+                }
+            )
+        )
         .padding()
     }
 }

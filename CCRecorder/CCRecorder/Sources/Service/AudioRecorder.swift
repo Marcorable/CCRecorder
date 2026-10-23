@@ -1,9 +1,6 @@
 import AVFAudio
-import Observation
 
-/// AVAudioRecorder 를 감싸 녹음 상태를 관찰 가능한 형태로 노출한다.
 @MainActor
-@Observable
 final class AudioRecorder {
 
     enum State {
@@ -12,25 +9,30 @@ final class AudioRecorder {
         case paused
     }
 
-    enum RecordError: Error {
-        case permissionDenied
-        case prepareFailed
-        case notPrepared
-    }
-
     private(set) var state: State = .idle
-    private(set) var currentTime: TimeInterval = .zero
-    private(set) var pins: [TimeInterval] = []
+    private var pausedTime: TimeInterval = .zero
 
     var isRecording: Bool { state == .recording }
+    var currentTime: TimeInterval {
+        guard state == .recording, let recorder else {
+            return pausedTime
+        }
+        return recorder.currentTime
+    }
 
-    @ObservationIgnored private let store: RecordFileStore
-    @ObservationIgnored private var recorder: AVAudioRecorder?
-    @ObservationIgnored private var ticker: Timer?
-    @ObservationIgnored private var observers: [NSObjectProtocol] = []
+    private let store: RecordFileStore
+    private let requestRecordPermission: @MainActor () async -> Bool
+    private var recorder: AVAudioRecorder?
+    private var observers: [NSObjectProtocol] = []
 
-    init(store: RecordFileStore = .init()) {
+    init(
+        store: RecordFileStore = .init(),
+        requestRecordPermission: @escaping @MainActor () async -> Bool = {
+            await AudioSessionController.requestRecordPermission()
+        }
+    ) {
         self.store = store
+        self.requestRecordPermission = requestRecordPermission
 
         observeSessionNotifications()
     }
@@ -46,64 +48,71 @@ extension AudioRecorder {
 
     /// 권한 확인부터 파일 준비까지 마친다. 녹음 화면 진입 시 호출한다.
     func prepare() async throws {
-        guard await AudioSessionController.requestRecordPermission() else {
-            throw RecordError.permissionDenied
+        try Task.checkCancellation()
+        let isGranted = await requestRecordPermission()
+        try Task.checkCancellation()
+
+        guard isGranted else {
+            throw RecorderServiceFailure.permissionDenied
         }
 
         try store.prepareDirectory()
+        try Task.checkCancellation()
 
-        let recorder = try AVAudioRecorder(
-            url: store.makeNewFileURL(),
-            settings: Self.recordSettings
-        )
+        let fileURL = store.makeNewFileURL()
+        var preparedRecorder: AVAudioRecorder?
 
-        guard recorder.prepareToRecord() else {
-            throw RecordError.prepareFailed
+        do {
+            let recorder = try AVAudioRecorder(
+                url: fileURL,
+                settings: Self.recordSettings
+            )
+            preparedRecorder = recorder
+            try Task.checkCancellation()
+
+            guard recorder.prepareToRecord() else {
+                throw RecorderServiceFailure.prepareFailed
+            }
+            try Task.checkCancellation()
+
+            self.recorder = recorder
+            self.state = .idle
+            self.pausedTime = .zero
+        } catch {
+            preparedRecorder?.stop()
+            _ = preparedRecorder?.deleteRecording()
+            try? store.removeFile(at: fileURL)
+            throw error
         }
-
-        self.recorder = recorder
-        self.state = .idle
-        self.currentTime = .zero
-        self.pins = []
     }
 
     func start() {
-        guard let recorder, state != .recording, recorder.record() else { return }
+        guard let recorder, state != .recording, recorder.record() else {
+            return
+        }
 
         state = .recording
-        startTicker()
     }
 
     func pause() {
-        guard state == .recording, let recorder else { return }
+        guard state == .recording, let recorder else {
+            return
+        }
 
+        pausedTime = recorder.currentTime
         recorder.pause()
         state = .paused
-        stopTicker()
-    }
-
-    /// 현재 시점을 북마크한다.
-    func addPin() {
-        guard state == .recording else { return }
-
-        pins.append(currentTime)
-    }
-
-    func removePin(at index: Int) {
-        guard pins.indices.contains(index) else { return }
-
-        pins.remove(at: index)
     }
 
     /// 녹음을 끝내고 저장된 파일 경로를 돌려준다.
     func finish() throws -> URL {
         guard let recorder else {
-            throw RecordError.notPrepared
+            throw RecorderServiceFailure.notPrepared
         }
 
         let filePath = recorder.url
+        pausedTime = recorder.currentTime
         recorder.stop()
-        updateCurrentTime(with: recorder)
         cleanUp()
 
         return filePath
@@ -111,49 +120,20 @@ extension AudioRecorder {
 
     /// 녹음을 취소하고 파일을 지운다.
     func cancel() {
-        guard let recorder else { return }
+        if let recorder {
+            recorder.stop()
+            recorder.deleteRecording()
+        }
 
-        recorder.stop()
-        recorder.deleteRecording()
         cleanUp()
-
-        currentTime = .zero
-        pins = []
+        pausedTime = .zero
     }
 
 }
 
-// MARK: - 경과 시간
 private extension AudioRecorder {
 
-    func startTicker() {
-        stopTicker()
-
-        /// 스크롤 중에도 시간이 멈추지 않도록 .common 모드로 등록한다.
-        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                /// pause() 직후 이미 예약된 콜백이 값을 덮어쓰지 않도록 상태를 확인한다.
-                /// AVAudioRecorder.currentTime 은 녹음 중에만 유효하다.
-                guard let self, self.state == .recording, let recorder = self.recorder else { return }
-                self.updateCurrentTime(with: recorder)
-            }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-
-        ticker = timer
-    }
-
-    func stopTicker() {
-        ticker?.invalidate()
-        ticker = nil
-    }
-
-    func updateCurrentTime(with recorder: AVAudioRecorder) {
-        currentTime = recorder.currentTime
-    }
-
     func cleanUp() {
-        stopTicker()
         recorder = nil
         state = .idle
     }
@@ -235,4 +215,3 @@ private extension AudioRecorder {
     }
 
 }
-
