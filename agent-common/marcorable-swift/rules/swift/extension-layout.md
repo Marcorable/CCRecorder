@@ -10,12 +10,12 @@ paths:
 ## 순서
 
 1. 타입 본체 — 저장 프로퍼티, `init`, `bind()`
-2. `Dependency`, 입력/출력 enum 같은 중첩 타입
-3. `action` 진입점
+2. `Dependency`, `Configuration`, 입력/출력 enum 같은 중첩 타입
+3. 공개 동작 진입점
 4. private 헬퍼
 5. `#if DEBUG` 로 감싼 `static var mock`
 
-중첩 타입·`action`·헬퍼·`mock` 은 각각 **별도 extension** 으로 둔다. 구분은 extension 으로 하고 `// MARK:` 주석은 달지 않는다. 한 선언 안에서 case 를 용도별로 묶을 때만 `// MARK:` 를 쓴다 (`agent-common/marcorable-swift/rules/swift/declaration.md` 의 "저장 키").
+중첩 타입·공개 동작·헬퍼·`mock`은 각각 **별도 extension**으로 둔다. 구분은 extension으로 하고 `// MARK:` 주석은 달지 않는다. 한 선언 안에서 case를 용도별로 묶을 때만 `// MARK:`를 쓴다.
 
 ## 공백
 
@@ -27,35 +27,32 @@ paths:
 
 ```swift
 // ✅
-extension SearchScreen {
+extension SearchService {
 
-    @MainActor
-    @Observable
-    final class ViewModel {
-        private(set) var input = ""
-        private let model: Model
+    struct Configuration {
+        let minimumQueryLength: Int
 
-        init(model: Model) {
-            self.model = model
+        init(minimumQueryLength: Int) {
+            self.minimumQueryLength = minimumQueryLength
         }
     }
 
 }
 
 // ❌ 타입 본문을 빈 줄로 열고 닫음
-extension SearchScreen {
+extension SearchService {
 
-    final class ViewModel {
+    struct Configuration {
 
-        private(set) var input = ""
+        let minimumQueryLength: Int
 
     }
 
 }
 
 // ❌ extension 을 빈 줄 없이 열고 닫음
-extension SearchScreen {
-    final class ViewModel {
+extension SearchService {
+    struct Configuration {
         ...
     }
 }
@@ -63,12 +60,12 @@ extension SearchScreen {
 
 ## 중첩 타입
 
-화면에 딸린 타입은 전역에 두지 않고 화면 타입 안에 중첩한다.
-`MartInfoScreen.BusinessInfoSection`, `BarcodeRegisterScreen.Model` 처럼 쓴다.
+특정 소유자에게만 딸린 타입은 전역에 두지 않고 그 타입 안에 중첩한다.
+`SearchService.Configuration`, `ConversationScreen.Filter`처럼 쓴다.
 긴 중첩 이름은 `typealias` 로 줄인다.
 
 ```swift
-typealias SalesInfoViewModel = MartInfoScreen.SalesInfoSection.ViewModel
+typealias ConversationFilter = ConversationScreen.Filter
 ```
 
 ## 확장 파일 이름

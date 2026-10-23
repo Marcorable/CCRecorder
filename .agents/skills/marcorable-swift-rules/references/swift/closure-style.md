@@ -11,7 +11,7 @@
 
 ```swift
 // ✅
-viewModel.$menus
+menuPublisher
     .map({
         $0.filter({ $0 != .myReview })
     })
@@ -58,7 +58,7 @@ Task(priority: .userInitiated) {
     ...
 }
 
-viewModel.$state
+statePublisher
     .sink { [weak self] state in
         ...
     }
@@ -107,12 +107,12 @@ Button(
 Button { ... } label: { ... }
 ```
 
-<!-- 근거: MarcorableMVVM 세션에서 Marco 가 직접 명시한 규칙 (메모리 marco-screen-mvvm-pattern) -->
+<!-- 근거: Marco 가 직접 명시한 Swift 클로저 표기 규칙 -->
 
 ## 메서드 참조
 
 클로저가 메서드 하나만 부르면 메서드 참조로 넘긴다.
 
 ```swift
-.sink(receiveValue: viewModel.action(_:))
+.sink(receiveValue: handle(_:))
 ```

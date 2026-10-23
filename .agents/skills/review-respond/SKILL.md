@@ -9,27 +9,40 @@ description: PR 리뷰 코멘트를 읽고 반영한다. 리뷰 반영, 코멘�
 
 ## 1. 코멘트 읽기
 
-PR 번호를 받지 못했으면 현재 브랜치의 PR 을 쓴다 (`gh pr view --json number`).
+PR 번호를 받지 못했으면 현재 브랜치의 PR을 쓴다 (`gh pr view --json number`). 인라인 스레드뿐 아니라 상위 리뷰와 일반 PR 코멘트도 함께 읽는다.
+
+```bash
+gh pr view <번호> --json reviews,comments
+```
 
 ```bash
 gh api graphql -F owner='{owner}' -F repo='{repo}' -F number=<번호> -f query='
-query($owner: String!, $repo: String!, $number: Int!) {
+query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
   repository(owner: $owner, name: $repo) {
     pullRequest(number: $number) {
-      reviewThreads(first: 100) {
+      reviewThreads(first: 100, after: $cursor) {
         nodes {
+          id
           isResolved
+          subjectType
           path
           line
-          comments(first: 20) { nodes { author { login } body } }
+          comments(first: 100) {
+            nodes { author { login } body }
+            pageInfo { hasNextPage endCursor }
+          }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }
-}'
+}' -F cursor=null
 ```
 
-`isResolved` 가 false 인 스레드만 `파일:줄 — 요지` 목록으로 보여준다.
+- `reviewThreads.pageInfo.hasNextPage`가 참이면 `endCursor`를 `cursor`로 넘겨 끝까지 반복한다
+- 개별 `comments.pageInfo.hasNextPage`가 참이면 해당 thread `id`의 댓글도 별도 쿼리로 끝까지 가져온다
+- `isResolved`가 false인 스레드만 `파일:줄 — 요지` 목록으로 보여준다
+- `subjectType`이 `FILE`이거나 `line`이 null이면 `파일 전체 — 요지`로 표시한다
 
 ## 2. 반영
 

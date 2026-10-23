@@ -6,7 +6,7 @@ description: 새 API 를 붙여 API → Repository → Usecase → DI 등록 →
 # Usecase 추가
 
 QMarket #2741(`CertificationUsecase`), #2745(`NoticeRepository`)에서 반복한 흐름이다.
-먼저 `agent-common/marcorable-swift/rules/swift/usecase-repository.md` 를 읽는다. 파일 위치와 등록은 `agent-common/marcorable-swift/rules/architecture/module-layout.md` 를 따른다. 실제 경로는 같은 종류의 기존 타입에서 찾는다.
+먼저 `agent-common/marcorable-swiftui/rules/application/usecase-repository.md`를 읽는다. 파일 위치와 등록은 `agent-common/marcorable-swiftui/rules/application/module-layout.md`를 따른다. 실제 경로는 같은 종류의 기존 타입에서 찾는다.
 
 ## 0. 입력 확인
 
@@ -39,8 +39,8 @@ QMarket #2741(`CertificationUsecase`), #2745(`NoticeRepository`)에서 반복한
 
 ## 4. 화면 주입
 
-- ViewModel `Dependency` 에 Usecase 를 추가하고 화면 팩토리에서 `resolve`
-- 호출은 `agent-common/marcorable-swift/rules/swift/async-result.md` 순서를 따른다
+- Presentation 연결과 의존성 주입은 프로젝트가 선택한 아키텍처 팩을 따른다
+- 호출부의 상태 전이와 비동기 결과 처리는 선택한 아키텍처 팩을 따른다
 
 ## 5. 마무리
 
