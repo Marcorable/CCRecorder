@@ -1,9 +1,11 @@
 
+import Foundation
+
 public protocol NoteRepository: Sendable {
     func create(
         content: Note.Content,
         category: Note.Category
-    ) async throws -> Note
+    ) async throws -> UUID
 }
 
 extension Note {
