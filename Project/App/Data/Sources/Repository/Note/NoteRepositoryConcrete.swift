@@ -4,14 +4,8 @@ import Foundation
 
 import Domain
 
-@MainActor
-public struct NoteRepositoryConcrete {
-    private let modelContext: ModelContext
-
-    public init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
-}
+@ModelActor
+public actor NoteRepositoryConcrete {}
 
 extension NoteRepositoryConcrete: NoteRepository {
 
@@ -19,14 +13,14 @@ extension NoteRepositoryConcrete: NoteRepository {
         content: Note.Content,
         category: Note.Category
     ) async throws -> UUID {
-        let model = Note.Model(
+        let record = Note.Record(
             content: content,
             category: category
         )
         do {
-            modelContext.insert(model)
+            modelContext.insert(record)
             try modelContext.save()
-            return model.id
+            return record.id
         } catch {
             modelContext.rollback()
             throw error
@@ -38,8 +32,8 @@ extension NoteRepositoryConcrete: NoteRepository {
 extension Note {
 
     @Model
-    final class Model {
-        #Unique<Model>([\.id])
+    final class Record {
+        #Unique<Record>([\.id])
 
         var id: UUID
         var createdDate: Date
