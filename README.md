@@ -32,22 +32,22 @@
 
 ## 저장소 구성
 
-두 세대의 앱 코드가 한 저장소에 공존합니다.
+Tuist로 생성하는 v2 앱과 데이터 마이그레이션 참고용 v1 코드가 한 저장소에 공존합니다.
 
 ```text
-CCRecorder/
-├── CCRecorder/          # v2 앱 — 현재 개발 대상
-├── CCRecorderTests/     # Swift Testing 기반 단위·통합 테스트
-├── CCRecorderUITests/   # XCTest 기반 UI 테스트
-├── App.xctestplan       # Xcode 기본 테스트 플랜
-├── CI-Unit.xctestplan   # Xcode Cloud 유닛 테스트 플랜
-└── Local-UI.xctestplan  # 로컬 UI 테스트 플랜
+Project/App/
+├── App/                 # v2 앱 소스와 리소스
+├── Presentation/        # SwiftUI와 TCA 화면 레이어
+├── Domain/              # Entity, Usecase, Repository 계약
+├── Data/                # Repository와 영속성 구현
+├── Tests/               # 테스트 플랜과 Unit/UI 테스트
+└── Project.swift        # Tuist 프로젝트 정의
 
 CasualConversation/      # v1 레거시 — 마이그레이션 참고용
 Docs/                    # 개발 문서와 v2 이미지
 ```
 
-새 기능과 수정은 `CCRecorder/`의 v2 앱을 대상으로 합니다. `CasualConversation/`은 출시된 v1 데이터 구조를 확인하기 위한 레거시 코드이며 신규 개발 대상이 아닙니다.
+새 기능과 수정은 `Project/App/`의 v2 앱을 대상으로 합니다. `CasualConversation/`은 출시된 v1 데이터 구조를 확인하기 위한 레거시 코드이며 신규 개발 대상이 아닙니다.
 
 ## 기술 구성
 
@@ -59,53 +59,58 @@ Docs/                    # 개발 문서와 v2 이미지
 - Swift Testing, XCTest
 - Xcode Cloud
 
-v2는 외부 패키지 없이 단일 Xcode 프로젝트로 구성되어 있습니다. 화면 단위 상태와 동작은 Screen 네임스페이스 아래 `Model`, `ViewModel`, `Context`, `View`로 분리합니다.
+v2는 Tuist workspace에서 App, Presentation, Domain, Data 레이어를 구성합니다. Presentation은 SwiftUI와 TCA 화면을, Domain은 Entity와 Usecase 및 Repository 계약을, Data는 Repository 구현과 영속성 기술을 담당합니다.
 
 ## 실행 방법
 
 ### 요구 사항
 
 - Xcode 26.2 이상
+- Tuist 4.203.1 이상
 - iOS 18.0 이상
 - 녹음 기능을 실행할 기기의 마이크 권한
 
 ### Xcode
 
-1. `CCRecorder/CCRecorder.xcodeproj`를 엽니다.
-2. `App` 스킴을 선택합니다.
-3. iOS 18.0 이상의 Simulator 또는 실기기를 선택합니다.
-4. 서명이 필요한 실기기 빌드는 프로젝트의 Development Team을 설정합니다.
-5. 앱을 실행합니다.
+1. 저장소 루트에서 `tuist generate`를 실행합니다.
+2. 생성된 `CCRecorder.xcworkspace`를 엽니다.
+3. `App` 스킴을 선택합니다.
+4. iOS 18.0 이상의 Simulator 또는 실기기를 선택합니다.
+5. 서명이 필요한 실기기 빌드는 프로젝트의 Development Team을 설정합니다.
+6. 앱을 실행합니다.
 
 명령행에서 Simulator 빌드만 확인하려면 다음을 실행합니다.
 
 ```sh
 xcodebuild build \
-  -project CCRecorder/CCRecorder.xcodeproj \
+  -workspace CCRecorder.xcworkspace \
   -scheme App \
   -configuration Debug \
   -destination 'generic/platform=iOS Simulator' \
   CODE_SIGNING_ALLOWED=NO
 ```
 
+Xcode Cloud에서는 post-clone 단계에 Tuist 4.203.1을 설치하고 Git에서 제외된 `CCRecorder.xcworkspace`를 생성한 뒤 `App` 스킴을 빌드합니다.
+
 ## 테스트
 
 Xcode Cloud에서는 `CI-Unit`, 로컬 UI 테스트에서는 `Local-UI` 플랜을 사용합니다.
 
 ```sh
-# 유닛 테스트
+# 앱 유닛 테스트
 xcodebuild test \
-  -project CCRecorder/CCRecorder.xcodeproj \
+  -workspace CCRecorder.xcworkspace \
   -scheme App \
   -testPlan CI-Unit \
   -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=18.0'
 
 # UI 테스트
 xcodebuild test \
-  -project CCRecorder/CCRecorder.xcodeproj \
+  -workspace CCRecorder.xcworkspace \
   -scheme App \
   -testPlan Local-UI \
   -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=18.0'
+
 ```
 
 실제 마이크 입력이 필요한 테스트와 CI 운영 기준은 [테스트 운영 문서](Docs/Testing.md)를 참고하세요.

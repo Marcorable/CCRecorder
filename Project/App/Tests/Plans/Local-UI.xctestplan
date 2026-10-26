@@ -10,8 +10,8 @@
   ],
   "defaultOptions" : {
     "targetForVariableExpansion" : {
-      "containerPath" : "container:CCRecorder.xcodeproj",
-      "identifier" : "A9DA8CC22C8A9C3500D1141C",
+      "containerPath" : "container:App.xcodeproj",
+      "identifier" : "2345EF6AD7441BAE5409FAFE",
       "name" : "CCRecorder"
     },
     "testTimeoutsEnabled" : true
@@ -20,8 +20,8 @@
     {
       "parallelizable" : false,
       "target" : {
-        "containerPath" : "container:CCRecorder.xcodeproj",
-        "identifier" : "A9DA8CDE2C8A9C3600D1141C",
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "D4E71CB3DDDC84B144F9AF23",
         "name" : "CCRecorderUITests"
       }
     }

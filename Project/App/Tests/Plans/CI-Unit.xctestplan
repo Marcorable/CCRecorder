@@ -15,8 +15,8 @@
   "testTargets" : [
     {
       "target" : {
-        "containerPath" : "container:CCRecorder.xcodeproj",
-        "identifier" : "A9DA8CD42C8A9C3600D1141C",
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "74FDC675EC3EFCC5334FB76B",
         "name" : "CCRecorderTests"
       }
     }

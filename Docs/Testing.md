@@ -1,22 +1,21 @@
 # 테스트 운영
 
-## 테스트 플랜
+## 테스트 대상
 
-| 플랜 | 대상 | 용도 |
+| 실행 단위 | 대상 | 용도 |
 | --- | --- | --- |
-| `App` | 유닛 테스트 | Xcode에서 사용하는 기본 플랜 |
-| `CI-Unit` | 유닛 테스트 | Xcode Cloud용 플랜 |
-| `Local-UI` | UI 테스트 | 로컬 UI 테스트 전용 플랜. 러너 충돌을 줄이기 위해 병렬 실행하지 않는다. |
+| `App` | `CCRecorderTests` | 앱 유닛 테스트 |
+| `App` | `CCRecorderUITests` | 로컬 UI 테스트 |
 
-Xcode Cloud에서는 `CI-Unit`을 선택한다. UI 테스트는 실행 시간과 시뮬레이터 러너의 안정성을 고려해 Cloud에서 실행하지 않는다.
+UI 테스트는 실행 시간과 시뮬레이터 러너의 안정성을 고려해 Cloud에서 실행하지 않는다. Xcode Cloud 설정은 Tuist workspace와 `CCRecorderTests` 대상으로 전환한다.
 
 ## UI 테스트
 
-Xcode에서 `App` 스킴의 테스트 플랜을 `Local-UI`로 선택하거나 다음 명령을 실행한다.
+Tuist가 생성한 workspace에서 `App` 스킴의 `CCRecorderUITests`를 선택하거나 다음 명령을 실행한다.
 
 ```sh
 xcodebuild test \
-  -project CCRecorder/CCRecorder.xcodeproj \
+  -workspace CCRecorder.xcworkspace \
   -scheme App \
   -testPlan Local-UI \
   -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=18.0'
@@ -26,7 +25,7 @@ xcodebuild test \
 
 같은 오류가 다시 발생하면 `.xcresult`를 보존하고 다음 순서로 확인한다.
 
-1. `Local-UI` 플랜이 선택됐는지 확인한다.
+1. `CCRecorderUITests`만 선택됐는지 확인한다.
 2. 동일한 시뮬레이터에서 Xcode로 UI 테스트 하나만 직접 실행한다.
 3. 시뮬레이터를 재부팅한 뒤 다시 실행한다.
 4. 계속 실패하면 새 시뮬레이터에서 실행해 런타임과 기기 상태를 분리한다.
