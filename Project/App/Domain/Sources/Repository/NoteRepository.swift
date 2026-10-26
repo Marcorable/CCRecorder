@@ -8,6 +8,10 @@ public protocol NoteRepository: Sendable {
     ) async throws -> UUID
 
     func read() async throws -> [Note]
+
+    func update(_ note: Note) async throws
+
+    func delete(ids: [UUID]) async throws
 }
 
 extension Note {

@@ -52,4 +52,51 @@ extension NoteRepositoryConcreteTests {
         #expect(translation.category == .vocabulary)
     }
 
+    @Test("Note를 수정하면 변경된 값을 반환한다")
+    func updateChangesNote() async throws {
+        // given
+        let id = try await repository.create(
+            content: .original("Hello"),
+            category: .vocabulary
+        )
+        var note = try #require(
+            try await repository.read().first { $0.id == id }
+        )
+        note.original = "Hello, world"
+        note.translation = "안녕, 세상"
+        note.category = .sentence
+
+        // when
+        try await repository.update(note)
+
+        // then
+        let updatedNote = try #require(
+            try await repository.read().first { $0.id == id }
+        )
+        #expect(updatedNote.original == "Hello, world")
+        #expect(updatedNote.translation == "안녕, 세상")
+        #expect(updatedNote.category == .sentence)
+    }
+
+    @Test("선택한 Note를 삭제하면 목록에서 제거한다")
+    func deleteRemovesSelectedNotes() async throws {
+        // given
+        let deletedId = try await repository.create(
+            content: .original("Deleted"),
+            category: .vocabulary
+        )
+        let remainingId = try await repository.create(
+            content: .original("Remaining"),
+            category: .vocabulary
+        )
+
+        // when
+        try await repository.delete(ids: [deletedId])
+
+        // then
+        let notes = try await repository.read()
+        #expect(!notes.contains { $0.id == deletedId })
+        #expect(notes.contains { $0.id == remainingId })
+    }
+
 }
