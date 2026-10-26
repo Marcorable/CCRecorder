@@ -4,17 +4,22 @@ import Testing
 import Data
 import Domain
 
-@Suite("Note 저장소", .serialized)
-@MainActor
-struct NoteRepositoryConcreteTests {
-    private let repository: any NoteRepository
+extension DataRepositoryTests {
 
-    init() throws {
-        try DataFactory.setup(true)
-        self.repository = DataFactory.makeNoteRepository()
+    @Suite("Note 저장소")
+    @MainActor
+    struct NoteRepositoryConcreteTests {
+        private let repository: any NoteRepository
+
+        init() throws {
+            try DataFactory.setup(true)
+            self.repository = DataFactory.makeNoteRepository()
+        }
     }
+
 }
-extension NoteRepositoryConcreteTests {
+
+extension DataRepositoryTests.NoteRepositoryConcreteTests {
 
     @Test("저장된 Note가 없으면 빈 목록을 반환한다")
     func readReturnsEmptyWhenNoNoteExists() async throws {
