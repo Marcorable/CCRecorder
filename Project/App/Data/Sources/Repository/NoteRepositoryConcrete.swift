@@ -5,11 +5,11 @@ import Foundation
 import Domain
 
 @ModelActor
-public actor NoteRepositoryConcrete {}
+actor NoteRepositoryConcrete {}
 
 extension NoteRepositoryConcrete: NoteRepository {
 
-    public func create(
+    func create(
         content: Note.Content,
         category: Note.Category
     ) async throws -> UUID {
@@ -27,12 +27,18 @@ extension NoteRepositoryConcrete: NoteRepository {
         }
     }
 
+    func read() async throws -> [Note] {
+        let records = try modelContext.fetch(FetchDescriptor<Note.Record>())
+        let data = try JSONEncoder().encode(records)
+        return try JSONDecoder().decode([Note].self, from: data)
+    }
+
 }
 
 extension Note {
 
     @Model
-    final class Record {
+    final class Record: Encodable {
         #Unique<Record>([\.id])
 
         var id: UUID
@@ -61,6 +67,31 @@ extension Note {
                     self.translation = translation
             }
         }
+    }
+
+}
+
+extension Note.Record {
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(createdDate, forKey: .createdDate)
+        try container.encode(original, forKey: .original)
+        try container.encode(translation, forKey: .translation)
+        try container.encode(category, forKey: .category)
+    }
+
+}
+
+extension Note.Record {
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case createdDate
+        case original
+        case translation
+        case category
     }
 
 }

@@ -6,6 +6,8 @@ public protocol NoteRepository: Sendable {
         content: Note.Content,
         category: Note.Category
     ) async throws -> UUID
+
+    func read() async throws -> [Note]
 }
 
 extension Note {

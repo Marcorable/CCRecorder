@@ -26,6 +26,15 @@ let data = Target.module(
     ]
 )
 
+let dataTests = Target.tests(
+    name: "DataTests",
+    buildableFolders: ["Data/Tests"],
+    dependencies: [
+        .target(name: "Data"),
+        .target(name: "Domain"),
+    ]
+)
+
 let presentation = Target.module(
     name: "Presentation",
     buildableFolders: ["Presentation/Sources"],
@@ -113,6 +122,7 @@ let project = Project(
     targets: [
         domain,
         data,
+        dataTests,
         presentation,
         app,
         tests,
@@ -132,7 +142,8 @@ let project = Project(
         .scheme(
             name: "Data",
             shared: true,
-            buildAction: .buildAction(targets: ["Data"])
+            buildAction: .buildAction(targets: ["Data"]),
+            testAction: .targets(["DataTests"])
         ),
         .scheme(
             name: "App",
