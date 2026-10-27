@@ -48,6 +48,9 @@ let presentation = Target.module(
     buildableFolders: ["Presentation/Sources"],
     dependencies: [
         .target(name: "Domain"),
+        .package(product: "Dependencies"),
+        .package(product: "DependenciesMacros"),
+        .package(product: "IssueReporting"),
     ]
 )
 

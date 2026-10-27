@@ -27,6 +27,15 @@ extension ManagingNoteUsecaseConcrete: ManagingNoteUsecase {
         }
     }
 
+    func updateNote(_ note: Note) async -> Result<Void, DomainError> {
+        do {
+            try await dependency.noteRepository.update(note)
+            return .success(())
+        } catch {
+            return .failure(.data(error))
+        }
+    }
+
     func deleteNotes(ids: [UUID]) async -> Result<Void, DomainError> {
         do {
             try await dependency.noteRepository.delete(ids: ids)

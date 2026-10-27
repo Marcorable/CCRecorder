@@ -26,6 +26,10 @@ extension DataFactory {
 
 extension DataFactory {
 
+    public static func makeRecordFileRepository() -> RecordFileRepository {
+        RecordFileRepositoryConcrete()
+    }
+
     public static func makeNoteRepository() -> NoteRepository {
         NoteRepositoryConcrete(modelContainer: modelContainer)
     }

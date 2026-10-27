@@ -75,6 +75,48 @@ extension ManagingNoteUsecaseTests {
         #expect(await repository.deletedIds() == ids)
     }
 
+    @Test("수정한 Note를 저장한다")
+    func updateNoteForwardsNote() async throws {
+        // given
+        let note = Note(
+            createdDate: .init(),
+            original: "Updated",
+            translation: "수정됨",
+            category: .vocabulary
+        )
+
+        // when
+        let result = await usecase.updateNote(note)
+
+        // then
+        try result.get()
+        #expect(await repository.updatedNote() == note)
+    }
+
+    @Test("Note를 수정하지 못하면 Data 오류를 반환한다")
+    func updateNoteReturnsDataError() async {
+        // given
+        let note = Note(
+            createdDate: .init(),
+            original: "Updated",
+            translation: "수정됨",
+            category: .vocabulary
+        )
+        await repository.setError(.failed)
+
+        // when
+        let result = await usecase.updateNote(note)
+
+        // then
+        switch result {
+            case .success:
+                Issue.record("Data 오류를 반환해야 합니다.")
+
+            case .failure(.data(let error)):
+                #expect(error is TestError)
+        }
+    }
+
 }
 
 private extension ManagingNoteUsecaseTests {
@@ -86,6 +128,7 @@ private extension ManagingNoteUsecaseTests {
     actor MockNoteRepository: NoteRepository {
         private var notes: [Note] = []
         private var error: TestError?
+        private var updated: Note?
         private var deleted: [UUID] = []
 
         func create(_ note: Note) throws {
@@ -105,6 +148,7 @@ private extension ManagingNoteUsecaseTests {
             if let error {
                 throw error
             }
+            updated = note
         }
 
         func delete(ids: [UUID]) throws {
@@ -124,6 +168,10 @@ private extension ManagingNoteUsecaseTests {
 
         func deletedIds() -> [UUID] {
             deleted
+        }
+
+        func updatedNote() -> Note? {
+            updated
         }
     }
 

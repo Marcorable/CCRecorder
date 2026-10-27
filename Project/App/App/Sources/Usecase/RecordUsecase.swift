@@ -54,7 +54,7 @@ extension DependencyValues {
 extension RecordUsecase {
 
     @MainActor
-    static func live(service: any RecorderService) -> Self {
+    static func live(service: any LegacyRecorderService) -> Self {
         let state: @MainActor @Sendable () -> State = {
             .init(
                 isRecording: service.isRecording,

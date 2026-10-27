@@ -1,75 +1,119 @@
 
-import Foundation
+import AVFAudio
 
-enum RecorderServiceFailure: Error {
-    case permissionDenied
-    case prepareFailed
-    case notPrepared
-}
+import Domain
 
 @MainActor
-protocol RecorderService: AnyObject {
-    var isRecording: Bool { get }
-    var currentTime: TimeInterval { get }
+final class RecorderService {
+    private var state: State = .idle
+    private var pausedTime: TimeInterval = .zero
+    private var recorder: AVAudioRecorder?
 
-    func prepare() async throws
-    func start()
-    func pause()
-    func finish() throws -> URL
-    func cancel()
-}
-
-extension AudioRecorder: RecorderService {}
-
-#if DEBUG
-@MainActor
-final class MockRecorderService: RecorderService {
-    var isRecording: Bool
-    var currentTime: TimeInterval
-    var error: Error?
-    var delay: Duration
-
-    private(set) var isCanceled: Bool = false
-
-    init(
-        isRecording: Bool = false,
-        currentTime: TimeInterval = 12.3,
-        error: Error? = nil,
-        delay: Duration = .zero
-    ) {
-        self.isRecording = isRecording
-        self.currentTime = currentTime
-        self.error = error
-        self.delay = delay
+    var isRecording: Bool {
+        state == .recording
     }
 
-    func prepare() async throws {
-        try await Task.sleep(for: delay)
-        if let error {
+    var currentTime: TimeInterval {
+        guard state == .recording, let recorder else {
+            return pausedTime
+        }
+        return recorder.currentTime
+    }
+
+    init() {}
+}
+
+extension RecorderService {
+
+    enum State {
+        case idle
+        case recording
+        case paused
+    }
+
+    enum ServiceError: Error {
+        case prepareFailed
+        case notPrepared
+    }
+
+}
+
+extension RecorderService: RecorderServiceInterface {
+
+    func prepare(with fileURL: URL) throws {
+        do {
+            let recorder = try AVAudioRecorder(
+                url: fileURL,
+                settings: [
+                    AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                    AVSampleRateKey: 44100.0,
+                    AVNumberOfChannelsKey: 1,
+                    AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+                ]
+            )
+
+            guard recorder.prepareToRecord() else {
+                throw ServiceError.prepareFailed
+            }
+
+            self.recorder = recorder
+            self.state = .idle
+            self.pausedTime = .zero
+        } catch let error as ServiceError {
             throw error
+        } catch {
+            throw ServiceError.prepareFailed
         }
     }
 
     func start() {
-        isRecording = true
+        guard
+            let recorder,
+            state != .recording,
+            recorder.record()
+        else {
+            return
+        }
+
+        state = .recording
     }
 
     func pause() {
-        isRecording = false
+        guard state == .recording, let recorder else {
+            return
+        }
+
+        pausedTime = recorder.currentTime
+        recorder.pause()
+        state = .paused
     }
 
     func finish() throws -> URL {
-        if let error {
-            throw error
+        guard let recorder else {
+            throw ServiceError.notPrepared
         }
-        isRecording = false
-        return FileManager.default.temporaryDirectory.appendingPathComponent("mock.m4a")
+
+        let fileURL = recorder.url
+        pausedTime = recorder.currentTime
+        recorder.stop()
+        cleanUp()
+
+        return fileURL
     }
 
     func cancel() {
-        isRecording = false
-        isCanceled = true
-        currentTime = .zero
+        recorder?.stop()
+        cleanUp()
+        pausedTime = .zero
     }
+
 }
-#endif
+
+private extension RecorderService {
+
+    func cleanUp() {
+        recorder = nil
+        state = .idle
+    }
+
+}
