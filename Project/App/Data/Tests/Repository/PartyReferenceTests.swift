@@ -2,27 +2,27 @@
 import Testing
 import Foundation
 
-import Data
 import Domain
+@testable import Data
 
-extension DataRepositoryTests {
+@Suite("Party 참조")
+@MainActor
+struct PartyReferenceTests {
+    private let conversationRepository: any ConversationRepository
+    private let partyRepository: any PartyRepository
 
-    @Suite("Party 참조")
-    @MainActor
-    struct PartyReferenceTests {
-        private let conversationRepository: any ConversationRepository
-        private let partyRepository: any PartyRepository
-
-        init() throws {
-            try DataFactory.setup(true)
-            self.conversationRepository = DataFactory.makeConversationRepository()
-            self.partyRepository = DataFactory.makePartyRepository()
-        }
+    init() throws {
+        let modelContainer = try makeTestModelContainer()
+        self.conversationRepository = ConversationRepositoryConcrete(
+            modelContainer: modelContainer
+        )
+        self.partyRepository = PartyRepositoryConcrete(
+            modelContainer: modelContainer
+        )
     }
-
 }
 
-extension DataRepositoryTests.PartyReferenceTests {
+extension PartyReferenceTests {
 
     @Test("현재 Party는 최신 이름과 선택 가능한 상태로 반환한다")
     func currentPartyUsesLatestName() async throws {

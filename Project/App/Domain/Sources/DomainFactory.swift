@@ -1,6 +1,11 @@
 
+
+import Foundation
+
 public enum DomainFactory {
+    @MainActor private weak static var managingConversationUsecase: ManagingConversationUsecaseConcrete?
     @MainActor private weak static var managingNoteUsecase: ManagingNoteUsecaseConcrete?
+    @MainActor private weak static var playingRecordUsecase: PlayingRecordUsecaseConcrete?
     @MainActor private weak static var recordingUsecase: RecordingUsecaseConcrete?
 }
 
@@ -11,6 +16,27 @@ extension DomainFactory {
 }
 
 extension DomainFactory {
+
+    @MainActor
+    public static func makeManagingConversationUsecase(
+        conversationRepository: ConversationRepository,
+        noteRepository: NoteRepository,
+        now: @escaping @Sendable () -> Date = { .init() }
+    ) -> ManagingConversationUsecase {
+        if let usecase = managingConversationUsecase {
+            return usecase
+        } else {
+            let usecase = ManagingConversationUsecaseConcrete(
+                dependency: .init(
+                    conversationRepository: conversationRepository,
+                    noteRepository: noteRepository,
+                    now: now
+                )
+            )
+            managingConversationUsecase = usecase
+            return usecase
+        }
+    }
 
     @MainActor
     public static func makeManagingNoteUsecase(
@@ -25,6 +51,25 @@ extension DomainFactory {
                 )
             )
             managingNoteUsecase = usecase
+            return usecase
+        }
+    }
+
+    @MainActor
+    public static func makePlayingRecordUsecase(
+        playerService: PlayerService,
+        recordFileRepository: RecordFileRepository
+    ) -> PlayingRecordUsecase {
+        if let usecase = playingRecordUsecase {
+            return usecase
+        } else {
+            let usecase = PlayingRecordUsecaseConcrete(
+                dependency: .init(
+                    playerService: playerService,
+                    recordFileRepository: recordFileRepository
+                )
+            )
+            playingRecordUsecase = usecase
             return usecase
         }
     }
