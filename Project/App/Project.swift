@@ -18,6 +18,14 @@ let domain = Target.module(
     buildableFolders: ["Domain/Sources"]
 )
 
+let domainTests = Target.tests(
+    name: "DomainTests",
+    buildableFolders: ["Domain/Tests"],
+    dependencies: [
+        .target(name: "Domain"),
+    ]
+)
+
 let data = Target.module(
     name: "Data",
     buildableFolders: ["Data/Sources"],
@@ -121,6 +129,7 @@ let project = Project(
     settings: .ccRecorder,
     targets: [
         domain,
+        domainTests,
         data,
         dataTests,
         presentation,
@@ -137,7 +146,8 @@ let project = Project(
         .scheme(
             name: "Domain",
             shared: true,
-            buildAction: .buildAction(targets: ["Domain"])
+            buildAction: .buildAction(targets: ["Domain"]),
+            testAction: .targets(["DomainTests"])
         ),
         .scheme(
             name: "Data",
