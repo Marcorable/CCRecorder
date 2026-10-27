@@ -52,11 +52,12 @@ struct CCRecorderApp: App {
                             }
 
                             do {
+                                try await setup()
                                 try await Task.sleep(for: .seconds(2)) // FIXME: Launch Process
 
                                 state = .launched
                             } catch {
-
+                                print("\(Self.self) \(#function) - \(error)")
                             }
                         }
 

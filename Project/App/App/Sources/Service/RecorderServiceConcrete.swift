@@ -4,7 +4,7 @@ import AVFAudio
 import Domain
 
 @MainActor
-final class RecorderService {
+final class RecorderServiceConcrete {
     private var state: State = .idle
     private var pausedTime: TimeInterval = .zero
     private var recorder: AVAudioRecorder?
@@ -23,7 +23,7 @@ final class RecorderService {
     init() {}
 }
 
-extension RecorderService {
+extension RecorderServiceConcrete {
 
     enum State {
         case idle
@@ -38,7 +38,7 @@ extension RecorderService {
 
 }
 
-extension RecorderService: RecorderServiceInterface {
+extension RecorderServiceConcrete: RecorderService {
 
     func prepare(with fileURL: URL) throws {
         do {
@@ -109,7 +109,7 @@ extension RecorderService: RecorderServiceInterface {
 
 }
 
-private extension RecorderService {
+private extension RecorderServiceConcrete {
 
     func cleanUp() {
         recorder = nil

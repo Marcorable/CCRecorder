@@ -6,18 +6,18 @@ enum OnboardScreen {
     struct Root: View {
         @Environment(\.dismiss) private var dismissAction
 
-        private let pages: [ImageResource] = [
-            .Onboarding.page0,
-            .Onboarding.page1,
-            .Onboarding.page2,
-            .Onboarding.page3,
-            .Onboarding.page4
+        private let pages: [PresentationImages] = [
+            PresentationAsset.Onboarding.page0,
+            PresentationAsset.Onboarding.page1,
+            PresentationAsset.Onboarding.page2,
+            PresentationAsset.Onboarding.page3,
+            PresentationAsset.Onboarding.page4
         ]
 
         var body: some View {
             TabView {
                 ForEach(pages.indices, id: \.self) { index in
-                    Image(pages[index])
+                    Image(asset: pages[index])
                         .resizable()
                         .scaledToFit()
                         .overlay(alignment: .bottom) {
@@ -31,7 +31,7 @@ enum OnboardScreen {
                                             .tint(.white)
                                             .font(.system(size: 16, weight: .bold, design: .rounded))
                                             .padding()
-                                            .background(Color.Icon.accent)
+                                            .background(Color(asset: PresentationAsset.Icon.accent))
                                             .shadow(color: .black, radius: 1, x: 1, y: 1)
                                     }
                                 )
@@ -43,7 +43,7 @@ enum OnboardScreen {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
-            .background(Color.Surface.Recorder.prominent)
+            .background(Color(asset: PresentationAsset.Surface.Recorder.prominent))
         }
     }
 

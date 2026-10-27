@@ -10,7 +10,7 @@ final class RecordingUsecaseConcrete: Sendable {
 extension RecordingUsecaseConcrete {
 
     struct Dependency: Sendable {
-        let recorderService: RecorderServiceInterface
+        let recorderService: RecorderService
         let recordFileRepository: RecordFileRepository
         let conversationRepository: ConversationRepository
     }

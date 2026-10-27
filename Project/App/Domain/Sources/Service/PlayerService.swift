@@ -2,7 +2,7 @@
 import Foundation
 
 @MainActor
-public protocol PlayerServiceInterface: AnyObject, Sendable {
+public protocol PlayerService: AnyObject, Sendable {
     var isPlaying: Bool { get }
     var currentTime: TimeInterval { get }
     var duration: TimeInterval { get }

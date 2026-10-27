@@ -1,8 +1,7 @@
 
 import AVFAudio
 
-import Dependencies
-import DependenciesMacros
+import ComposableArchitecture
 
 @DependencyClient
 struct MicrophonePermissionClient: Sendable {

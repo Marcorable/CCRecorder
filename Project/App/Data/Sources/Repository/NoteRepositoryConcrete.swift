@@ -5,7 +5,7 @@ import Foundation
 import Domain
 
 @ModelActor
-actor NoteRepositoryConcrete {}
+final actor NoteRepositoryConcrete {}
 
 extension NoteRepositoryConcrete: NoteRepository {
 

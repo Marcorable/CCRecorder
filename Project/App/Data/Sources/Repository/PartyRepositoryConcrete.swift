@@ -5,7 +5,7 @@ import Foundation
 import Domain
 
 @ModelActor
-actor PartyRepositoryConcrete {}
+final actor PartyRepositoryConcrete {}
 
 extension PartyRepositoryConcrete: PartyRepository {
 

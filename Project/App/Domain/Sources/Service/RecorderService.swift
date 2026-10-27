@@ -2,7 +2,7 @@
 import Foundation
 
 @MainActor
-public protocol RecorderServiceInterface: AnyObject, Sendable {
+public protocol RecorderService: AnyObject, Sendable {
     var isRecording: Bool { get }
     var currentTime: TimeInterval { get }
 

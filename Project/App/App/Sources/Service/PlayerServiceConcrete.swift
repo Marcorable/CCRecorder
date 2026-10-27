@@ -4,7 +4,7 @@ import AVFAudio
 import Domain
 
 @MainActor
-final class PlayerService: NSObject {
+final class PlayerServiceConcrete: NSObject {
     private(set) var isPlaying: Bool = false
     private(set) var currentTime: TimeInterval = .zero
     private(set) var duration: TimeInterval = .zero
@@ -22,7 +22,7 @@ final class PlayerService: NSObject {
     }
 }
 
-extension PlayerService {
+extension PlayerServiceConcrete {
 
     enum ServiceError: Error {
         case prepareFailed
@@ -30,7 +30,7 @@ extension PlayerService {
 
 }
 
-extension PlayerService: PlayerServiceInterface {
+extension PlayerServiceConcrete: PlayerService {
 
     func prepare(with fileURL: URL) throws {
         do {
@@ -109,7 +109,7 @@ extension PlayerService: PlayerServiceInterface {
 
 }
 
-private extension PlayerService {
+private extension PlayerServiceConcrete {
 
     func startTicker() {
         stopTicker()
@@ -141,7 +141,7 @@ private extension PlayerService {
 
 }
 
-extension PlayerService: AVAudioPlayerDelegate {
+extension PlayerServiceConcrete: AVAudioPlayerDelegate {
 
     nonisolated func audioPlayerDidFinishPlaying(
         _ player: AVAudioPlayer,
