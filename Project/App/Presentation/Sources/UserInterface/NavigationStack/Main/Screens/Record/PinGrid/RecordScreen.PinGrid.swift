@@ -41,7 +41,9 @@ extension RecordScreen {
                                 },
                                 label: {
                                     Image(systemName: "delete.backward")
-                                        .foregroundStyle(Color.Logo.Prominent.red)
+                                        .foregroundStyle(
+                                            Color(asset: Asset.Logo.Prominent.red)
+                                        )
                                 }
                             )
                         }
@@ -61,7 +63,9 @@ extension RecordScreen {
 private extension RecordScreen.PinGrid {
 
     var circleColor: Color {
-        store.isRecording ? .Logo.Prominent.red : .Logo.Muted.red
+        store.isRecording
+        ? Color(asset: Asset.Logo.Prominent.red)
+        : Color(asset: Asset.Logo.Muted.red)
     }
 
     var timeColor: Color {
@@ -78,7 +82,14 @@ private extension RecordScreen.PinGrid {
                 currentTime: 3,
                 pins: [3.0, 2.1]
             ),
-            reducer: { RecordScreen.Root.Feature() }
+            reducer: {
+                RecordScreen.Root.Feature(
+                    recordingUsecase: RecordingUsecasePreview(
+                        isRecording: true,
+                        currentTime: 3
+                    )
+                )
+            }
         )
     )
 }

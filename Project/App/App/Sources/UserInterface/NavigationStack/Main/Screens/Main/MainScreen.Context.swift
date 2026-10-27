@@ -1,6 +1,7 @@
 
 import SwiftUI
 
+import Presentation
 import NavigationCoordinator
 import ComposableArchitecture
 
@@ -25,24 +26,7 @@ extension MainScreen {
             }
             .background(Color.Surface.Background.primary)
             .fullScreenCover(isPresented: $isPresentedModal) {
-                let fileStore = RecordFileStore()
-                RecordScreen.Root(
-                    store: .init(
-                        initialState: .init(),
-                        reducer: { RecordScreen.Root.Feature() },
-                        withDependencies: {
-                            $0.recordUsecase = .live(
-                                service: AudioRecorder(store: fileStore)
-                            )
-                            $0.saveConversationUsecase = .live(
-                                repository: ConversationRepositoryConcrete(
-                                    modelContext: modelContext
-                                ),
-                                fileStore: fileStore
-                            )
-                        }
-                    )
-                )
+                PresentationFactory.recordScreen
             }
             .toolbar {
                 Toolbar()

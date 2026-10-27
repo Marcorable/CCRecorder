@@ -6,11 +6,11 @@ enum LaunchScreen {
     struct Root: View {
 
         var body: some View {
-            Image(asset: PresentationAsset.Launch.background)
+            Image(asset: Asset.Launch.background)
                 .resizable()
                 .scaledToFill()
                 .background {
-                    Image(asset: PresentationAsset.Launch.background)
+                    Image(asset: Asset.Launch.background)
                         .resizable()
                         .ignoresSafeArea()
                 }

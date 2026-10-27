@@ -2,6 +2,7 @@
 import UIKit
 import Foundation
 
+import Domain
 import ComposableArchitecture
 
 extension RecordScreen.Root {
@@ -11,8 +12,9 @@ extension RecordScreen.Root {
         @Dependency(\.continuousClock) private var clock
         @Dependency(\.date.now) private var now
         @Dependency(\.openURL) private var openURL
-        @Dependency(\.recordUsecase) private var recordUsecase
-        @Dependency(\.saveConversationUsecase) private var saveConversationUsecase
+        @Dependency(\.microphonePermission) private var microphonePermission
+
+        let recordingUsecase: RecordingUsecase
 
         var body: some ReducerOf<Self> {
             Scope(
@@ -107,9 +109,11 @@ extension RecordScreen.Root.Feature {
 
         @CasePathable
         enum Response {
-            case prepare(Result<RecordUsecase.State, RecordUsecase.Failure>)
-            case recorderUpdated(RecordUsecase.State)
-            case save(Result<Void, SaveConversationUsecase.Failure>)
+            case microphonePermission(MicrophonePermissionClient.Status)
+            case prepared(TimeInterval)
+            case recorderUpdated(isRecording: Bool, currentTime: TimeInterval)
+            case saved
+            case recordingFailed(DomainError.RecordingUsecaseFailure)
         }
 
         @CasePathable
@@ -123,6 +127,7 @@ extension RecordScreen.Root.Feature {
 
     private enum CancelID {
         case prepare
+        case save
         case ticker
     }
 
@@ -138,17 +143,16 @@ extension RecordScreen.Root.Feature {
             case .task:
                 state.phase = .preparing
                 return .run { send in
-                    do {
-                        let snapshot = try await recordUsecase.prepare()
-                        try Task.checkCancellation()
-                        await send(.response(.prepare(.success(snapshot))))
-                    } catch is CancellationError {
-                        return
-                    } catch let failure as RecordUsecase.Failure {
-                        await send(.response(.prepare(.failure(failure))))
-                    } catch {
-                        await send(.response(.prepare(.failure(.prepareFailed))))
+                    let status = microphonePermission.authorizationStatus()
+                    let resolvedStatus = switch status {
+                        case .notDetermined:
+                            await microphonePermission.requestAuthorization()
+
+                        case .authorized, .denied:
+                            status
                     }
+                    try Task.checkCancellation()
+                    await send(.response(.microphonePermission(resolvedStatus)))
                 }
                 .cancellable(
                     id: CancelID.prepare,
@@ -161,10 +165,19 @@ extension RecordScreen.Root.Feature {
                 }
                 let isRecording = state.isRecording
                 return .run { send in
-                    let snapshot = isRecording
-                        ? await recordUsecase.pause()
-                        : await recordUsecase.start()
-                    await send(.response(.recorderUpdated(snapshot)))
+                    if isRecording {
+                        await recordingUsecase.pause()
+                    } else {
+                        await recordingUsecase.start()
+                    }
+                    await send(
+                        .response(
+                            .recorderUpdated(
+                                isRecording: await recordingUsecase.isRecording,
+                                currentTime: await recordingUsecase.currentTime
+                            )
+                        )
+                    )
                 }
 
             case .addPinButtonTapped:
@@ -196,14 +209,18 @@ extension RecordScreen.Root.Feature {
                 guard !state.isFinished else {
                     return .merge(
                         .cancel(id: CancelID.prepare),
+                        .cancel(id: CancelID.save),
                         .cancel(id: CancelID.ticker)
                     )
                 }
                 state.isFinished = true
                 return .merge(
                     .cancel(id: CancelID.prepare),
+                    .cancel(id: CancelID.save),
                     .cancel(id: CancelID.ticker),
-                    .run { _ in await recordUsecase.cancel() }
+                    .run { _ in
+                        await recordingUsecase.cancel()
+                    }
                 )
         }
     }
@@ -213,15 +230,27 @@ extension RecordScreen.Root.Feature {
         action: Action.Response
     ) -> Effect<Action> {
         switch action {
-            case .prepare(.success(let snapshot)):
-                guard !state.isFinished else {
-                    return .none
+            case .microphonePermission(.authorized):
+                return .run { send in
+                    do {
+                        try await recordingUsecase.prepare()
+                        try Task.checkCancellation()
+                        await send(.response(.prepared(await recordingUsecase.currentTime)))
+                    } catch is CancellationError {
+                        return
+                    } catch let DomainError.recordingUsecase(error) {
+                        await send(.response(.recordingFailed(error)))
+                    } catch {
+                        await send(.response(.recordingFailed(.prepareFailed)))
+                    }
                 }
-                state.phase = .idle
-                state.currentTime = snapshot.currentTime
-                return .none
+                .cancellable(
+                    id: CancelID.prepare,
+                    cancelInFlight: true
+                )
 
-            case .prepare(.failure(.permissionDenied)):
+            case .microphonePermission(.notDetermined),
+                    .microphonePermission(.denied):
                 guard !state.isFinished else {
                     return .none
                 }
@@ -229,7 +258,15 @@ extension RecordScreen.Root.Feature {
                 state.alert = .permissionDenied
                 return .none
 
-            case .prepare(.failure):
+            case .prepared(let currentTime):
+                guard !state.isFinished else {
+                    return .none
+                }
+                state.phase = .idle
+                state.currentTime = currentTime
+                return .none
+
+            case .recordingFailed(.prepareFailed):
                 guard !state.isFinished else {
                     return .none
                 }
@@ -237,21 +274,37 @@ extension RecordScreen.Root.Feature {
                 state.alert = .prepareFailed
                 return .none
 
-            case .recorderUpdated(let snapshot):
-                if snapshot.isRecording {
+            case .recordingFailed(.finishFailed),
+                    .recordingFailed(.saveFailed):
+                guard !state.isFinished else {
+                    return .none
+                }
+                state.phase = .idle
+                state.alert = .saveFailed
+                return .none
+
+            case .recorderUpdated(let isRecording, let currentTime):
+                if isRecording {
                     state.phase = .recording
-                } else if snapshot.currentTime > 0 {
+                } else if currentTime > 0 {
                     state.phase = .paused
                 } else {
                     state.phase = .idle
                 }
-                state.currentTime = snapshot.currentTime
-                guard snapshot.isRecording else {
+                state.currentTime = currentTime
+                guard isRecording else {
                     return .cancel(id: CancelID.ticker)
                 }
                 return .run { send in
                     for await _ in clock.timer(interval: .milliseconds(100)) {
-                        await send(.response(.recorderUpdated(await recordUsecase.state())))
+                        await send(
+                            .response(
+                                .recorderUpdated(
+                                    isRecording: await recordingUsecase.isRecording,
+                                    currentTime: await recordingUsecase.currentTime
+                                )
+                            )
+                        )
                     }
                 }
                 .cancellable(
@@ -259,14 +312,10 @@ extension RecordScreen.Root.Feature {
                     cancelInFlight: true
                 )
 
-            case .save(.success):
+            case .saved:
                 state.isFinished = true
                 return .none
 
-            case .save(.failure):
-                state.phase = .idle
-                state.alert = .saveFailed
-                return .none
         }
     }
 
@@ -279,8 +328,11 @@ extension RecordScreen.Root.Feature {
                 state.isFinished = true
                 return .merge(
                     .cancel(id: CancelID.prepare),
+                    .cancel(id: CancelID.save),
                     .cancel(id: CancelID.ticker),
-                    .run { _ in await recordUsecase.cancel() }
+                    .run { _ in
+                        await recordingUsecase.cancel()
+                    }
                 )
 
             case .saveConfirmed:
@@ -300,28 +352,35 @@ extension RecordScreen.Root.Feature {
                     .cancel(id: CancelID.ticker),
                     .run { send in
                         do {
-                            let fileURL = try await recordUsecase.finish()
-                            try await saveConversationUsecase.execute(
+                            try await recordingUsecase.finish(
                                 .init(
-                                    fileURL: fileURL,
                                     createdDate: createdDate,
+                                    pins: pins,
                                     title: savingTitle,
                                     topic: topic,
-                                    parties: parties,
-                                    pins: pins
+                                    parties: parties.map({ .init(name: $0) })
                                 )
                             )
-                            await send(.response(.save(.success(()))))
+                            await send(.response(.saved))
+                        } catch is CancellationError {
+                            return
+                        } catch let DomainError.recordingUsecase(error) {
+                            await send(.response(.recordingFailed(error)))
                         } catch {
-                            await send(.response(.save(.failure(.saveFailed))))
+                            await send(.response(.recordingFailed(.saveFailed)))
                         }
                     }
+                    .cancellable(
+                        id: CancelID.save,
+                        cancelInFlight: true
+                    )
                 )
 
             case .openSettingsTapped:
                 state.isFinished = true
                 return .merge(
                     .cancel(id: CancelID.prepare),
+                    .cancel(id: CancelID.save),
                     .cancel(id: CancelID.ticker),
                     .run { _ in
                         guard let url = URL(string: UIApplication.openSettingsURLString) else {
@@ -329,15 +388,20 @@ extension RecordScreen.Root.Feature {
                         }
                         await openURL(url)
                     },
-                    .run { _ in await recordUsecase.cancel() }
+                    .run { _ in
+                        await recordingUsecase.cancel()
+                    }
                 )
 
             case .closeAfterFailure:
                 state.isFinished = true
                 return .merge(
                     .cancel(id: CancelID.prepare),
+                    .cancel(id: CancelID.save),
                     .cancel(id: CancelID.ticker),
-                    .run { _ in await recordUsecase.cancel() }
+                    .run { _ in
+                        await recordingUsecase.cancel()
+                    }
                 )
         }
     }

@@ -44,12 +44,12 @@ extension RecordScreen.RecordingPanel {
                     Image(systemName: "stop.fill")
                         .foregroundStyle(
                             isEnabled
-                                ? Color.Logo.Prominent.blue
-                                : Color.Logo.Muted.blue
+                                ? Color(asset: Asset.Logo.Prominent.blue)
+                                : Color(asset: Asset.Logo.Muted.blue)
                         )
                         .font(.system(size: 34))
                         .shadow(
-                            color: .Logo.Muted.blue,
+                            color: Color(asset: Asset.Logo.Muted.blue),
                             radius: 1,
                             x: 2,
                             y: 2
@@ -81,10 +81,14 @@ extension RecordScreen.RecordingPanel {
                         if isRecording {
                             ZStack {
                                 Image(systemName: "circle.fill")
-                                    .foregroundStyle(Color.Logo.Muted.red)
+                                    .foregroundStyle(
+                                        Color(asset: Asset.Logo.Muted.red)
+                                    )
                                     .font(.system(size: 58))
                                 Image(systemName: "pause.fill")
-                                    .foregroundStyle(Color.Logo.Prominent.red)
+                                    .foregroundStyle(
+                                        Color(asset: Asset.Logo.Prominent.red)
+                                    )
                                     .font(.system(size: 34))
                             }
                             .shadow(
@@ -95,10 +99,12 @@ extension RecordScreen.RecordingPanel {
                             )
                         } else {
                             Image(systemName: "circle.fill")
-                                .foregroundStyle(Color.Logo.Prominent.red)
+                                .foregroundStyle(
+                                    Color(asset: Asset.Logo.Prominent.red)
+                                )
                                 .font(.system(size: 58))
                                 .shadow(
-                                    color: .Logo.Muted.blue,
+                                    color: Color(asset: Asset.Logo.Muted.blue),
                                     radius: 1,
                                     x: 1,
                                     y: 1
@@ -122,12 +128,12 @@ extension RecordScreen.RecordingPanel {
                     Image(systemName: "pin")
                         .foregroundStyle(
                             isEnabled
-                                ? Color.Logo.Prominent.blue
-                                : Color.Logo.Muted.blue
+                                ? Color(asset: Asset.Logo.Prominent.blue)
+                                : Color(asset: Asset.Logo.Muted.blue)
                         )
                         .font(.system(size: 26))
                         .shadow(
-                            color: .Logo.Muted.blue,
+                            color: Color(asset: Asset.Logo.Muted.blue),
                             radius: 1,
                             x: 2,
                             y: 2
@@ -143,17 +149,16 @@ extension RecordScreen.RecordingPanel {
 
 #if DEBUG
 #Preview {
-    Color.Surface.Recorder.muted.overlay {
+    Color(asset: Asset.Surface.Recorder.muted).overlay {
         RecordScreen.RecordingPanel(
             store: .init(
                 initialState: .init(
                     phase: .recording,
                     currentTime: 3
                 ),
-                reducer: { RecordScreen.Root.Feature() },
-                withDependencies: {
-                    $0.recordUsecase = .live(
-                        service: MockRecorderService(
+                reducer: {
+                    RecordScreen.Root.Feature(
+                        recordingUsecase: RecordingUsecasePreview(
                             isRecording: true,
                             currentTime: 3
                         )

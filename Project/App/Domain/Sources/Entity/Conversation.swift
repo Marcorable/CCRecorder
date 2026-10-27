@@ -14,7 +14,7 @@ public struct Conversation: Equatable, Identifiable, Sendable {
     public init(
         id: UUID = .init(),
         createdDate: Date,
-        recordFileName: String,
+        recordFileName: String = "",
         pins: [TimeInterval],
         title: String,
         topic: String,

@@ -80,12 +80,16 @@ extension RecordScreen {
                                             },
                                             label: {
                                                 Image(systemName: "delete.backward")
-                                                    .foregroundStyle(Color.Logo.Prominent.red)
+                                                    .foregroundStyle(
+                                                        Color(asset: Asset.Logo.Prominent.red)
+                                                    )
                                             }
                                         )
                                     }
                                     .padding()
-                                    .background(Color.Surface.Recorder.prominent)
+                                    .background(
+                                        Color(asset: Asset.Surface.Recorder.prominent)
+                                    )
                                     .clipShape(.rect(cornerRadius: 15))
                                 }
                             }
@@ -104,10 +108,14 @@ extension RecordScreen {
                         HStack {
                             Text("Conversation Information")
                                 .font(.headline)
-                                .foregroundStyle(.accent)
+                                .foregroundStyle(
+                                    Color(asset: Asset.Icon.accent)
+                                )
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundStyle(.accent)
+                                .foregroundStyle(
+                                    Color(asset: Asset.Icon.accent)
+                                )
                                 .rotationEffect(.degrees(store.isEditing ? -90.0 : 0.0))
                         }
                     }
@@ -151,7 +159,7 @@ private extension RecordScreen.ConversationInfoBox {
 }
 
 #Preview {
-    Color.Surface.Recorder.muted.overlay {
+    Color(asset: Asset.Surface.Recorder.muted).overlay {
         RecordScreen.ConversationInfoBox(
             store: .init(
                 initialState: .init(

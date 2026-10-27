@@ -24,13 +24,13 @@ extension RecordScreen {
                             )
                         )
                     }
-                    .background(Color.Surface.Recorder.prominent)
+                    .background(Color(asset: Asset.Surface.Recorder.prominent))
                     .clipShape(.rect(cornerRadius: 25))
                     .padding()
                     RecordingPanel(store: store)
                 }
                 .padding()
-                .background(Color.Surface.Recorder.muted)
+                .background(Color(asset: Asset.Surface.Recorder.muted))
                 .navigationTitle("녹음하기")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -67,16 +67,9 @@ extension RecordScreen {
     RecordScreen.Root(
         store: .init(
             initialState: .init(),
-            reducer: { RecordScreen.Root.Feature() },
-            withDependencies: {
-                $0.recordUsecase = .live(
-                    service: MockRecorderService()
-                )
-                $0.saveConversationUsecase = .live(
-                    repository: ConversationRepositoryConcrete(
-                        modelContext: .mock
-                    ),
-                    fileStore: RecordFileStore()
+            reducer: {
+                RecordScreen.Root.Feature(
+                    recordingUsecase: RecordingUsecasePreview()
                 )
             }
         )

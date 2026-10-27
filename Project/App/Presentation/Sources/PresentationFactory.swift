@@ -3,6 +3,9 @@ import SwiftUI
 
 import Domain
 
+typealias Asset = PresentationAsset
+typealias Factory = PresentationFactory
+
 @MainActor
 public enum PresentationFactory {
     static var dependency: Dependency!
@@ -37,6 +40,24 @@ extension PresentationFactory {
 
     public static var onboardScreen: some View {
         OnboardScreen.Root()
+    }
+
+}
+
+// 임시
+extension PresentationFactory {
+
+    public static var recordScreen: some View {
+        RecordScreen.Root(
+            store: .init(
+                initialState: .init(),
+                reducer: {
+                    RecordScreen.Root.Feature(
+                        recordingUsecase: dependency.recordingUsecase()
+                    )
+                }
+            )
+        )
     }
 
 }

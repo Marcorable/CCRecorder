@@ -7,11 +7,11 @@ enum OnboardScreen {
         @Environment(\.dismiss) private var dismissAction
 
         private let pages: [PresentationImages] = [
-            PresentationAsset.Onboarding.page0,
-            PresentationAsset.Onboarding.page1,
-            PresentationAsset.Onboarding.page2,
-            PresentationAsset.Onboarding.page3,
-            PresentationAsset.Onboarding.page4
+            Asset.Onboarding.page0,
+            Asset.Onboarding.page1,
+            Asset.Onboarding.page2,
+            Asset.Onboarding.page3,
+            Asset.Onboarding.page4
         ]
 
         var body: some View {
@@ -31,7 +31,7 @@ enum OnboardScreen {
                                             .tint(.white)
                                             .font(.system(size: 16, weight: .bold, design: .rounded))
                                             .padding()
-                                            .background(Color(asset: PresentationAsset.Icon.accent))
+                                            .background(Color(asset: Asset.Icon.accent))
                                             .shadow(color: .black, radius: 1, x: 1, y: 1)
                                     }
                                 )
@@ -43,7 +43,7 @@ enum OnboardScreen {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
-            .background(Color(asset: PresentationAsset.Surface.Recorder.prominent))
+            .background(Color(asset: Asset.Surface.Recorder.prominent))
         }
     }
 
