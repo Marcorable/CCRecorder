@@ -47,6 +47,9 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+Derived/
+CCRecorder.xcworkspace/
+Project/**/*.xcodeproj/
 
 # CocoaPods
 #

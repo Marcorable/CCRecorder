@@ -1,0 +1,40 @@
+{
+  "configurations" : [
+    {
+      "id" : "8AB49EDF-A6DB-4796-95E0-1D1CD1290B65",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:App.xcodeproj",
+      "identifier" : "2345EF6AD7441BAE5409FAFE",
+      "name" : "CCRecorder"
+    },
+    "testInteropMode" : "complete"
+  },
+  "testTargets" : [
+    {
+      "enabled" : false,
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "D4E71CB3DDDC84B144F9AF23",
+        "name" : "CCRecorderUITests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "74FDC675EC3EFCC5334FB76B",
+        "name" : "CCRecorderTests"
+      }
+    }
+  ],
+  "version" : 1
+}

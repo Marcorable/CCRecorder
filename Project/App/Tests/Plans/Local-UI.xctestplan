@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "C230C684-8CB0-4DB3-A234-4B10EC8843AC",
+      "name" : "Local UI",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:App.xcodeproj",
+      "identifier" : "2345EF6AD7441BAE5409FAFE",
+      "name" : "CCRecorder"
+    },
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "D4E71CB3DDDC84B144F9AF23",
+        "name" : "CCRecorderUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
