@@ -2,6 +2,8 @@
 import SwiftUI
 import SwiftData
 
+import Presentation
+
 enum LaunchState {
     case preprocess
     case launched
@@ -34,15 +36,34 @@ struct CCRecorderApp: App {
         WindowGroup {
             switch state {
                 case .preprocess:
-                    LaunchScreen.Context(state: $state)
-                    
+                    PresentationFactory.launchScreen
+                        .task {
+                            do {
+                                try AudioSessionController.configure()
+                            } catch {
+                                /// 세션 설정에 실패해도 앱은 진입시키고, 녹음 시도 시점에 다시 알린다.
+                                print("\(Self.self) \(#function) - \(error)")
+                            }
+
+                            do {
+                                _ = try LegacyStoreMigrator().migrateIfNeeded(into: modelContainer.mainContext)
+                            } catch {
+                                print("\(Self.self) \(#function) - \(error)")
+                            }
+
+                            do {
+                                try await Task.sleep(for: .seconds(2)) // FIXME: Launch Process
+
+                                state = .launched
+                            } catch {
+
+                            }
+                        }
+
                 case .launched:
                     MainNavigationStack()
-                        .overlay {
-                            if isFirstLaunched {
-                                OnboardScreen.Context()
-                                    .transition(.opacity)
-                            }
+                        .fullScreenCover(isPresented: $isFirstLaunched) {
+                            PresentationFactory.onboardScreen
                         }
                         .animation(.easeInOut, value: isFirstLaunched)
                         .preferredColorScheme(userColorScheme)

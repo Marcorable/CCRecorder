@@ -45,7 +45,10 @@ let dataTests = Target.tests(
 
 let presentation = Target.module(
     name: "Presentation",
-    buildableFolders: ["Presentation/Sources"],
+    buildableFolders: [
+        "Presentation/Sources",
+        "Presentation/Resources",
+    ],
     dependencies: [
         .target(name: "Domain"),
         .package(product: "Dependencies"),

@@ -1,11 +1,9 @@
 
 import SwiftUI
 
-extension OnboardScreen {
+enum OnboardScreen {
 
-    struct Context: View {
-        @AppStorage(.isFirstLaunched) private var isFirstLaunched: Bool = true
-
+    struct Root: View {
         @Environment(\.dismiss) private var dismissAction
 
         private let pages: [ImageResource] = [
@@ -26,12 +24,7 @@ extension OnboardScreen {
                             if index == pages.count - 1 {
                                 Button(
                                     action: {
-                                        withAnimation {
-                                            if isFirstLaunched {
-                                                isFirstLaunched = false
-                                            }
-                                            dismissAction()
-                                        }
+                                        dismissAction()
                                     },
                                     label: {
                                         Text("앱 시작하기")
@@ -57,5 +50,5 @@ extension OnboardScreen {
 }
 
 #Preview {
-    OnboardScreen.Context()
+    OnboardScreen.Root()
 }

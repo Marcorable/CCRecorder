@@ -1,6 +1,8 @@
 
 import SwiftUI
 
+import Presentation
+
 extension SettingScreen {
 
     struct Context: View {
@@ -30,7 +32,7 @@ extension SettingScreen {
             .fullScreenCover(item: $viewModel.presentedFullScreenCover) {
                 switch $0 {
                     case .tutorial:
-                        OnboardScreen.Context()
+                        PresentationFactory.onboardScreen
                 }
             }
         }
