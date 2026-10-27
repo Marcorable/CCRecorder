@@ -44,6 +44,27 @@ extension PresentationFactory {
 
 }
 
+extension PresentationFactory {
+
+    public static func make(sheet: Sheet) -> some View {
+        switch sheet {
+            case .noteDetail(let note):
+                NoteDetailScreen.Root(
+                    store: .init(
+                        initialState: .init(note: note),
+                        reducer: {
+                            NoteDetailScreen.Root.Feature(
+                                managingNoteUsecase: dependency.managingNoteUsecase()
+                            )
+                        }
+                    )
+                )
+                .presentationDetents(note.category.presentationDetents)
+        }
+    }
+
+}
+
 // 임시
 extension PresentationFactory {
 
@@ -58,6 +79,17 @@ extension PresentationFactory {
                 }
             )
         )
+    }
+
+}
+
+private extension Note.Category {
+
+    var presentationDetents: Set<PresentationDetent> {
+        switch self {
+            case .vocabulary:   [.medium]
+            case .sentence:     [.medium, .large]
+        }
     }
 
 }

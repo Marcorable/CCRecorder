@@ -3,9 +3,8 @@ import SwiftUI
 
 struct NoteList: View {
     let notes: [Note]
+    let onSelect: (Note) -> Void
     let onDelete: (IndexSet) -> Void
-
-    @State private var isPresentedModal: Note?
 
     var body: some View {
         Group {
@@ -20,7 +19,7 @@ struct NoteList: View {
                     ForEach(notes, id: \.id) { note in
                         Row(note: note)
                             .onTapGesture {
-                                isPresentedModal = note
+                                onSelect(note)
                             }
                     }
                     .onDelete(perform: onDelete)
@@ -28,27 +27,25 @@ struct NoteList: View {
                 .listStyle(.plain)
             }
         }
-        .sheet(item: $isPresentedModal) { note in
-            NoteDetailScreen.Context(note: note)
-                .presentationDetents(note.category.noteDetailPresentationDetents)
-        }
-    }
-}
-
-private extension Note.Category {
-
-    var noteDetailPresentationDetents: Set<PresentationDetent> {
-        switch self {
-            case .vocabulary:   [.medium]
-            case .sentence:     [.medium, .large]
-        }
     }
 }
 
 #if DEBUG
 #Preview {
     NoteList(
-        notes: [.sentenceDummy, .vocabularyDummy],
+        notes: [
+            .init(
+                original: "",
+                translation: "테스트 용 문장을 이렇게 작성함",
+                category: .sentence
+            ),
+            .init(
+                original: "Test",
+                translation: "",
+                category: .vocabulary
+            )
+        ],
+        onSelect: { _ in },
         onDelete: { _ in }
     )
 }

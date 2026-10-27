@@ -68,9 +68,7 @@ extension RecordScreen {
         store: .init(
             initialState: .init(),
             reducer: {
-                RecordScreen.Root.Feature(
-                    recordingUsecase: RecordingUsecasePreview()
-                )
+                RecordScreen.Root.Feature.preview
             }
         )
     )

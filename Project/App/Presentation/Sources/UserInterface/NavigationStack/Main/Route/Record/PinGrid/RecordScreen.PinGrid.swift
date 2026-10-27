@@ -74,6 +74,7 @@ private extension RecordScreen.PinGrid {
 
 }
 
+#if DEBUG
 #Preview {
     RecordScreen.PinGrid(
         store: .init(
@@ -83,13 +84,9 @@ private extension RecordScreen.PinGrid {
                 pins: [3.0, 2.1]
             ),
             reducer: {
-                RecordScreen.Root.Feature(
-                    recordingUsecase: RecordingUsecasePreview(
-                        isRecording: true,
-                        currentTime: 3
-                    )
-                )
+                RecordScreen.Root.Feature.preview
             }
         )
     )
 }
+#endif

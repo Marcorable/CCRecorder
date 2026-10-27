@@ -2,6 +2,8 @@
 import SwiftUI
 import SwiftData
 
+import Presentation
+
 extension ConversationDetailScreen {
 
     struct Context: View {
@@ -12,11 +14,14 @@ extension ConversationDetailScreen {
         @State var conversation: Conversation
         @State private var player = AudioPlayer()
 
+        @State private var isPresentedModal: Note?
+
         var body: some View {
             VStack {
                 Editor(conversation: $conversation)
                 NoteList(
                     notes: filteredNotes,
+                    onSelect: { isPresentedModal = $0 },
                     onDelete: onDelete(of:)
                 )
                 PlaybackPanel(
@@ -27,6 +32,21 @@ extension ConversationDetailScreen {
             }
             .onChange(of: conversation, initial: false) {
                 update(of: $1)
+            }
+            .sheet(item: $isPresentedModal) { note in
+                PresentationFactory.make(
+                    sheet: .noteDetail(
+                        .init(
+                            id: note.id,
+                            createdDate: note.createdDate,
+                            original: note.original,
+                            translation: note.translation,
+                            category: note.category == .vocabulary
+                            ? .vocabulary
+                            : .sentence
+                        )
+                    )
+                )
             }
         }
     }

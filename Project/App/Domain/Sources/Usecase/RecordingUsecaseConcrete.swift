@@ -1,8 +1,7 @@
 
 import Foundation
 
-@MainActor
-final class RecordingUsecaseConcrete: Sendable {
+actor RecordingUsecaseConcrete {
     private let dependency: Dependency
     private var recordingFileURL: URL?
 
@@ -24,11 +23,15 @@ extension RecordingUsecaseConcrete {
 extension RecordingUsecaseConcrete: RecordingUsecase {
 
     var isRecording: Bool {
-        dependency.recorderService.isRecording
+        get async {
+            await dependency.recorderService.isRecording
+        }
     }
 
     var currentTime: TimeInterval {
-        dependency.recorderService.currentTime
+        get async {
+            await dependency.recorderService.currentTime
+        }
     }
 
     func prepare() async throws {
@@ -38,18 +41,18 @@ extension RecordingUsecaseConcrete: RecordingUsecase {
             fileURL = preparedFileURL
 
             try Task.checkCancellation()
-            try dependency.recorderService.prepare(with: preparedFileURL)
+            try await dependency.recorderService.prepare(with: preparedFileURL)
             try Task.checkCancellation()
 
             self.recordingFileURL = preparedFileURL
         } catch is CancellationError {
-            dependency.recorderService.cancel()
+            await dependency.recorderService.cancel()
             if let fileURL {
                 try? await dependency.recordFileRepository.removeFile(at: fileURL)
             }
             throw CancellationError()
         } catch {
-            dependency.recorderService.cancel()
+            await dependency.recorderService.cancel()
             if let fileURL {
                 try? await dependency.recordFileRepository.removeFile(at: fileURL)
             }
@@ -57,18 +60,18 @@ extension RecordingUsecaseConcrete: RecordingUsecase {
         }
     }
 
-    func start() {
-        dependency.recorderService.start()
+    func start() async {
+        await dependency.recorderService.start()
     }
 
-    func pause() {
-        dependency.recorderService.pause()
+    func pause() async {
+        await dependency.recorderService.pause()
     }
 
     func finish(_ conversation: Conversation) async throws {
         let fileURL: URL
         do {
-            fileURL = try dependency.recorderService.finish()
+            fileURL = try await dependency.recorderService.finish()
         } catch {
             await cleanUpRecordingFile()
             throw DomainError.recordingUsecase(.finishFailed)
@@ -96,7 +99,7 @@ extension RecordingUsecaseConcrete: RecordingUsecase {
     }
 
     func cancel() async {
-        dependency.recorderService.cancel()
+        await dependency.recorderService.cancel()
         await cleanUpRecordingFile()
     }
 

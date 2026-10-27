@@ -157,12 +157,7 @@ extension RecordScreen.RecordingPanel {
                     currentTime: 3
                 ),
                 reducer: {
-                    RecordScreen.Root.Feature(
-                        recordingUsecase: RecordingUsecasePreview(
-                            isRecording: true,
-                            currentTime: 3
-                        )
-                    )
+                    RecordScreen.Root.Feature.preview
                 }
             )
         )
