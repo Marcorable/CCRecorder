@@ -17,7 +17,7 @@ extension MainScreen {
             VStack {
                 switch selectedTab {
                     case .conversationList:     ConversationListScreen.Context()
-                    case .noteList:             NoteListScreen.Root()
+                    case .noteList:             PresentationFactory.noteListScreen
                 }
                 TabBar(
                     selectedTab: $selectedTab,

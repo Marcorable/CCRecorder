@@ -9,11 +9,14 @@ public protocol ManagingNoteUsecase: Sendable {
 
 #if DEBUG
 public final class FakeManagingNoteUsecase: ManagingNoteUsecase {
+    private let notes: [Note]
 
-    public init() {}
+    public init(notes: [Note] = []) {
+        self.notes = notes
+    }
 
     public func loadNotes() async -> Result<[Note], DomainError> {
-        .success([])
+        .success(notes)
     }
 
     public func updateNote(_ note: Note) async -> Result<Void, DomainError> {

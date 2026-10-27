@@ -68,6 +68,19 @@ extension PresentationFactory {
 // 임시
 extension PresentationFactory {
 
+    public static var noteListScreen: some View {
+        NoteListScreen.Root(
+            store: .init(
+                initialState: .init(),
+                reducer: {
+                    NoteListScreen.Root.Feature(
+                        managingNoteUsecase: dependency.managingNoteUsecase()
+                    )
+                }
+            )
+        )
+    }
+
     public static var recordScreen: some View {
         RecordScreen.Root(
             store: .init(
@@ -83,7 +96,7 @@ extension PresentationFactory {
 
 }
 
-private extension Note.Category {
+extension Note.Category {
 
     var presentationDetents: Set<PresentationDetent> {
         switch self {
