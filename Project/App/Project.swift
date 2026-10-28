@@ -89,8 +89,8 @@ let app = Target.target(
     settings: .settings(
         base: [
             "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
-            "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
             "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
+            "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "",
             "DEVELOPMENT_ASSET_PATHS": "\"App/Resources/Preview Content\"",
             "DEVELOPMENT_TEAM": "9486RJPBM5",
             "ENABLE_PREVIEWS": "YES",
