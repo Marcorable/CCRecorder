@@ -1,10 +1,12 @@
 
 import SwiftUI
 
+import ComposableArchitecture
+
 enum OnboardScreen {
 
     struct Root: View {
-        @Environment(\.dismiss) private var dismissAction
+        @State var store: StoreOf<Feature>
 
         private let pages: [PresentationImages] = [
             Asset.Onboarding.page0,
@@ -24,7 +26,7 @@ enum OnboardScreen {
                             if index == pages.count - 1 {
                                 Button(
                                     action: {
-                                        dismissAction()
+                                        store.send(.view(.startButtonTapped))
                                     },
                                     label: {
                                         Text("앱 시작하기")
@@ -50,5 +52,10 @@ enum OnboardScreen {
 }
 
 #Preview {
-    OnboardScreen.Root()
+    OnboardScreen.Root(
+        store: .init(
+            initialState: .init(),
+            reducer: { OnboardScreen.Root.Feature() }
+        )
+    )
 }

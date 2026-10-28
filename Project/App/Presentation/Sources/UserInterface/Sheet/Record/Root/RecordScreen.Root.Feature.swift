@@ -11,6 +11,7 @@ extension RecordScreen.Root {
     struct Feature {
         @Dependency(\.continuousClock) private var clock
         @Dependency(\.date.now) private var now
+        @Dependency(\.dismiss) private var dismiss
         @Dependency(\.openURL) private var openURL
         @Dependency(\.microphonePermission) private var microphonePermission
 
@@ -314,7 +315,9 @@ extension RecordScreen.Root.Feature {
 
             case .saved:
                 state.isFinished = true
-                return .none
+                return .run { _ in
+                    await dismiss()
+                }
 
         }
     }
@@ -332,6 +335,7 @@ extension RecordScreen.Root.Feature {
                     .cancel(id: CancelID.ticker),
                     .run { _ in
                         await recordingUsecase.cancel()
+                        await dismiss()
                     }
                 )
 
@@ -390,6 +394,7 @@ extension RecordScreen.Root.Feature {
                     },
                     .run { _ in
                         await recordingUsecase.cancel()
+                        await dismiss()
                     }
                 )
 
@@ -401,6 +406,7 @@ extension RecordScreen.Root.Feature {
                     .cancel(id: CancelID.ticker),
                     .run { _ in
                         await recordingUsecase.cancel()
+                        await dismiss()
                     }
                 )
         }

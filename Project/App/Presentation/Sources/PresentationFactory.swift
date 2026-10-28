@@ -39,7 +39,12 @@ extension PresentationFactory {
     }
 
     public static var onboardScreen: some View {
-        OnboardScreen.Root()
+        OnboardScreen.Root(
+            store: .init(
+                initialState: .init(),
+                reducer: { OnboardScreen.Root.Feature() }
+            )
+        )
     }
 
 }

@@ -8,8 +8,6 @@ enum RecordScreen {}
 extension RecordScreen {
 
     struct Root: View {
-        @Environment(\.dismiss) private var dismiss
-
         @Bindable var store: StoreOf<Feature>
 
         var body: some View {
@@ -47,11 +45,6 @@ extension RecordScreen {
             }
             .task {
                 await store.send(.view(.task)).finish()
-            }
-            .onChange(of: store.isFinished) {
-                if store.isFinished {
-                    dismiss()
-                }
             }
             .onDisappear {
                 store.send(.view(.disappeared))

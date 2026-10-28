@@ -152,8 +152,7 @@ extension RecordScreen {
 private extension RecordScreen.ConversationInfoBox {
 
     var randomEmoji: String {
-        let emoji = "😀😃😄😁😆🥹😂🤣😊☺️🙂😉😌😍😘🥰🥳😙😚😋😛😝🤓😎🥸🤩🤭🤗🤠"
-        return .init(Array(emoji)[Int.random(in: 0..<emoji.count)])
+        .init("😀😃😄😁😆🥹😂🤣😊☺️🙂😉😌😍😘🥰🥳😙😚😋😛😝🤓😎🥸🤩🤭🤗🤠".randomElement() ?? "🙂")
     }
 
 }

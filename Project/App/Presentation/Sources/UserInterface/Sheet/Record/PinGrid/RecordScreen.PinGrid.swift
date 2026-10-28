@@ -17,10 +17,16 @@ extension RecordScreen {
                     HStack {
                         Spacer()
                         Image(systemName: "circle.fill")
-                            .foregroundStyle(circleColor)
+                            .foregroundStyle(
+                                Color(
+                                    asset: store.isRecording
+                                    ? Asset.Logo.Prominent.red
+                                    : Asset.Logo.Muted.red
+                                )
+                            )
                             .opacity(store.isRecording ? Int(store.currentTime) % 2 == 0 ? 1.0 : 0.0 : 1.0)
                         Text(store.currentTime, format: .playbackTime)
-                            .foregroundStyle(timeColor)
+                            .foregroundStyle(store.isRecording ? .white : .gray)
                             .font(.largeTitle)
                         Spacer()
                     }
@@ -56,20 +62,6 @@ extension RecordScreen {
                 }
             }
         }
-    }
-
-}
-
-private extension RecordScreen.PinGrid {
-
-    var circleColor: Color {
-        store.isRecording
-        ? Color(asset: Asset.Logo.Prominent.red)
-        : Color(asset: Asset.Logo.Muted.red)
-    }
-
-    var timeColor: Color {
-        store.isRecording ? .white : .gray
     }
 
 }
