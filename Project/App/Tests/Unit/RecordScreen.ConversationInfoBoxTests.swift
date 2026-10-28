@@ -3,7 +3,7 @@ import Testing
 
 import ComposableArchitecture
 
-@testable import CCRecorder
+@testable import Presentation
 
 @Suite("녹음 화면 대화 정보 Feature")
 @MainActor

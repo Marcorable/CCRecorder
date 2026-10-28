@@ -4,10 +4,6 @@ import ProjectDescriptionHelpers
 
 let packages: [Package] = [
     .remote(
-        url: "https://github.com/Marcorable/marcorable-mvvm.git",
-        requirement: .exact("0.2.0")
-    ),
-    .remote(
         url: "https://github.com/pointfreeco/swift-composable-architecture",
         requirement: .exact("1.26.1")
     ),
@@ -89,8 +85,6 @@ let app = Target.target(
         .target(name: "Presentation"),
         .target(name: "Domain"),
         .target(name: "Data"),
-        .package(product: "NavigationCoordinator"),
-        .package(product: "ComposableArchitecture"),
     ],
     settings: .settings(
         base: [
