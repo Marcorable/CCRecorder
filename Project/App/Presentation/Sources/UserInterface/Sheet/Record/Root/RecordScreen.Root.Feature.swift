@@ -13,7 +13,7 @@ extension RecordScreen.Root {
         @Dependency(\.date.now) private var now
         @Dependency(\.dismiss) private var dismiss
         @Dependency(\.openURL) private var openURL
-        @Dependency(\.microphonePermission) private var microphonePermission
+        @Dependency(\.audioSession) private var audioSession
 
         let recordingUsecase: RecordingUsecase
 
@@ -110,7 +110,7 @@ extension RecordScreen.Root.Feature {
 
         @CasePathable
         enum Response {
-            case microphonePermission(MicrophonePermissionClient.Status)
+            case audioSessionAuthorization(AudioSessionClient.Status)
             case prepared(TimeInterval)
             case recorderUpdated(isRecording: Bool, currentTime: TimeInterval)
             case saved
@@ -144,16 +144,16 @@ extension RecordScreen.Root.Feature {
             case .task:
                 state.phase = .preparing
                 return .run { send in
-                    let status = microphonePermission.authorizationStatus()
+                    let status = audioSession.authorizationStatus()
                     let resolvedStatus = switch status {
                         case .notDetermined:
-                            await microphonePermission.requestAuthorization()
+                            await audioSession.requestAuthorization()
 
                         case .authorized, .denied:
                             status
                     }
                     try Task.checkCancellation()
-                    await send(.response(.microphonePermission(resolvedStatus)))
+                    await send(.response(.audioSessionAuthorization(resolvedStatus)))
                 }
                 .cancellable(
                     id: CancelID.prepare,
@@ -231,9 +231,10 @@ extension RecordScreen.Root.Feature {
         action: Action.Response
     ) -> Effect<Action> {
         switch action {
-            case .microphonePermission(.authorized):
+            case .audioSessionAuthorization(.authorized):
                 return .run { send in
                     do {
+                        try audioSession.activate()
                         try await recordingUsecase.prepare()
                         try Task.checkCancellation()
                         await send(.response(.prepared(await recordingUsecase.currentTime)))
@@ -250,8 +251,8 @@ extension RecordScreen.Root.Feature {
                     cancelInFlight: true
                 )
 
-            case .microphonePermission(.notDetermined),
-                    .microphonePermission(.denied):
+            case .audioSessionAuthorization(.notDetermined),
+                    .audioSessionAuthorization(.denied):
                 guard !state.isFinished else {
                     return .none
                 }

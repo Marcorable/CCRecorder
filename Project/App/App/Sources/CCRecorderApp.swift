@@ -1,6 +1,5 @@
 
 import SwiftUI
-import SwiftData
 
 import Presentation
 
@@ -11,21 +10,6 @@ enum LaunchState {
 
 @main
 struct CCRecorderApp: App {
-    private let modelContainer: ModelContainer = {
-        let schema = Schema([
-            Conversation.self,
-            Note.self,
-            Party.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-    
     @AppStorage(.isFirstLaunched) private var isFirstLaunched: Bool = true
     @AppStorage(.displayMode) private var displayMode: DisplayMode = .system
     @AppStorage(.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
@@ -38,19 +22,6 @@ struct CCRecorderApp: App {
                 case .preprocess:
                     PresentationFactory.launchScreen
                         .task {
-                            do {
-                                try AudioSessionController.configure()
-                            } catch {
-                                /// 세션 설정에 실패해도 앱은 진입시키고, 녹음 시도 시점에 다시 알린다.
-                                print("\(Self.self) \(#function) - \(error)")
-                            }
-
-                            do {
-                                _ = try LegacyStoreMigrator().migrateIfNeeded(into: modelContainer.mainContext)
-                            } catch {
-                                print("\(Self.self) \(#function) - \(error)")
-                            }
-
                             do {
                                 try await setup()
                                 try await Task.sleep(for: .seconds(2)) // FIXME: Launch Process
@@ -73,7 +44,6 @@ struct CCRecorderApp: App {
                         }
             }
         }
-        .modelContainer(modelContainer)
     }
 }
 
