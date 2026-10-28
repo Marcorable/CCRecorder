@@ -13,12 +13,41 @@ extension ManagingConversationUsecaseConcrete {
     struct Dependency: Sendable {
         let conversationRepository: ConversationRepository
         let noteRepository: NoteRepository
+        let recordFileRepository: RecordFileRepository
         let now: @Sendable () -> Date
     }
 
 }
 
 extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
+
+    func conversations() async -> Result<[Conversation], DomainError> {
+        do {
+            return .success(try await dependency.conversationRepository.read())
+        } catch {
+            return .failure(.data(error))
+        }
+    }
+
+    func deleteConversations(
+        _ conversations: [Conversation]
+    ) async -> Result<Void, DomainError> {
+        do {
+            for conversation in conversations {
+                if let fileURL = await dependency.recordFileRepository.fileURL(
+                    of: conversation.recordFileName
+                ), await dependency.recordFileRepository.fileExists(at: fileURL) {
+                    try await dependency.recordFileRepository.removeFile(at: fileURL)
+                }
+            }
+            try await dependency.conversationRepository.delete(
+                ids: conversations.map(\.id)
+            )
+            return .success(())
+        } catch {
+            return .failure(.data(error))
+        }
+    }
 
     func notes(of conversation: Conversation) async -> Result<[Note], DomainError> {
         do {

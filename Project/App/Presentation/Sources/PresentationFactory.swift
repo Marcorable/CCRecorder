@@ -14,14 +14,20 @@ public enum PresentationFactory {
 extension PresentationFactory {
 
     public struct Dependency {
+        let managingConversationUsecase: @MainActor () -> ManagingConversationUsecase
         let managingNoteUsecase: @MainActor () -> ManagingNoteUsecase
+        let playingRecordUsecase: @MainActor () -> PlayingRecordUsecase
         let recordingUsecase: @MainActor () -> RecordingUsecase
 
         public init(
+            managingConversationUsecase: @escaping @MainActor () -> ManagingConversationUsecase,
             managingNoteUsecase: @escaping @MainActor () -> ManagingNoteUsecase,
+            playingRecordUsecase: @escaping @MainActor () -> PlayingRecordUsecase,
             recordingUsecase: @escaping @MainActor () -> RecordingUsecase
         ) {
+            self.managingConversationUsecase = managingConversationUsecase
             self.managingNoteUsecase = managingNoteUsecase
+            self.playingRecordUsecase = playingRecordUsecase
             self.recordingUsecase = recordingUsecase
         }
     }
@@ -73,38 +79,18 @@ extension PresentationFactory {
 // 임시
 extension PresentationFactory {
 
-    public static var noteListScreen: some View {
-        NoteListScreen.Root(
+    public static var rootStack: some View {
+        RootStack(
             store: .init(
                 initialState: .init(),
                 reducer: {
-                    NoteListScreen.Root.Feature(
-                        managingNoteUsecase: dependency.managingNoteUsecase()
-                    )
-                }
-            )
-        )
-    }
-
-    public static var recordScreen: some View {
-        RecordScreen.Root(
-            store: .init(
-                initialState: .init(),
-                reducer: {
-                    RecordScreen.Root.Feature(
+                    RootStack.Feature(
+                        managingConversationUsecase: dependency.managingConversationUsecase(),
+                        managingNoteUsecase: dependency.managingNoteUsecase(),
+                        playingRecordUsecase: dependency.playingRecordUsecase(),
                         recordingUsecase: dependency.recordingUsecase()
                     )
                 }
-            )
-        )
-    }
-
-    public static var settingScreen: some View {
-        SettingScreen.Context(
-            viewModel: .init(
-                model: .init(
-                    dependency: .init(bundle: .main)
-                )
             )
         )
     }

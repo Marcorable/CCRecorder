@@ -25,11 +25,28 @@ extension CCRecorderApp {
     func register(modelContainer: ModelContainer) {
         PresentationFactory.register(
             .init(
+                managingConversationUsecase: {
+                    DomainFactory.makeManagingConversationUsecase(
+                        conversationRepository: DataFactory.conversationRepository(
+                            modelContainer: modelContainer
+                        ),
+                        noteRepository: DataFactory.noteRepository(
+                            modelContainer: modelContainer
+                        ),
+                        recordFileRepository: DataFactory.recordFileRepository()
+                    )
+                },
                 managingNoteUsecase: {
                     DomainFactory.makeManagingNoteUsecase(
                         noteRepository: DataFactory.noteRepository(
                             modelContainer: modelContainer
                         )
+                    )
+                },
+                playingRecordUsecase: {
+                    DomainFactory.makePlayingRecordUsecase(
+                        playerService: PlayerServiceConcrete(),
+                        recordFileRepository: DataFactory.recordFileRepository()
                     )
                 },
                 recordingUsecase: {

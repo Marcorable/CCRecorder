@@ -21,6 +21,7 @@ extension DomainFactory {
     public static func makeManagingConversationUsecase(
         conversationRepository: ConversationRepository,
         noteRepository: NoteRepository,
+        recordFileRepository: RecordFileRepository,
         now: @escaping @Sendable () -> Date = { .init() }
     ) -> ManagingConversationUsecase {
         if let usecase = managingConversationUsecase {
@@ -30,6 +31,7 @@ extension DomainFactory {
                 dependency: .init(
                     conversationRepository: conversationRepository,
                     noteRepository: noteRepository,
+                    recordFileRepository: recordFileRepository,
                     now: now
                 )
             )

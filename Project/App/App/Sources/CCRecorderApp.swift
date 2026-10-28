@@ -62,7 +62,7 @@ struct CCRecorderApp: App {
                         }
 
                 case .launched:
-                    MainNavigationStack()
+                    PresentationFactory.rootStack
                         .fullScreenCover(isPresented: $isFirstLaunched) {
                             PresentationFactory.onboardScreen
                         }

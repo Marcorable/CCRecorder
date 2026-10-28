@@ -8,21 +8,41 @@ import Foundation
 struct ManagingConversationUsecaseTests {
     private let conversationRepository: ConversationRepositorySpy
     private let noteRepository: NoteRepositorySpy
+    private let recordFileRepository: RecordFileRepositorySpy
     private let usecase: ManagingConversationUsecaseConcrete
 
     init() {
         let conversationRepository = ConversationRepositorySpy()
         let noteRepository = NoteRepositorySpy()
+        let recordFileRepository = RecordFileRepositorySpy()
         self.conversationRepository = conversationRepository
         self.noteRepository = noteRepository
+        self.recordFileRepository = recordFileRepository
         self.usecase = .init(
             dependency: .init(
                 conversationRepository: conversationRepository,
                 noteRepository: noteRepository,
+                recordFileRepository: recordFileRepository,
                 now: { Date(timeIntervalSince1970: 1_000) }
             )
         )
     }
+}
+
+private actor RecordFileRepositorySpy: RecordFileRepository {
+    func makeRecordingURL() async throws -> URL {
+        URL(fileURLWithPath: "/tmp/recording.m4a")
+    }
+
+    func fileURL(of fileName: String) async -> URL? {
+        nil
+    }
+
+    func fileExists(at fileURL: URL) async -> Bool {
+        false
+    }
+
+    func removeFile(at fileURL: URL) async throws {}
 }
 
 extension ManagingConversationUsecaseTests {

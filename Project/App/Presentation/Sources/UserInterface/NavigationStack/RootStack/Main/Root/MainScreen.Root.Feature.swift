@@ -1,0 +1,202 @@
+
+import Domain
+import ComposableArchitecture
+
+extension MainScreen.Root {
+
+    @Reducer
+    struct Feature {
+        let managingConversationUsecase: ManagingConversationUsecase
+        let managingNoteUsecase: ManagingNoteUsecase
+        let recordingUsecase: RecordingUsecase
+
+        var body: some ReducerOf<Self> {
+            Scope(
+                state: \.conversationList,
+                action: \.conversationList
+            ) {
+                MainScreen.ConversationList.Feature(
+                    managingConversationUsecase: managingConversationUsecase
+                )
+            }
+            Scope(
+                state: \.noteList,
+                action: \.noteList
+            ) {
+                MainScreen.NoteList.Feature(
+                    managingNoteUsecase: managingNoteUsecase
+                )
+            }
+            Reduce { state, action in
+                switch action {
+                    case .view(let action):
+                        return reduce(into: &state, action: action)
+
+                    case .conversationList(.delegate(let action)):
+                        return reduce(into: &state, action: action)
+
+                    case .noteList(.delegate(let action)):
+                        return reduce(into: &state, action: action)
+
+                    case .record(.dismiss):
+                        switch state.selectedTab {
+                            case .conversationList:
+                                return .send(.conversationList(.view(.reload)))
+
+                            case .noteList:
+                                return .send(.noteList(.view(.reload)))
+                        }
+
+                    case .noteDetail(.dismiss):
+                        return .send(.noteList(.view(.reload)))
+
+                    case .alert(.presented(let action)):
+                        return reduce(into: &state, action: action)
+
+                    case .conversationList, .noteList, .record, .noteDetail, .alert, .delegate:
+                        return .none
+                }
+            }
+            .ifLet(\.$record, action: \.record) {
+                RecordScreen.Root.Feature(recordingUsecase: recordingUsecase)
+            }
+            .ifLet(\.$noteDetail, action: \.noteDetail) {
+                NoteDetailScreen.Root.Feature(managingNoteUsecase: managingNoteUsecase)
+            }
+            .ifLet(\.$alert, action: \.alert)
+        }
+    }
+
+}
+
+extension MainScreen.Root.Feature {
+
+    private func reduce(
+        into state: inout State,
+        action: Action.View
+    ) -> Effect<Action> {
+        switch action {
+            case .tabSelected(let tab):
+                state.selectedTab = tab
+                return .none
+
+            case .recordButtonTapped:
+                state.record = .init()
+                return .none
+
+            case .settingButtonTapped:
+                return .send(.delegate(.settingRequested))
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: MainScreen.ConversationList.Feature.Action.Delegate
+    ) -> Effect<Action> {
+        switch action {
+            case .conversationSelected(let conversation):
+                return .send(.delegate(.conversationSelected(conversation)))
+
+            case .loadFailed:
+                state.alert = .conversationLoadFailed
+                return .none
+
+            case .deleteFailed:
+                state.alert = .conversationDeleteFailed
+                return .none
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: MainScreen.NoteList.Feature.Action.Delegate
+    ) -> Effect<Action> {
+        switch action {
+            case .noteSelected(let note):
+                state.noteDetail = .init(note: note)
+                return .none
+
+            case .loadFailed:
+                state.alert = .noteLoadFailed
+                return .none
+
+            case .deleteFailed:
+                state.alert = .noteDeleteFailed
+                return .none
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: Action.Alert
+    ) -> Effect<Action> {
+        switch action {
+            case .retryConversationLoad:
+                return .send(.conversationList(.view(.reload)))
+
+            case .retryNoteLoad:
+                return .send(.noteList(.view(.reload)))
+        }
+    }
+
+}
+
+extension MainScreen.Root.Feature {
+
+    @ObservableState
+    struct State: Equatable {
+        @Presents var record: RecordScreen.Root.Feature.State?
+        @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
+        @Presents var alert: AlertState<Action.Alert>?
+
+        var conversationList: MainScreen.ConversationList.Feature.State = .init()
+        var noteList: MainScreen.NoteList.Feature.State = .init()
+        var selectedTab: MainScreen.Tab = .conversationList
+    }
+
+    @CasePathable
+    enum Action: ViewAction {
+        case view(View)
+        case conversationList(MainScreen.ConversationList.Feature.Action)
+        case noteList(MainScreen.NoteList.Feature.Action)
+        case record(PresentationAction<RecordScreen.Root.Feature.Action>)
+        case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
+        case alert(PresentationAction<Alert>)
+        case delegate(Delegate)
+
+        @CasePathable
+        enum View {
+            case tabSelected(MainScreen.Tab)
+            case recordButtonTapped
+            case settingButtonTapped
+        }
+
+        @CasePathable
+        enum Alert: Equatable {
+            case retryConversationLoad
+            case retryNoteLoad
+        }
+
+        @CasePathable
+        enum Delegate {
+            case conversationSelected(Conversation)
+            case settingRequested
+        }
+    }
+
+}
+
+#if DEBUG
+extension MainScreen.Root.Feature {
+
+    @MainActor
+    static var preview: Self {
+        .init(
+            managingConversationUsecase: FakeManagingConversationUsecase(),
+            managingNoteUsecase: FakeManagingNoteUsecase(),
+            recordingUsecase: FakeRecordingUsecase()
+        )
+    }
+
+}
+#endif

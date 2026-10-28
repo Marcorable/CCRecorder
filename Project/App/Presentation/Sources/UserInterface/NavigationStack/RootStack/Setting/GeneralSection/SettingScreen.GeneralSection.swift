@@ -1,32 +1,48 @@
 
 import SwiftUI
 
+import ComposableArchitecture
+
 extension SettingScreen {
 
     struct GeneralSection: View {
-        @Environment(SettingScreen.ViewModel.self) private var viewModel
-
-        @Binding var displayMode: DisplayMode
-        @Binding var skipInterval: SkipInterval
-        @Binding var isIdleTimerDisabled: Bool
+        let store: StoreOf<Root.Feature>
 
         var body: some View {
             Section("일반") {
-                Picker("화면 모드", selection: $displayMode) {
+                Picker(
+                    "화면 모드",
+                    selection: Binding(
+                        get: { store.displayMode },
+                        set: { store.send(.view(.displayModeChanged($0))) }
+                    )
+                ) {
                     ForEach(DisplayMode.allCases, id: \.self) {
                         Text(title($0))
                             .tag($0)
                     }
                 }
-                Picker("건너뛰기 시간", selection: $skipInterval) {
+                Picker(
+                    "건너뛰기 시간",
+                    selection: Binding(
+                        get: { store.skipInterval },
+                        set: { store.send(.view(.skipIntervalChanged($0))) }
+                    )
+                ) {
                     ForEach(SkipInterval.allCases, id: \.self) {
                         Text("\($0.rawValue)초")
                             .tag($0)
                     }
                 }
-                Toggle("화면 자동 잠금 끄기", isOn: $isIdleTimerDisabled)
+                Toggle(
+                    "화면 자동 잠금 끄기",
+                    isOn: Binding(
+                        get: { store.isIdleTimerDisabled },
+                        set: { store.send(.view(.idleTimerDisabledChanged($0))) }
+                    )
+                )
                 Button(
-                    action: { viewModel.reduce(by: .rewindButtonTapped) },
+                    action: { store.send(.view(.tutorialButtonTapped)) },
                     label: {
                         Text("앱 사용방법 다시보기")
                     }
@@ -40,7 +56,7 @@ extension SettingScreen {
 
 extension SettingScreen.GeneralSection {
 
-    func title(_ displayMode: DisplayMode) -> String {
+    private func title(_ displayMode: DisplayMode) -> String {
         switch displayMode {
             case .system:
                 "기기 설정에 따름"
@@ -58,10 +74,10 @@ extension SettingScreen.GeneralSection {
 #Preview {
     Form {
         SettingScreen.GeneralSection(
-            displayMode: .constant(.system),
-            skipInterval: .constant(.five),
-            isIdleTimerDisabled: .constant(false)
+            store: .init(
+                initialState: .init(),
+                reducer: { SettingScreen.Root.Feature() }
+            )
         )
-        .environment(SettingScreen.ViewModel.mock)
     }
 }
