@@ -112,6 +112,7 @@ let tests = Target.tests(
     buildableFolders: ["Tests/Unit"],
     dependencies: [
         .target(name: "CCRecorder"),
+        .target(name: "Presentation"),
     ]
 )
 

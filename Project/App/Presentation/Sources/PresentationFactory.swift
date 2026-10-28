@@ -99,6 +99,16 @@ extension PresentationFactory {
         )
     }
 
+    public static var settingScreen: some View {
+        SettingScreen.Context(
+            viewModel: .init(
+                model: .init(
+                    dependency: .init(bundle: .main)
+                )
+            )
+        )
+    }
+
 }
 
 extension Note.Category {

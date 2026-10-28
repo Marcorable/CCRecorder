@@ -2,7 +2,7 @@
 import Foundation
 import Testing
 
-@testable import CCRecorder
+@testable import Presentation
 
 @Suite("설정 화면 ViewModel")
 @MainActor

@@ -1,6 +1,8 @@
 
 import SwiftUI
 
+import Presentation
+
 enum ScreenFactory {}
 
 extension ScreenFactory {
@@ -13,13 +15,7 @@ extension ScreenFactory {
                 ConversationDetailScreen.Context(conversation: conversation)
 
             case .setting:
-                SettingScreen.Context(
-                    viewModel: .init(
-                        model: .init(
-                            dependency: .init(bundle: .main)
-                        )
-                    )
-                )
+                PresentationFactory.settingScreen
         }
     }
 

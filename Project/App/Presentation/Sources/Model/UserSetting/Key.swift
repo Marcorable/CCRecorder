@@ -2,7 +2,7 @@
 import SwiftUI
 import Foundation
 
-enum Key: String {
+public enum Key: String {
     // MARK: 앱 상태
     case isFirstLaunched
     case isLegacyStoreMigrated
@@ -17,7 +17,7 @@ enum Key: String {
 
 extension AppStorage {
 
-    init(
+    public init(
         wrappedValue: Value,
         _ key: Key,
         store: UserDefaults? = nil
@@ -29,7 +29,7 @@ extension AppStorage {
         )
     }
 
-    init(
+    public init(
         wrappedValue: Value,
         _ key: Key,
         store: UserDefaults? = nil
@@ -41,7 +41,7 @@ extension AppStorage {
         )
     }
 
-    init(
+    public init(
         wrappedValue: Value,
         _ key: Key,
         store: UserDefaults? = nil
@@ -57,11 +57,11 @@ extension AppStorage {
 
 extension UserDefaults {
 
-    func bool(forKey key: Key) -> Bool {
+    public func bool(forKey key: Key) -> Bool {
         bool(forKey: key.rawValue)
     }
 
-    func set(
+    public func set(
         _ value: Bool,
         forKey key: Key
     ) {
@@ -71,7 +71,7 @@ extension UserDefaults {
         )
     }
 
-    func removeObject(forKey key: Key) {
+    public func removeObject(forKey key: Key) {
         removeObject(forKey: key.rawValue)
     }
 

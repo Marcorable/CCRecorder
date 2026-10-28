@@ -1,6 +1,8 @@
 
 import SwiftUI
 
+import Presentation
+
 extension ConversationDetailScreen {
 
     struct PlaybackPanel: View {

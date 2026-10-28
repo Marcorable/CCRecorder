@@ -1,8 +1,6 @@
 
 import SwiftUI
 
-import Presentation
-
 extension SettingScreen {
 
     struct Context: View {
