@@ -64,9 +64,10 @@ extension PresentationFactory {
                     store: .init(
                         initialState: .init(note: note),
                         reducer: {
-                            NoteDetailScreen.Root.Feature(
-                                managingNoteUsecase: dependency.managingNoteUsecase()
-                            )
+                            NoteDetailScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
                         }
                     )
                 )
@@ -74,22 +75,18 @@ extension PresentationFactory {
         }
     }
 
-}
-
-// 임시
-extension PresentationFactory {
-
     public static var rootStack: some View {
         RootStack(
             store: .init(
                 initialState: .init(),
                 reducer: {
-                    RootStack.Feature(
-                        managingConversationUsecase: dependency.managingConversationUsecase(),
-                        managingNoteUsecase: dependency.managingNoteUsecase(),
-                        playingRecordUsecase: dependency.playingRecordUsecase(),
-                        recordingUsecase: dependency.recordingUsecase()
-                    )
+                    RootStack.Feature()
+                },
+                withDependencies: {
+                    $0.managingConversationUsecase = .init(usecase: dependency.managingConversationUsecase())
+                    $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
+                    $0.playingRecordUsecase = .init(usecase: dependency.playingRecordUsecase())
+                    $0.recordingUsecase = .init(usecase: dependency.recordingUsecase())
                 }
             )
         )

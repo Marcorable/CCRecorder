@@ -8,8 +8,7 @@ extension NoteDetailScreen.Root {
     @Reducer
     struct Feature {
         @Dependency(\.dismiss) private var dismiss
-
-        let managingNoteUsecase: ManagingNoteUsecase
+        @Dependency(\.managingNoteUsecase) private var managingNoteUsecase
 
         var body: some ReducerOf<Self> {
             BindingReducer()
@@ -138,9 +137,7 @@ extension NoteDetailScreen.Root.Feature {
 
     @MainActor
     static var preview: Self {
-        .init(
-            managingNoteUsecase: FakeManagingNoteUsecase()
-        )
+        .init()
     }
 
 }

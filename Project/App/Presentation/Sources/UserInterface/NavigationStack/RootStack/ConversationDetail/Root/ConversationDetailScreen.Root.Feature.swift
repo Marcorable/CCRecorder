@@ -8,8 +8,8 @@ extension ConversationDetailScreen.Root {
 
     @Reducer
     struct Feature {
-        let managingConversationUsecase: ManagingConversationUsecase
-        let playingRecordUsecase: PlayingRecordUsecase
+        @Dependency(\.managingConversationUsecase) private var managingConversationUsecase
+        @Dependency(\.playingRecordUsecase) private var playingRecordUsecase
 
         var body: some ReducerOf<Self> {
             Reduce { state, action in
@@ -38,15 +38,13 @@ extension ConversationDetailScreen.Root.Feature {
                 return .merge(
                     .run { send in
                         await send(.response(.notesLoaded(
-                            await managingConversationUsecase.notes(of: conversation)
+                            await managingConversationUsecase.notes(conversation)
                         )))
                     },
                     .run { send in
                         await send(.response(.playbackPrepared(
                             TaskResult {
-                                try await playingRecordUsecase.prepare(
-                                    fileName: conversation.recordFileName
-                                )
+                                try await playingRecordUsecase.prepare(conversation.recordFileName)
                             }
                         )))
                     }
@@ -97,10 +95,7 @@ extension ConversationDetailScreen.Root.Feature {
                 return .run { send in
                     await send(.response(.noteAdded(
                         TaskResult {
-                            try await managingConversationUsecase.addNote(
-                                content: input,
-                                to: conversation
-                            )
+                            try await managingConversationUsecase.addNote(input, conversation)
                         }
                     )))
                 }
@@ -111,10 +106,7 @@ extension ConversationDetailScreen.Root.Feature {
                 return .run { send in
                     await send(.response(.notesDeleted(
                         TaskResult {
-                            try await managingConversationUsecase.deleteNotes(
-                                ids: ids,
-                                from: conversation
-                            )
+                            try await managingConversationUsecase.deleteNotes(ids, conversation)
                         }
                     )))
                 }
@@ -134,15 +126,15 @@ extension ConversationDetailScreen.Root.Feature {
                 return .run { _ in await playingRecordUsecase.pause() }
 
             case .seekChanged(let time):
-                return .run { _ in await playingRecordUsecase.seek(to: time) }
+                return .run { _ in await playingRecordUsecase.seek(time) }
 
             case .skipBackwardTapped:
                 let time = state.playback.currentTime - state.skipInterval.timeInterval
-                return .run { _ in await playingRecordUsecase.seek(to: time) }
+                return .run { _ in await playingRecordUsecase.seek(time) }
 
             case .skipForwardTapped:
                 let time = state.playback.currentTime + state.skipInterval.timeInterval
-                return .run { _ in await playingRecordUsecase.seek(to: time) }
+                return .run { _ in await playingRecordUsecase.seek(time) }
 
             case .nextPinTapped:
                 guard let pin = state.conversation.pins.sorted().first(
@@ -150,10 +142,10 @@ extension ConversationDetailScreen.Root.Feature {
                 ) else {
                     return .none
                 }
-                return .run { _ in await playingRecordUsecase.seek(to: pin) }
+                return .run { _ in await playingRecordUsecase.seek(pin) }
 
             case .rateChanged(let rate):
-                return .run { _ in await playingRecordUsecase.changeRate(to: rate) }
+                return .run { _ in await playingRecordUsecase.changeRate(rate) }
 
             case .alertDismissed:
                 state.playbackFailure = nil
@@ -178,10 +170,10 @@ extension ConversationDetailScreen.Root.Feature {
                     while !Task.isCancelled {
                         await send(.response(.playbackUpdated(
                             .init(
-                                isPlaying: await playingRecordUsecase.isPlaying,
-                                currentTime: await playingRecordUsecase.currentTime,
-                                duration: await playingRecordUsecase.duration,
-                                rate: await playingRecordUsecase.rate
+                                isPlaying: await playingRecordUsecase.isPlaying(),
+                                currentTime: await playingRecordUsecase.currentTime(),
+                                duration: await playingRecordUsecase.duration(),
+                                rate: await playingRecordUsecase.rate()
                             )
                         )))
                         try await Task.sleep(for: .milliseconds(100))
@@ -208,7 +200,7 @@ extension ConversationDetailScreen.Root.Feature {
                 state.conversation = conversation
                 return .run { send in
                     await send(.response(.notesLoaded(
-                        await managingConversationUsecase.notes(of: conversation)
+                        await managingConversationUsecase.notes(conversation)
                     )))
                 }
 

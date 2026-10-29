@@ -4,7 +4,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RootStack: View {
-    @Bindable var store: StoreOf<Feature>
+    @State var store: StoreOf<Feature>
 
     var body: some View {
         NavigationStack(
@@ -21,22 +21,12 @@ struct RootStack: View {
                 )
             },
             destination: { store in
-                switch store.state {
-                    case .conversationDetail:
-                        if let store = store.scope(
-                            state: \.conversationDetail,
-                            action: \.conversationDetail
-                        ) {
-                            ConversationDetailScreen.Root(store: store)
-                        }
+                switch store.case {
+                    case .conversationDetail(let store):
+                        ConversationDetailScreen.Root(store: store)
 
-                    case .setting:
-                        if let store = store.scope(
-                            state: \.setting,
-                            action: \.setting
-                        ) {
-                            SettingScreen.Root(store: store)
-                        }
+                    case .setting(let store):
+                        SettingScreen.Root(store: store)
                 }
             }
         )

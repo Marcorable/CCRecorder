@@ -6,26 +6,18 @@ extension MainScreen.Root {
 
     @Reducer
     struct Feature {
-        let managingConversationUsecase: ManagingConversationUsecase
-        let managingNoteUsecase: ManagingNoteUsecase
-        let recordingUsecase: RecordingUsecase
-
         var body: some ReducerOf<Self> {
             Scope(
                 state: \.conversationList,
                 action: \.conversationList
             ) {
-                MainScreen.ConversationList.Feature(
-                    managingConversationUsecase: managingConversationUsecase
-                )
+                MainScreen.ConversationList.Feature()
             }
             Scope(
                 state: \.noteList,
                 action: \.noteList
             ) {
-                MainScreen.NoteList.Feature(
-                    managingNoteUsecase: managingNoteUsecase
-                )
+                MainScreen.NoteList.Feature()
             }
             Reduce { state, action in
                 switch action {
@@ -58,10 +50,10 @@ extension MainScreen.Root {
                 }
             }
             .ifLet(\.$record, action: \.record) {
-                RecordScreen.Root.Feature(recordingUsecase: recordingUsecase)
+                RecordScreen.Root.Feature()
             }
             .ifLet(\.$noteDetail, action: \.noteDetail) {
-                NoteDetailScreen.Root.Feature(managingNoteUsecase: managingNoteUsecase)
+                NoteDetailScreen.Root.Feature()
             }
             .ifLet(\.$alert, action: \.alert)
         }
@@ -191,11 +183,7 @@ extension MainScreen.Root.Feature {
 
     @MainActor
     static var preview: Self {
-        .init(
-            managingConversationUsecase: FakeManagingConversationUsecase(),
-            managingNoteUsecase: FakeManagingNoteUsecase(),
-            recordingUsecase: FakeRecordingUsecase()
-        )
+        .init()
     }
 
 }

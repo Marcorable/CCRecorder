@@ -8,7 +8,7 @@ extension MainScreen.NoteList {
 
     @Reducer
     struct Feature {
-        let managingNoteUsecase: ManagingNoteUsecase
+        @Dependency(\.managingNoteUsecase) private var managingNoteUsecase
 
         var body: some ReducerOf<Self> {
             Reduce { state, action in
@@ -65,7 +65,7 @@ extension MainScreen.NoteList.Feature {
                         .response(
                             .notesDeleted(
                                 ids: ids,
-                                result: await managingNoteUsecase.deleteNotes(ids: ids)
+                                result: await managingNoteUsecase.deleteNotes(ids)
                             )
                         )
                     )

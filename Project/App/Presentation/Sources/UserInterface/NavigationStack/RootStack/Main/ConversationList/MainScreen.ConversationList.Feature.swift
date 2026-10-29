@@ -8,7 +8,7 @@ extension MainScreen.ConversationList {
 
     @Reducer
     struct Feature {
-        let managingConversationUsecase: ManagingConversationUsecase
+        @Dependency(\.managingConversationUsecase) private var managingConversationUsecase
 
         var body: some ReducerOf<Self> {
             Reduce { state, action in
