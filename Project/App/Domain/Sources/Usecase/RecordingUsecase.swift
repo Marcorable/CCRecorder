@@ -20,35 +20,3 @@ extension DomainError {
     }
 
 }
-
-#if DEBUG
-public actor FakeRecordingUsecase: RecordingUsecase {
-    public private(set) var isRecording: Bool
-    public private(set) var currentTime: TimeInterval
-
-    public init(
-        isRecording: Bool = false,
-        currentTime: TimeInterval = .zero
-    ) {
-        self.isRecording = isRecording
-        self.currentTime = currentTime
-    }
-
-    public func prepare() async throws {}
-
-    public func start() async {
-        isRecording = true
-    }
-
-    public func pause() async {
-        isRecording = false
-    }
-
-    public func finish(_ conversation: Conversation) async throws {}
-
-    public func cancel() async {
-        isRecording = false
-        currentTime = .zero
-    }
-}
-#endif

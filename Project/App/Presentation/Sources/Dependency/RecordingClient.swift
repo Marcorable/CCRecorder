@@ -29,20 +29,23 @@ extension RecordingClient {
         )
     }
 
-}
-
-extension RecordingClient: TestDependencyKey {
-
-    static let previewValue = Self(usecase: FakeRecordingUsecase())
-    static let testValue = Self()
+    static let preview: Self = .init(
+        isRecording: { false },
+        currentTime: { .zero },
+        prepare: {},
+        start: {},
+        pause: {},
+        finish: { _ in },
+        cancel: {}
+    )
 
 }
 
 extension DependencyValues {
 
-    var recordingUsecase: RecordingClient {
-        get { self[RecordingClient.self] }
-        set { self[RecordingClient.self] = newValue }
-    }
+    @DependencyEntry(
+        previewValue: RecordingClient.preview
+    )
+    var recordingUsecase: RecordingClient = .init()
 
 }

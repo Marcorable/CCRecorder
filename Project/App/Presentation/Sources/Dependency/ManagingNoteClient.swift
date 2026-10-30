@@ -21,20 +21,19 @@ extension ManagingNoteClient {
         )
     }
 
-}
-
-extension ManagingNoteClient: TestDependencyKey {
-
-    static let previewValue = Self(usecase: FakeManagingNoteUsecase())
-    static let testValue = Self()
+    static let preview: Self = .init(
+        loadNotes: { .success([]) },
+        updateNote: { _ in .success(()) },
+        deleteNotes: { _ in .success(()) }
+    )
 
 }
 
 extension DependencyValues {
 
-    var managingNoteUsecase: ManagingNoteClient {
-        get { self[ManagingNoteClient.self] }
-        set { self[ManagingNoteClient.self] = newValue }
-    }
+    @DependencyEntry(
+        previewValue: ManagingNoteClient.preview
+    )
+    var managingNoteUsecase: ManagingNoteClient = .init()
 
 }

@@ -35,20 +35,26 @@ extension PlayingRecordClient {
         )
     }
 
-}
-
-extension PlayingRecordClient: TestDependencyKey {
-
-    static let previewValue = Self(usecase: FakePlayingRecordUsecase())
-    static let testValue = Self()
+    static let preview: Self = .init(
+        isPlaying: { false },
+        currentTime: { .zero },
+        duration: { .zero },
+        rate: { 1 },
+        prepare: { _ in },
+        play: {},
+        pause: {},
+        finish: {},
+        seek: { _ in },
+        changeRate: { _ in }
+    )
 
 }
 
 extension DependencyValues {
 
-    var playingRecordUsecase: PlayingRecordClient {
-        get { self[PlayingRecordClient.self] }
-        set { self[PlayingRecordClient.self] = newValue }
-    }
+    @DependencyEntry(
+        previewValue: PlayingRecordClient.preview
+    )
+    var playingRecordUsecase: PlayingRecordClient = .init()
 
 }

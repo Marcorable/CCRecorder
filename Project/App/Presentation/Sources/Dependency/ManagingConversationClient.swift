@@ -27,20 +27,22 @@ extension ManagingConversationClient {
         )
     }
 
-}
-
-extension ManagingConversationClient: TestDependencyKey {
-
-    static let previewValue = Self(usecase: FakeManagingConversationUsecase())
-    static let testValue = Self()
+    static let preview: Self = .init(
+        conversations: { .success([]) },
+        notes: { _ in .success([]) },
+        update: { _ in },
+        deleteConversations: { _ in .success(()) },
+        addNote: { _, conversation in conversation },
+        deleteNotes: { _, conversation in conversation }
+    )
 
 }
 
 extension DependencyValues {
 
-    var managingConversationUsecase: ManagingConversationClient {
-        get { self[ManagingConversationClient.self] }
-        set { self[ManagingConversationClient.self] = newValue }
-    }
+    @DependencyEntry(
+        previewValue: ManagingConversationClient.preview
+    )
+    var managingConversationUsecase: ManagingConversationClient = .init()
 
 }
