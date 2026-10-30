@@ -6,6 +6,8 @@ extension MainScreen.Root {
 
     @Reducer
     struct Feature {
+        @Dependency(\.navigator) private var navigator
+
         var body: some ReducerOf<Self> {
             Scope(
                 state: \.conversationList,
@@ -45,7 +47,7 @@ extension MainScreen.Root {
                     case .alert(.presented(let action)):
                         return reduce(into: &state, action: action)
 
-                    case .conversationList, .noteList, .record, .noteDetail, .alert, .delegate:
+                    case .conversationList, .noteList, .record, .noteDetail, .alert:
                         return .none
                 }
             }
@@ -77,7 +79,9 @@ extension MainScreen.Root.Feature {
                 return .none
 
             case .settingButtonTapped:
-                return .send(.delegate(.settingRequested))
+                return .run { _ in
+                    await navigator.push(.setting)
+                }
         }
     }
 
@@ -87,7 +91,9 @@ extension MainScreen.Root.Feature {
     ) -> Effect<Action> {
         switch action {
             case .conversationSelected(let conversation):
-                return .send(.delegate(.conversationSelected(conversation)))
+                return .run { _ in
+                    await navigator.push(.conversationDetail(conversation))
+                }
 
             case .loadFailed:
                 state.alert = .conversationLoadFailed
@@ -154,7 +160,6 @@ extension MainScreen.Root.Feature {
         case record(PresentationAction<RecordScreen.Root.Feature.Action>)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
         case alert(PresentationAction<Alert>)
-        case delegate(Delegate)
 
         @CasePathable
         enum View {
@@ -169,11 +174,6 @@ extension MainScreen.Root.Feature {
             case retryNoteLoad
         }
 
-        @CasePathable
-        enum Delegate {
-            case conversationSelected(Conversation)
-            case settingRequested
-        }
     }
 
 }

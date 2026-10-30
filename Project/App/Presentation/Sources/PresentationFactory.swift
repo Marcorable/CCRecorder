@@ -58,20 +58,7 @@ extension PresentationFactory {
     }
 
     public static var rootStack: some View {
-        RootStack(
-            store: .init(
-                initialState: .init(),
-                reducer: {
-                    RootStack.Feature()
-                },
-                withDependencies: {
-                    $0.managingConversationUsecase = .init(usecase: dependency.managingConversationUsecase())
-                    $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
-                    $0.playingRecordUsecase = .init(usecase: dependency.playingRecordUsecase())
-                    $0.recordingUsecase = .init(usecase: dependency.recordingUsecase())
-                }
-            )
-        )
+        RootStack()
     }
 
 }
@@ -93,6 +80,57 @@ extension PresentationFactory {
                     )
                 )
                 .presentationDetents(note.category.presentationDetents)
+        }
+    }
+
+    @ViewBuilder
+    static func make(
+        by route: RootStack.Route,
+        with navigator: RootStack.Client
+    ) -> some View {
+        switch route {
+            case .main:
+                MainScreen.Root(
+                    store: .init(
+                        initialState: .init(),
+                        reducer: {
+                            MainScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.navigator = navigator
+                            $0.managingConversationUsecase = .init(usecase: dependency.managingConversationUsecase())
+                            $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
+                        }
+                    )
+                )
+
+            case .conversationDetail(let conversation):
+                ConversationDetailScreen.Root(
+                    store: .init(
+                        initialState: .init(conversation: conversation),
+                        reducer: {
+                            ConversationDetailScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.navigator = navigator
+                            $0.managingConversationUsecase = .init(usecase: dependency.managingConversationUsecase())
+                            $0.playingRecordUsecase = .init(usecase: dependency.playingRecordUsecase())
+                        }
+                    )
+                )
+
+            case .setting:
+                SettingScreen.Root(
+                    store: .init(
+                        initialState: .init(),
+                        reducer: {
+                            SettingScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.navigator = navigator
+                        }
+                    )
+                )
         }
     }
 

@@ -11,7 +11,7 @@ enum MainScreen {
     }
 
     struct Root: View {
-        @Bindable var store: StoreOf<Feature>
+        @State var store: StoreOf<Feature>
 
         var body: some View {
             VStack {
