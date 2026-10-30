@@ -52,6 +52,14 @@ enum MainScreen {
             }
             .fullScreenCover(
                 item: $store.scope(
+                    state: \.onboard,
+                    action: \.onboard
+                )
+            ) { store in
+                OnboardScreen.Root(store: store)
+            }
+            .fullScreenCover(
+                item: $store.scope(
                     state: \.record,
                     action: \.record
                 )

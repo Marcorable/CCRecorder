@@ -41,15 +41,22 @@ extension MainScreen.Root {
                                 return .send(.noteList(.view(.reload)))
                         }
 
+                    case .onboard(.dismiss):
+                        state.$isFirstLaunched.withLock { $0 = false }
+                        return .none
+
                     case .noteDetail(.dismiss):
                         return .send(.noteList(.view(.reload)))
 
                     case .alert(.presented(let action)):
                         return reduce(into: &state, action: action)
 
-                    case .conversationList, .noteList, .record, .noteDetail, .alert:
+                    case .conversationList, .noteList, .onboard, .record, .noteDetail, .alert:
                         return .none
                 }
+            }
+            .ifLet(\.$onboard, action: \.onboard) {
+                OnboardScreen.Root.Feature()
             }
             .ifLet(\.$record, action: \.record) {
                 RecordScreen.Root.Feature()
@@ -143,6 +150,9 @@ extension MainScreen.Root.Feature {
 
     @ObservableState
     struct State: Equatable {
+        @Shared(.appStorage(Key.isFirstLaunched.rawValue)) var isFirstLaunched: Bool = true
+
+        @Presents var onboard: OnboardScreen.Root.Feature.State?
         @Presents var record: RecordScreen.Root.Feature.State?
         @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
         @Presents var alert: AlertState<Action.Alert>?
@@ -150,6 +160,12 @@ extension MainScreen.Root.Feature {
         var conversationList: MainScreen.ConversationList.Feature.State = .init()
         var noteList: MainScreen.NoteList.Feature.State = .init()
         var selectedTab: MainScreen.Tab = .conversationList
+
+        init() {
+            if isFirstLaunched {
+                onboard = .init()
+            }
+        }
     }
 
     @CasePathable
@@ -157,6 +173,7 @@ extension MainScreen.Root.Feature {
         case view(View)
         case conversationList(MainScreen.ConversationList.Feature.Action)
         case noteList(MainScreen.NoteList.Feature.Action)
+        case onboard(PresentationAction<OnboardScreen.Root.Feature.Action>)
         case record(PresentationAction<RecordScreen.Root.Feature.Action>)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
         case alert(PresentationAction<Alert>)

@@ -14,12 +14,26 @@ extension ConversationDetailScreen.Root {
         var body: some ReducerOf<Self> {
             Reduce { state, action in
                 switch action {
+                    case .noteDetail(.dismiss):
+                        let conversation = state.conversation
+                        return .run { send in
+                            await send(.response(.notesLoaded(
+                                await managingConversationUsecase.notes(conversation)
+                            )))
+                        }
+
                     case .view(let action):
                         return reduce(into: &state, action: action)
 
                     case .response(let action):
                         return reduce(into: &state, action: action)
+
+                    case .noteDetail:
+                        return .none
                 }
+            }
+            .ifLet(\.$noteDetail, action: \.noteDetail) {
+                NoteDetailScreen.Root.Feature()
             }
         }
     }
@@ -112,11 +126,7 @@ extension ConversationDetailScreen.Root.Feature {
                 }
 
             case .noteSelected(let note):
-                state.selectedNote = note
-                return .none
-
-            case .noteDismissed:
-                state.selectedNote = nil
+                state.noteDetail = .init(note: note)
                 return .none
 
             case .playButtonTapped:
@@ -235,7 +245,7 @@ extension ConversationDetailScreen.Root.Feature {
         var isEditing: Bool = false
         var playback: Playback = .init()
         var playbackFailure: PlaybackFailure?
-        var selectedNote: Note?
+        @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
         @Shared(.appStorage(Key.skipInterval.rawValue)) var skipInterval: SkipInterval = .five
 
         struct Playback: Equatable {
@@ -251,10 +261,13 @@ extension ConversationDetailScreen.Root.Feature {
         }
     }
 
+    @CasePathable
     enum Action: ViewAction {
         case view(View)
         case response(Response)
+        case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
 
+        @CasePathable
         enum View {
             case appeared
             case disappeared
@@ -268,7 +281,6 @@ extension ConversationDetailScreen.Root.Feature {
             case noteAdded
             case notesDeleted(IndexSet)
             case noteSelected(Note)
-            case noteDismissed
             case playButtonTapped
             case pauseButtonTapped
             case seekChanged(TimeInterval)
@@ -279,6 +291,7 @@ extension ConversationDetailScreen.Root.Feature {
             case alertDismissed
         }
 
+        @CasePathable
         enum Response {
             case notesLoaded(Result<[Note], DomainError>)
             case playbackPrepared(TaskResult<Void>)

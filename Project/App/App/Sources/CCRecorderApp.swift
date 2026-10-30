@@ -5,7 +5,6 @@ import Presentation
 
 @main
 struct CCRecorderApp: App {
-    @AppStorage(.isFirstLaunched) private var isFirstLaunched: Bool = true
     @AppStorage(.displayMode) private var displayMode: DisplayMode = .system
     @AppStorage(.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
 
@@ -36,10 +35,6 @@ struct CCRecorderApp: App {
 
                 case .launched:
                     PresentationFactory.rootStack
-                        .fullScreenCover(isPresented: $isFirstLaunched) {
-                            PresentationFactory.onboardScreen
-                        }
-                        .animation(.easeInOut, value: isFirstLaunched)
                         .preferredColorScheme(userColorScheme)
                         .onChange(of: isIdleTimerDisabled, initial: true) {
                             UIApplication.shared.isIdleTimerDisabled = isIdleTimerDisabled

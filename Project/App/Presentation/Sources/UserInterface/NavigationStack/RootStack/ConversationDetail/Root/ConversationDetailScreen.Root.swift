@@ -114,12 +114,13 @@ enum ConversationDetailScreen {
             .task { await store.send(.view(.appeared)).finish() }
             .onDisappear { store.send(.view(.disappeared)) }
             .sheet(
-                item: Binding(
-                    get: { store.selectedNote },
-                    set: { _ in store.send(.view(.noteDismissed)) }
+                item: $store.scope(
+                    state: \.noteDetail,
+                    action: \.noteDetail
                 )
-            ) { note in
-                PresentationFactory.make(sheet: .noteDetail(note))
+            ) { store in
+                NoteDetailScreen.Root(store: store)
+                    .presentationDetents(store.note.category.presentationDetents)
             }
             .alert(
                 "녹음 파일을 재생할 수 없습니다",
