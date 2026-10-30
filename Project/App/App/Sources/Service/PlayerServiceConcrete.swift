@@ -22,7 +22,7 @@ final class PlayerServiceConcrete: NSObject {
     }
 }
 
-extension PlayerServiceConcrete {
+extension PlayerServiceConcrete: Service {
 
     enum ServiceError: Error {
         case prepareFailed

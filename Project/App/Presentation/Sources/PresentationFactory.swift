@@ -32,7 +32,7 @@ extension PresentationFactory {
         }
     }
 
-    public static func register(_ dependency: Dependency) {
+    public static func setup(_ dependency: Dependency) {
         self.dependency = dependency
     }
 
@@ -53,26 +53,8 @@ extension PresentationFactory {
         )
     }
 
-}
-
-extension PresentationFactory {
-
-    public static func make(sheet: Sheet) -> some View {
-        switch sheet {
-            case .noteDetail(let note):
-                NoteDetailScreen.Root(
-                    store: .init(
-                        initialState: .init(note: note),
-                        reducer: {
-                            NoteDetailScreen.Root.Feature()
-                        },
-                        withDependencies: {
-                            $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
-                        }
-                    )
-                )
-                .presentationDetents(note.category.presentationDetents)
-        }
+    public static var forcedUpdateScreen: some View {
+        EmptyView() // TODO: 강제 업데이트 화면
     }
 
     public static var rootStack: some View {
@@ -90,6 +72,28 @@ extension PresentationFactory {
                 }
             )
         )
+    }
+
+}
+
+extension PresentationFactory {
+
+    static func make(sheet: Sheet) -> some View {
+        switch sheet {
+            case .noteDetail(let note):
+                NoteDetailScreen.Root(
+                    store: .init(
+                        initialState: .init(note: note),
+                        reducer: {
+                            NoteDetailScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
+                        }
+                    )
+                )
+                .presentationDetents(note.category.presentationDetents)
+        }
     }
 
 }

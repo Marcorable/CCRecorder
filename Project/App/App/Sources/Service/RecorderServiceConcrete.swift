@@ -23,7 +23,7 @@ final class RecorderServiceConcrete {
     init() {}
 }
 
-extension RecorderServiceConcrete {
+extension RecorderServiceConcrete: Service {
 
     enum State {
         case idle
