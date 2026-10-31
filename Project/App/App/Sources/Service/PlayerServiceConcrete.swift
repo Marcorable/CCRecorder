@@ -115,7 +115,7 @@ private extension PlayerServiceConcrete {
         private let finish: @Sendable () -> Void
         private let fail: @Sendable () -> Void
 
-        init(
+        nonisolated init(
             id: UUID,
             finish: @escaping @Sendable () -> Void,
             fail: @escaping @Sendable () -> Void
