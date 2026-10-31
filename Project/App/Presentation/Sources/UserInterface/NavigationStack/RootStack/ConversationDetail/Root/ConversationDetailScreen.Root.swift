@@ -10,19 +10,56 @@ enum ConversationDetailScreen {
         @State var store: StoreOf<Feature>
 
         var body: some View {
+            Group {
+                if let conversation = store.conversation {
+                    content(conversation: conversation)
+                } else if store.conversationLoadFailed {
+                    ContentUnavailableView(
+                        "대화를 불러올 수 없습니다",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                } else {
+                    ProgressView()
+                }
+            }
+            .navigationTitle(store.conversation?.title ?? "Conversation")
+            .navigationBarTitleDisplayMode(.inline)
+            .task { await store.send(.view(.appeared)).finish() }
+            .onDisappear { store.send(.view(.disappeared)) }
+            .sheet(
+                item: $store.scope(
+                    state: \.noteDetail,
+                    action: \.noteDetail
+                )
+            ) { store in
+                NoteDetailScreen.Root(store: store)
+                    .presentationDetents(store.note.category.presentationDetents)
+            }
+            .alert(
+                "녹음 파일을 재생할 수 없습니다",
+                isPresented: Binding(
+                    get: { store.playbackFailure != nil },
+                    set: { _ in store.send(.view(.alertDismissed)) }
+                )
+            ) {
+                Button("확인", role: .cancel) {}
+            }
+        }
+
+        private func content(conversation: Conversation) -> some View {
             Form {
                 Section("대화 정보") {
                     TextField(
                         "제목",
                         text: Binding(
-                            get: { store.conversation.title },
+                            get: { store.conversation?.title ?? "" },
                             set: { store.send(.view(.titleChanged($0))) }
                         )
                     )
                     TextField(
                         "주제",
                         text: Binding(
-                            get: { store.conversation.topic },
+                            get: { store.conversation?.topic ?? "" },
                             set: { store.send(.view(.topicChanged($0))) }
                         )
                     )
@@ -36,7 +73,7 @@ enum ConversationDetailScreen {
                         )
                         Button("추가") { store.send(.view(.partyAdded)) }
                     }
-                    ForEach(store.conversation.parties) { party in
+                    ForEach(conversation.parties) { party in
                         LabeledContent(party.name) {
                             Button("삭제") { store.send(.view(.partyRemoved(party.id))) }
                         }
@@ -88,7 +125,7 @@ enum ConversationDetailScreen {
                             store.send(.view(.nextPinTapped))
                         }
                         .disabled(
-                            !store.conversation.pins.contains(
+                            !conversation.pins.contains(
                                 where: { $0 > store.playback.currentTime }
                             )
                         )
@@ -108,28 +145,6 @@ enum ConversationDetailScreen {
                         Text("2.0x").tag(Float(2.0))
                     }
                 }
-            }
-            .navigationTitle(store.conversation.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .task { await store.send(.view(.appeared)).finish() }
-            .onDisappear { store.send(.view(.disappeared)) }
-            .sheet(
-                item: $store.scope(
-                    state: \.noteDetail,
-                    action: \.noteDetail
-                )
-            ) { store in
-                NoteDetailScreen.Root(store: store)
-                    .presentationDetents(store.note.category.presentationDetents)
-            }
-            .alert(
-                "녹음 파일을 재생할 수 없습니다",
-                isPresented: Binding(
-                    get: { store.playbackFailure != nil },
-                    set: { _ in store.send(.view(.alertDismissed)) }
-                )
-            ) {
-                Button("확인", role: .cancel) {}
             }
         }
     }

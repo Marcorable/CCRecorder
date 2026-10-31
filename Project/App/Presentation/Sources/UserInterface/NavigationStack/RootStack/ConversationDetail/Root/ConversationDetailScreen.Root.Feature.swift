@@ -15,7 +15,9 @@ extension ConversationDetailScreen.Root {
             Reduce { state, action in
                 switch action {
                     case .noteDetail(.dismiss):
-                        let conversation = state.conversation
+                        guard let conversation = state.conversation else {
+                            return .none
+                        }
                         return .run { send in
                             await send(.response(.notesLoaded(
                                 await managingConversationUsecase.notes(conversation)
@@ -48,35 +50,39 @@ extension ConversationDetailScreen.Root.Feature {
     ) -> Effect<Action> {
         switch action {
             case .appeared:
-                let conversation = state.conversation
-                return .merge(
-                    .run { send in
-                        await send(.response(.notesLoaded(
-                            await managingConversationUsecase.notes(conversation)
-                        )))
-                    },
-                    .run { send in
-                        await send(.response(.playbackPrepared(
-                            TaskResult {
-                                try await playingRecordUsecase.prepare(conversation.recordFileName)
-                            }
-                        )))
-                    }
+                let id = state.conversationID
+                return .run { send in
+                    await send(.response(.conversationLoaded(
+                        await managingConversationUsecase.conversation(id)
+                    )))
+                }
+                .cancellable(
+                    id: CancelID.loadConversation,
+                    cancelInFlight: true
                 )
 
             case .disappeared:
                 return .merge(
+                    .cancel(id: CancelID.loadConversation),
                     .cancel(id: CancelID.playback),
                     .run { _ in await playingRecordUsecase.finish() }
                 )
 
             case .titleChanged(let title):
-                state.conversation.title = title
-                return update(state.conversation)
+                guard var conversation = state.conversation else {
+                    return .none
+                }
+                conversation.title = title
+                state.conversation = conversation
+                return update(conversation)
 
             case .topicChanged(let topic):
-                state.conversation.topic = topic
-                return update(state.conversation)
+                guard var conversation = state.conversation else {
+                    return .none
+                }
+                conversation.topic = topic
+                state.conversation = conversation
+                return update(conversation)
 
             case .editingToggled:
                 state.isEditing.toggle()
@@ -87,16 +93,21 @@ extension ConversationDetailScreen.Root.Feature {
                 return .none
 
             case .partyAdded:
-                guard !state.partyInput.isEmpty else {
+                guard !state.partyInput.isEmpty, var conversation = state.conversation else {
                     return .none
                 }
-                state.conversation.parties.append(.init(name: state.partyInput))
+                conversation.parties.append(.init(name: state.partyInput))
+                state.conversation = conversation
                 state.partyInput = ""
-                return update(state.conversation)
+                return update(conversation)
 
             case .partyRemoved(let id):
-                state.conversation.parties.removeAll(where: { $0.id == id })
-                return update(state.conversation)
+                guard var conversation = state.conversation else {
+                    return .none
+                }
+                conversation.parties.removeAll(where: { $0.id == id })
+                state.conversation = conversation
+                return update(conversation)
 
             case .noteInputChanged(let input):
                 state.noteInput = input
@@ -104,7 +115,9 @@ extension ConversationDetailScreen.Root.Feature {
 
             case .noteAdded:
                 let input = state.noteInput
-                let conversation = state.conversation
+                guard let conversation = state.conversation else {
+                    return .none
+                }
                 state.noteInput = ""
                 return .run { send in
                     await send(.response(.noteAdded(
@@ -116,7 +129,9 @@ extension ConversationDetailScreen.Root.Feature {
 
             case .notesDeleted(let offsets):
                 let ids = offsets.map({ state.notes[$0].id })
-                let conversation = state.conversation
+                guard let conversation = state.conversation else {
+                    return .none
+                }
                 return .run { send in
                     await send(.response(.notesDeleted(
                         TaskResult {
@@ -147,7 +162,7 @@ extension ConversationDetailScreen.Root.Feature {
                 return .run { _ in await playingRecordUsecase.seek(time) }
 
             case .nextPinTapped:
-                guard let pin = state.conversation.pins.sorted().first(
+                guard let pin = state.conversation?.pins.sorted().first(
                     where: { $0 > state.playback.currentTime }
                 ) else {
                     return .none
@@ -168,6 +183,32 @@ extension ConversationDetailScreen.Root.Feature {
         action: Action.Response
     ) -> Effect<Action> {
         switch action {
+            case .conversationLoaded(.success(let conversation)):
+                state.conversation = conversation
+                state.conversationLoadFailed = conversation == nil
+                guard let conversation else {
+                    return .none
+                }
+                return .merge(
+                    .run { send in
+                        await send(.response(.notesLoaded(
+                            await managingConversationUsecase.notes(conversation)
+                        )))
+                    },
+                    .run { send in
+                        await send(.response(.playbackPrepared(
+                            TaskResult {
+                                try await playingRecordUsecase.prepare(conversation.recordFileName)
+                            }
+                        )))
+                    }
+                    .cancellable(id: CancelID.playback, cancelInFlight: true)
+                )
+
+            case .conversationLoaded(.failure):
+                state.conversationLoadFailed = true
+                return .none
+
             case .notesLoaded(.success(let notes)):
                 state.notes = notes
                 return .none
@@ -228,6 +269,7 @@ extension ConversationDetailScreen.Root.Feature {
     }
 
     private enum CancelID {
+        case loadConversation
         case playback
         case update
     }
@@ -238,7 +280,9 @@ extension ConversationDetailScreen.Root.Feature {
 
     @ObservableState
     struct State: Equatable {
-        var conversation: Conversation
+        let conversationID: Conversation.ID
+        var conversation: Conversation?
+        var conversationLoadFailed = false
         var notes: [Note] = []
         var noteInput: String = ""
         var partyInput: String = ""
@@ -293,6 +337,7 @@ extension ConversationDetailScreen.Root.Feature {
 
         @CasePathable
         enum Response {
+            case conversationLoaded(Result<Conversation?, DomainError>)
             case notesLoaded(Result<[Note], DomainError>)
             case playbackPrepared(TaskResult<Void>)
             case playbackUpdated(State.Playback)

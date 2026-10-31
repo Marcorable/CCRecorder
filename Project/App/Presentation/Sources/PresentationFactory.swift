@@ -78,10 +78,10 @@ extension PresentationFactory {
                     )
                 )
 
-            case .conversationDetail(let conversation):
+            case .conversationDetail(let id):
                 ConversationDetailScreen.Root(
                     store: .init(
-                        initialState: .init(conversation: conversation),
+                        initialState: .init(conversationID: id),
                         reducer: {
                             ConversationDetailScreen.Root.Feature()
                         },

@@ -97,9 +97,9 @@ extension MainScreen.Root.Feature {
         action: MainScreen.ConversationList.Feature.Action.Delegate
     ) -> Effect<Action> {
         switch action {
-            case .conversationSelected(let conversation):
+            case .conversationSelected(let id):
                 return .run { _ in
-                    await navigator.push(.conversationDetail(conversation))
+                    await navigator.push(.conversationDetail(id))
                 }
 
             case .loadFailed:

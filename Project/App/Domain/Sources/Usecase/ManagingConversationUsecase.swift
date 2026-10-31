@@ -3,6 +3,7 @@ import Foundation
 
 public protocol ManagingConversationUsecase: Sendable {
     func conversations() async -> Result<[Conversation], DomainError>
+    func conversation(id: Conversation.ID) async -> Result<Conversation?, DomainError>
 
     func notes(of conversation: Conversation) async -> Result<[Note], DomainError>
     func update(_ conversation: Conversation) async throws

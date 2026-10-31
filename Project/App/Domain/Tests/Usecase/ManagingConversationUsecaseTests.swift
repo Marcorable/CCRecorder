@@ -47,6 +47,34 @@ private actor RecordFileRepositorySpy: RecordFileRepository {
 
 extension ManagingConversationUsecaseTests {
 
+    @Test("ID에 해당하는 Conversation을 반환한다")
+    func conversationReturnsMatchingConversation() async throws {
+        // given
+        let conversation = conversation()
+        await conversationRepository.setConversations([conversation])
+
+        // when
+        let result = try await usecase.conversation(id: conversation.id).get()
+
+        // then
+        #expect(result == conversation)
+    }
+
+    @Test("Conversation 조회에 실패하면 Data 오류를 반환한다")
+    func conversationReturnsDataErrorWhenRepositoryFails() async {
+        // given
+        await conversationRepository.setError(.failed)
+
+        // when
+        let result = await usecase.conversation(id: .init())
+
+        // then
+        guard case .failure(.data) = result else {
+            Issue.record("Data 오류를 반환해야 합니다.")
+            return
+        }
+    }
+
     @Test("Conversation의 Note ID 순서대로 Note를 반환한다")
     func notesReturnsConversationOrder() async throws {
         // given
@@ -168,9 +196,17 @@ private extension ManagingConversationUsecaseTests {
     actor ConversationRepositorySpy: ConversationRepository {
         private var error: TestError?
         private var updated: Conversation?
+        private var conversations: [Conversation] = []
 
         func create(_ conversation: Conversation) throws {}
-        func read() throws -> [Conversation] { [] }
+        func read() throws -> [Conversation] { conversations }
+
+        func read(id: Conversation.ID) throws -> Conversation? {
+            if let error {
+                throw error
+            }
+            return conversations.first(where: { $0.id == id })
+        }
 
         func update(_ conversation: Conversation) throws {
             if let error {
@@ -183,6 +219,10 @@ private extension ManagingConversationUsecaseTests {
 
         func setError(_ error: TestError) {
             self.error = error
+        }
+
+        func setConversations(_ conversations: [Conversation]) {
+            self.conversations = conversations
         }
 
         func updatedConversation() -> Conversation? {
