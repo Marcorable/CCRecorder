@@ -5,6 +5,28 @@ import ComposableArchitecture
 
 struct RootStack: View {
     @State private var viewModel: ViewModel = .init()
+    private var client: Client {
+        .init(
+            push: {
+                await viewModel.push([$0])
+            },
+            pushContentsOf: {
+                await viewModel.push($0)
+            },
+            pop: {
+                await viewModel.pop(1)
+            },
+            pops: {
+                await viewModel.pop($0)
+            },
+            popToRoot: {
+                await viewModel.popToRoot()
+            },
+            reStack: {
+                await viewModel.restack($0)
+            }
+        )
+    }
 
     var body: some View {
         NavigationStack(
@@ -12,50 +34,12 @@ struct RootStack: View {
             root: {
                 Factory.make(
                     by: .main,
-                    with: .init(
-                        push: {
-                            await viewModel.push([$0])
-                        },
-                        pushContentsOf: {
-                            await viewModel.push($0)
-                        },
-                        pop: {
-                            await viewModel.pop(1)
-                        },
-                        pops: {
-                            await viewModel.pop($0)
-                        },
-                        popToRoot: {
-                            await viewModel.popToRoot()
-                        },
-                        reStack: {
-                            await viewModel.restack($0)
-                        }
-                    )
+                    with: client
                 )
-                .navigationDestination(for: Route.self) {
+                .navigationDestination(for: Route.self) { route in
                     Factory.make(
-                        by: $0,
-                        with: .init(
-                            push: {
-                                await viewModel.push([$0])
-                            },
-                            pushContentsOf: {
-                                await viewModel.push($0)
-                            },
-                            pop: {
-                                await viewModel.pop(1)
-                            },
-                            pops: {
-                                await viewModel.pop($0)
-                            },
-                            popToRoot: {
-                                await viewModel.popToRoot()
-                            },
-                            reStack: {
-                                await viewModel.restack($0)
-                            }
-                        )
+                        by: route,
+                        with: client
                     )
                 }
             }
