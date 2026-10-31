@@ -1,18 +1,16 @@
 
 import SwiftUI
 
-import Domain
+import ComposableArchitecture
 
 extension ConversationDetailScreen {
 
     struct NoteList: View {
-        let notes: [Note]
-        let select: (Note.ID) -> Void
-        let delete: (IndexSet) -> Void
+        let store: StoreOf<Notes.Feature>
 
         var body: some View {
             Group {
-                if notes.isEmpty {
+                if store.notes.isEmpty {
                     ContentUnavailableView(
                         "No Notes",
                         systemImage: "note.text",
@@ -20,13 +18,13 @@ extension ConversationDetailScreen {
                     )
                 } else {
                     List {
-                        ForEach(notes) { note in
+                        ForEach(store.notes) { note in
                             Row(note: note)
                                 .onTapGesture {
-                                    select(note.id)
+                                    store.send(.view(.noteSelected(note.id)))
                                 }
                         }
-                        .onDelete(perform: delete)
+                        .onDelete { store.send(.view(.notesDeleted($0))) }
                     }
                     .listStyle(.plain)
                 }

@@ -6,8 +6,7 @@ import ComposableArchitecture
 extension ConversationDetailScreen {
 
     struct PlaybackPanel: View {
-        let store: StoreOf<Root.Feature>
-        let pins: [TimeInterval]
+        let store: StoreOf<Feature>
 
         @State private var editingTime: TimeInterval = .zero
         @State private var isEditing = false
@@ -16,7 +15,7 @@ extension ConversationDetailScreen {
             VStack(alignment: .center) {
                 Slider(
                     value: sliderTime,
-                    in: .zero...max(store.playback.duration, 0.01),
+                    in: .zero...max(store.duration, 0.01),
                     onEditingChanged: onEditingChanged
                 )
                 .padding(.horizontal)
@@ -24,13 +23,13 @@ extension ConversationDetailScreen {
                 HStack(alignment: .top) {
                     Text(displayedTime, format: .playbackTime)
                     Spacer()
-                    Text(store.playback.duration, format: .playbackTime)
+                    Text(store.duration, format: .playbackTime)
                 }
                 .padding(.horizontal)
                 .foregroundStyle(.gray)
                 .font(.caption)
                 .overlay {
-                    if store.playbackFailure == .prepareFailed {
+                    if store.failure == .prepareFailed {
                         Text("재생할 수 없는 녹음 파일")
                             .font(.headline)
                     } else if isPlaybackDisabled {
@@ -40,11 +39,11 @@ extension ConversationDetailScreen {
                 }
                 HStack(alignment: .center) {
                     SpeedMenu(
-                        speed: Speed(rawValue: store.playback.rate) ?? .default,
+                        speed: Speed(rawValue: store.rate) ?? .default,
                         select: { store.send(.view(.rateChanged($0.rawValue))) }
                     )
                     PlayTool(
-                        isPlaying: store.playback.isPlaying,
+                        isPlaying: store.isPlaying,
                         isDisabled: isPlaybackDisabled,
                         skipInterval: store.skipInterval.timeInterval,
                         play: { store.send(.view(.playButtonTapped)) },
@@ -73,15 +72,15 @@ extension ConversationDetailScreen {
 
 private extension ConversationDetailScreen.PlaybackPanel {
 
-    var isPlaybackDisabled: Bool { !store.playback.isPrepared }
+    var isPlaybackDisabled: Bool { !store.isPrepared }
     var displayedTime: TimeInterval {
-        isEditing ? editingTime : store.playback.currentTime
+        isEditing ? editingTime : store.currentTime
     }
     var nextPin: TimeInterval? {
         guard !isPlaybackDisabled else {
             return nil
         }
-        return pins.sorted().first(where: { $0 > displayedTime })
+        return store.pins.sorted().first(where: { $0 > displayedTime })
     }
     var sliderTime: Binding<TimeInterval> {
         .init(
@@ -98,7 +97,7 @@ private extension ConversationDetailScreen.PlaybackPanel {
 
     func onEditingChanged(_ isEditing: Bool) {
         if isEditing {
-            editingTime = store.playback.currentTime
+            editingTime = store.currentTime
         } else {
             store.send(.view(.seekChanged(editingTime)))
         }

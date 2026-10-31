@@ -7,6 +7,7 @@ extension ConversationDetailScreen {
 
     struct Editor: View {
         let store: StoreOf<Root.Feature>
+        let notesStore: StoreOf<Notes.Feature>
 
         @FocusState private var focusedField: Field?
 
@@ -20,7 +21,7 @@ extension ConversationDetailScreen {
                     .transition(.opacity)
                 }
                 InputBox(
-                    store: store,
+                    store: notesStore,
                     focusedField: $focusedField
                 )
                 .animation(.easeOut, value: focusedField)

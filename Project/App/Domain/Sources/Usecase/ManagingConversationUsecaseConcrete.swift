@@ -57,8 +57,15 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
         }
     }
 
-    func notes(of conversation: Conversation) async -> Result<[Note], DomainError> {
+    func notes(
+        conversationID: Conversation.ID
+    ) async -> Result<[Note], DomainError> {
         do {
+            guard let conversation = try await dependency.conversationRepository.read(
+                id: conversationID
+            ) else {
+                return .failure(.managingConversationUsecase(.conversationNotFound))
+            }
             let notes = try await dependency.noteRepository.read()
             let notesByID = Dictionary(
                 uniqueKeysWithValues: notes.map { ($0.id, $0) }
@@ -83,8 +90,13 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
 
     func addNote(
         content: String,
-        to conversation: Conversation
+        to conversationID: Conversation.ID
     ) async throws -> Conversation {
+        guard let conversation = try await dependency.conversationRepository.read(
+            id: conversationID
+        ) else {
+            throw DomainError.managingConversationUsecase(.conversationNotFound)
+        }
         guard !content.isEmpty else {
             return conversation
         }
@@ -110,8 +122,13 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
 
     func deleteNotes(
         ids: [Note.ID],
-        from conversation: Conversation
+        from conversationID: Conversation.ID
     ) async throws -> Conversation {
+        guard let conversation = try await dependency.conversationRepository.read(
+            id: conversationID
+        ) else {
+            throw DomainError.managingConversationUsecase(.conversationNotFound)
+        }
         guard !ids.isEmpty else {
             return conversation
         }

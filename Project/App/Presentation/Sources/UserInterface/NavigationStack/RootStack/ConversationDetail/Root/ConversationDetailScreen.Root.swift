@@ -11,17 +11,26 @@ enum ConversationDetailScreen {
 
         var body: some View {
             Group {
-                if let conversation = store.conversation {
+                if store.conversation != nil {
                     VStack {
-                        Editor(store: store)
+                        Editor(
+                            store: store,
+                            notesStore: store.scope(
+                                state: \.notes,
+                                action: \.notes
+                            )
+                        )
                         NoteList(
-                            notes: store.notes,
-                            select: { store.send(.view(.noteSelected($0))) },
-                            delete: { store.send(.view(.notesDeleted($0))) }
+                            store: store.scope(
+                                state: \.notes,
+                                action: \.notes
+                            )
                         )
                         PlaybackPanel(
-                            store: store,
-                            pins: conversation.pins
+                            store: store.scope(
+                                state: \.playbackPanel,
+                                action: \.playbackPanel
+                            )
                         )
                     }
                 } else if store.conversationLoadFailed {
