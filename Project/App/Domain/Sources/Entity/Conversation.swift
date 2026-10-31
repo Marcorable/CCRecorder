@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct Conversation: Equatable, Identifiable, Sendable {
+public struct Conversation: Hashable, Identifiable, Sendable {
     public let id: UUID
     public let createdDate: Date
     public var recordFileName: String

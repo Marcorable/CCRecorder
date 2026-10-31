@@ -73,6 +73,7 @@ extension PresentationFactory {
                             $0.navigator = navigator
                             $0.managingConversationUsecase = .init(usecase: dependency.managingConversationUsecase())
                             $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
+                            $0.recordingUsecase = .init(usecase: dependency.recordingUsecase())
                         }
                     )
                 )
