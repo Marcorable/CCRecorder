@@ -19,6 +19,9 @@ extension MainScreen.NoteList {
                     case .response(let action):
                         return reduce(into: &state, action: action)
 
+                    case .noteDetailDismissed:
+                        return loadNotes(into: &state)
+
                     case .delegate:
                         return .none
                 }
@@ -136,6 +139,7 @@ extension MainScreen.NoteList.Feature {
     enum Action: ViewAction {
         case view(View)
         case response(Response)
+        case noteDetailDismissed
         case delegate(Delegate)
 
         @CasePathable

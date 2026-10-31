@@ -46,7 +46,7 @@ extension MainScreen.Root {
                         return .none
 
                     case .noteDetail(.dismiss):
-                        return .send(.noteList(.view(.reload)))
+                        return .send(.noteList(.noteDetailDismissed))
 
                     case .alert(.presented(let action)):
                         return reduce(into: &state, action: action)
