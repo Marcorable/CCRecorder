@@ -79,31 +79,6 @@ extension RecordScreenFeatureTests {
         }
     }
 
-    @Test("저장하지 않고 화면이 닫히면 녹음을 취소한다")
-    func disappearanceCancelsRecording() async {
-        // given
-        let spy = CallSpy()
-        var state: RecordScreen.Root.Feature.State = .init()
-        state.phase = .recording
-        let store: TestStoreOf<RecordScreen.Root.Feature> = .init(
-            initialState: state,
-            reducer: { RecordScreen.Root.Feature() },
-            withDependencies: {
-                $0.recordingUsecase.cancel = {
-                    await spy.call()
-                }
-            }
-        )
-
-        // when
-        await store.send(.view(.disappeared)) {
-            $0.isFinished = true
-        }
-
-        // then
-        #expect(await spy.callCount == 1)
-    }
-
     @Test("화면이 닫힌 뒤 도착한 준비 응답은 상태를 되살리지 않는다")
     func latePreparationResponseIsIgnored() async {
         // given

@@ -46,9 +46,6 @@ extension RecordScreen {
             .task {
                 await store.send(.view(.task)).finish()
             }
-            .onDisappear {
-                store.send(.view(.disappeared))
-            }
             .alert($store.scope(\.alert, action: \.alert))
         }
     }

@@ -7,6 +7,7 @@ extension MainScreen.Root {
     @Reducer
     struct Feature {
         @Dependency(\.navigator) private var navigator
+        @Dependency(\.recordingUsecase) private var recordingUsecase
 
         var body: some ReducerOf<Self> {
             Scope(
@@ -33,13 +34,22 @@ extension MainScreen.Root {
                         return reduce(into: &state, action: action)
 
                     case .record(.dismiss):
-                        switch state.selectedTab {
+                        let reloadEffect: Effect<Action> = switch state.selectedTab {
                             case .conversationList:
-                                return .send(.conversationList(.view(.reload)))
+                                .send(.conversationList(.view(.reload)))
 
                             case .noteList:
-                                return .send(.noteList(.view(.reload)))
+                                .send(.noteList(.view(.reload)))
                         }
+                        guard state.record?.isFinished == false else {
+                            return reloadEffect
+                        }
+                        return .merge(
+                            .run { _ in
+                                await recordingUsecase.cancel()
+                            },
+                            reloadEffect
+                        )
 
                     case .onboard(.dismiss):
                         state.$isFirstLaunched.withLock { $0 = false }
