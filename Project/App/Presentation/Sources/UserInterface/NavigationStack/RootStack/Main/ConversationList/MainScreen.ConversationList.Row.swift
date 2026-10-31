@@ -12,7 +12,7 @@ extension MainScreen.ConversationList {
         var body: some View {
             HStack {
                 Image(systemName: "recordingtape")
-                    .foregroundStyle(Color.Logo.Prominent.red)
+                    .foregroundStyle(Color(asset: Asset.Logo.Prominent.red))
                 VStack(alignment: .leading) {
                     Text(viewModel.title)
                         .font(.title3)
@@ -28,7 +28,7 @@ extension MainScreen.ConversationList {
                         VStack(alignment: .trailing) {
                             Text("Attendees \(viewModel.attendeeCount)")
                                 .font(.caption)
-                                .tint(.Logo.Muted.green)
+                                .tint(Color(asset: Asset.Logo.Muted.green))
                             Text(
                                 viewModel.createdDate,
                                 format: Date.FormatStyle(
@@ -45,8 +45,8 @@ extension MainScreen.ConversationList {
                 Image(systemName: viewModel.isChecked ? "info.circle.fill" : "circle")
                     .foregroundStyle(
                         viewModel.isChecked
-                            ? Color.Logo.Prominent.blue
-                            : Color.Logo.Muted.blue
+                            ? Color(asset: Asset.Logo.Prominent.blue)
+                            : Color(asset: Asset.Logo.Muted.blue)
                     )
             }
             .contentShape(Rectangle())

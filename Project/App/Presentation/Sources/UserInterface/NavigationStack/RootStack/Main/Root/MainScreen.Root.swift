@@ -38,14 +38,14 @@ enum MainScreen {
                     record: { store.send(.view(.recordButtonTapped)) }
                 )
             }
-            .background(Color.Surface.Background.primary)
+            .background(Color(asset: Asset.Surface.Background.primary))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(
                         action: { store.send(.view(.settingButtonTapped)) },
                         label: {
                             Image(systemName: "gear")
-                                .foregroundStyle(.accent)
+                                .foregroundStyle(Color(asset: Asset.accentColor))
                         }
                     )
                 }

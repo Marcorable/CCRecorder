@@ -55,6 +55,23 @@ let presentation = Target.module(
     ]
 )
 
+let presentationTests = Target.tests(
+    name: "PresentationTests",
+    buildableFolders: [
+        .folder(
+            "Presentation/Tests",
+            exceptions: [
+                .exception(excluded: ["UI/**"]),
+            ]
+        ),
+    ],
+    dependencies: [
+        .target(name: "Presentation"),
+        .target(name: "Domain"),
+        .package(product: "ComposableArchitecture"),
+    ]
+)
+
 let app = Target.target(
     name: "CCRecorder",
     destinations: CCRecorderProject.destinations,
@@ -103,10 +120,9 @@ let app = Target.target(
 
 let tests = Target.tests(
     name: "CCRecorderTests",
-    buildableFolders: ["Tests/Unit"],
+    buildableFolders: ["App/Tests"],
     dependencies: [
         .target(name: "CCRecorder"),
-        .target(name: "Presentation"),
     ]
 )
 
@@ -117,7 +133,14 @@ let uiTests = Target.target(
     bundleId: "com.pseapplications.CasualConversation.UITests",
     deploymentTargets: CCRecorderProject.deploymentTargets,
     infoPlist: .default,
-    buildableFolders: ["Tests/UI"],
+    buildableFolders: [
+        .folder(
+            "Presentation/Tests",
+            exceptions: [
+                .exception(excluded: ["Unit/**"]),
+            ]
+        ),
+    ],
     dependencies: [
         .target(name: "CCRecorder"),
     ],
@@ -136,6 +159,7 @@ let project = Project(
         data,
         dataTests,
         presentation,
+        presentationTests,
         app,
         tests,
         uiTests,

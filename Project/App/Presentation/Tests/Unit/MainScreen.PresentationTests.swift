@@ -13,6 +13,30 @@ struct MainScreenPresentationTests {}
 
 extension MainScreenPresentationTests {
 
+    @Test("대화를 선택하면 해당 ID의 상세 화면으로 이동한다")
+    func conversationSelectionPushesDetail() async {
+        // given
+        let id = UUID()
+        let spy = RouteSpy()
+        var state: MainScreen.Root.Feature.State = .init()
+        state.onboard = nil
+        let store: TestStoreOf<MainScreen.Root.Feature> = .init(
+            initialState: state,
+            reducer: { MainScreen.Root.Feature() },
+            withDependencies: {
+                $0.navigator.push = {
+                    await spy.push($0)
+                }
+            }
+        )
+
+        // when
+        await store.send(.conversationList(.delegate(.conversationSelected(id))))
+
+        // then
+        #expect(await spy.routes == [.conversationDetail(id)])
+    }
+
     @Test("녹음 버튼을 누르면 녹음 화면 상태를 생성한다")
     func recordButtonCreatesRecordState() async {
         // given
@@ -84,4 +108,40 @@ extension MainScreenPresentationTests {
         }
     }
 
+    @Test("녹음 화면을 닫으면 선택한 노트 목록만 다시 불러온다")
+    func recordDismissReloadsSelectedList() async {
+        // given
+        var state: MainScreen.Root.Feature.State = .init()
+        state.onboard = nil
+        state.record = .init()
+        state.selectedTab = .noteList
+        let store: TestStoreOf<MainScreen.Root.Feature> = .init(
+            initialState: state,
+            reducer: { MainScreen.Root.Feature() },
+            withDependencies: {
+                $0.managingNoteUsecase.loadNotes = { .success([]) }
+            }
+        )
+
+        // when, then
+        await store.send(.record(.dismiss)) {
+            $0.record = nil
+        }
+        await store.receive(\.noteList.view.reload) {
+            $0.noteList.isLoading = true
+        }
+        await store.receive(\.noteList.response.notesLoaded) {
+            $0.noteList.isLoading = false
+            $0.noteList.notes = []
+        }
+    }
+
+}
+
+private actor RouteSpy {
+    private(set) var routes: [RootStack.Route] = []
+
+    func push(_ route: RootStack.Route) {
+        routes.append(route)
+    }
 }
