@@ -115,7 +115,7 @@ extension ConversationDetailScreen.Root.Feature {
 
             case .noteAdded:
                 let input = state.noteInput
-                guard let conversation = state.conversation else {
+                guard !input.isEmpty, let conversation = state.conversation else {
                     return .none
                 }
                 state.noteInput = ""

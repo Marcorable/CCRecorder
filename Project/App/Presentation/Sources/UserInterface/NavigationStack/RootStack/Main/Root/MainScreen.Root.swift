@@ -11,7 +11,16 @@ enum MainScreen {
     }
 
     struct Root: View {
+        let conversationReloadID: Int
         @State var store: StoreOf<Feature>
+
+        init(
+            conversationReloadID: Int = 0,
+            store: StoreOf<Feature>
+        ) {
+            self.conversationReloadID = conversationReloadID
+            self.store = store
+        }
 
         var body: some View {
             VStack {
@@ -78,6 +87,9 @@ enum MainScreen {
                     )
             }
             .alert($store.scope(state: \.alert, action: \.alert))
+            .onChange(of: conversationReloadID) {
+                store.send(.conversationList(.view(.reload)))
+            }
         }
     }
 
