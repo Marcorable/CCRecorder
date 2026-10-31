@@ -44,7 +44,9 @@ let presentation = Target.module(
     product: .staticFramework,
     buildableFolders: [
         "Presentation/Sources",
-        "Presentation/Resources",
+    ],
+    resources: [
+        "Presentation/Resources/**",
     ],
     dependencies: [
         .target(name: "Domain"),
