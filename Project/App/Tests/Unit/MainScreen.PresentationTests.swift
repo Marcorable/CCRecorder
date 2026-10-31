@@ -46,8 +46,8 @@ extension MainScreenPresentationTests {
         )
 
         // when, then
-        await store.send(.noteList(.delegate(.noteSelected(note)))) {
-            $0.noteDetail = .init(note: note)
+        await store.send(.noteList(.delegate(.noteSelected(note.id)))) {
+            $0.noteDetail = .init(noteID: note.id)
         }
     }
 
@@ -62,7 +62,7 @@ extension MainScreenPresentationTests {
         )
         var state: MainScreen.Root.Feature.State = .init()
         state.onboard = nil
-        state.noteDetail = .init(note: note)
+        state.noteDetail = .init(noteID: note.id)
         let store: TestStoreOf<MainScreen.Root.Feature> = .init(
             initialState: state,
             reducer: { MainScreen.Root.Feature() },

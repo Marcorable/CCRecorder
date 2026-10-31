@@ -117,8 +117,8 @@ extension MainScreen.Root.Feature {
         action: MainScreen.NoteList.Feature.Action.Delegate
     ) -> Effect<Action> {
         switch action {
-            case .noteSelected(let note):
-                state.noteDetail = .init(note: note)
+            case .noteSelected(let id):
+                state.noteDetail = .init(noteID: id)
                 return .none
 
             case .loadFailed:

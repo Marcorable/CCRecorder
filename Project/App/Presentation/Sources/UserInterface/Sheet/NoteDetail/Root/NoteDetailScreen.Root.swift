@@ -1,5 +1,6 @@
 import SwiftUI
 
+import Domain
 import ComposableArchitecture
 
 enum NoteDetailScreen {
@@ -9,31 +10,47 @@ enum NoteDetailScreen {
 
         var body: some View {
             NavigationStack {
-                VStack(alignment: .leading) {
-                    switch store.note.category {
-                        case .vocabulary:
-                            VocabularyContent(
-                                original: $store.original,
-                                translation: $store.translation
-                            )
-
-                        case .sentence:
-                            SentenceContent(
-                                original: $store.original,
-                                translation: $store.translation
-                            )
+                Group {
+                    if let note = store.note {
+                        content(note: note)
+                    } else if store.noteLoadFailed {
+                        ContentUnavailableView(
+                            "노트를 불러올 수 없습니다",
+                            systemImage: "exclamationmark.triangle"
+                        )
+                    } else {
+                        ProgressView()
                     }
                 }
-                .padding(.horizontal)
-                .toolbar {
-                    Toolbar(
-                        isAbleToSave: store.isAbleToSave,
-                        isVocabulary: store.note.category == .vocabulary,
-                        saveAction: { store.send(.view(.saveButtonTapped)) }
-                    )
+            }
+            .task { await store.send(.view(.appeared)).finish() }
+            .alert($store.scope(state: \.$alert, action: \.alert))
+        }
+
+        private func content(note: Note) -> some View {
+            VStack(alignment: .leading) {
+                switch note.category {
+                    case .vocabulary:
+                        VocabularyContent(
+                            original: $store.original,
+                            translation: $store.translation
+                        )
+
+                    case .sentence:
+                        SentenceContent(
+                            original: $store.original,
+                            translation: $store.translation
+                        )
                 }
             }
-            .alert($store.scope(state: \.$alert, action: \.alert))
+            .padding(.horizontal)
+            .toolbar {
+                Toolbar(
+                    isAbleToSave: store.isAbleToSave,
+                    isVocabulary: note.category == .vocabulary,
+                    saveAction: { store.send(.view(.saveButtonTapped)) }
+                )
+            }
         }
     }
 
@@ -82,36 +99,40 @@ extension NoteDetailScreen.Root {
 
 #if DEBUG
 #Preview("Vocabulary") {
+    let note: Note = .init(
+        createdDate: .init(),
+        original: "conversation",
+        translation: "대화",
+        category: .vocabulary
+    )
     NoteDetailScreen.Root(
         store: .init(
-            initialState: .init(
-                note: .init(
-                    createdDate: .init(),
-                    original: "conversation",
-                    translation: "대화",
-                    category: .vocabulary
-                )
-            ),
+            initialState: .init(noteID: note.id),
             reducer: {
                 NoteDetailScreen.Root.Feature.preview
+            },
+            withDependencies: {
+                $0.managingNoteUsecase.note = { _ in .success(note) }
             }
         )
     )
 }
 
 #Preview("Sentence") {
+    let note: Note = .init(
+        createdDate: .init(),
+        original: "This is a sentence.",
+        translation: "문장입니다.",
+        category: .sentence
+    )
     NoteDetailScreen.Root(
         store: .init(
-            initialState: .init(
-                note: .init(
-                    createdDate: .init(),
-                    original: "This is a sentence.",
-                    translation: "문장입니다.",
-                    category: .sentence
-                )
-            ),
+            initialState: .init(noteID: note.id),
             reducer: {
                 NoteDetailScreen.Root.Feature.preview
+            },
+            withDependencies: {
+                $0.managingNoteUsecase.note = { _ in .success(note) }
             }
         )
     )

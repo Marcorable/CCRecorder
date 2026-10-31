@@ -49,8 +49,8 @@ extension ConversationDetailScreenPresentationTests {
         let store = makeStore()
 
         // when, then
-        await store.send(.view(.noteSelected(note))) {
-            $0.noteDetail = .init(note: note)
+        await store.send(.view(.noteSelected(note.id))) {
+            $0.noteDetail = .init(noteID: note.id)
         }
     }
 
@@ -61,7 +61,7 @@ extension ConversationDetailScreenPresentationTests {
             conversationID: conversation.id
         )
         state.conversation = conversation
-        state.noteDetail = .init(note: note)
+        state.noteDetail = .init(noteID: note.id)
         let store = makeStore(
             state: state,
             notes: [note]

@@ -140,8 +140,8 @@ extension ConversationDetailScreen.Root.Feature {
                     )))
                 }
 
-            case .noteSelected(let note):
-                state.noteDetail = .init(note: note)
+            case .noteSelected(let id):
+                state.noteDetail = .init(noteID: id)
                 return .none
 
             case .playButtonTapped:
@@ -324,7 +324,7 @@ extension ConversationDetailScreen.Root.Feature {
             case noteInputChanged(String)
             case noteAdded
             case notesDeleted(IndexSet)
-            case noteSelected(Note)
+            case noteSelected(Note.ID)
             case playButtonTapped
             case pauseButtonTapped
             case seekChanged(TimeInterval)

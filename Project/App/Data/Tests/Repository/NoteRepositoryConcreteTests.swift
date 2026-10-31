@@ -64,6 +64,33 @@ extension NoteRepositoryConcreteTests {
         #expect(translationNote.category == .vocabulary)
     }
 
+    @Test("ID로 저장된 Note를 조회한다")
+    func readByIDReturnsCreatedNote() async throws {
+        // given
+        let note = Note(
+            createdDate: .init(),
+            original: "Hello",
+            translation: "안녕",
+            category: .vocabulary
+        )
+        try await repository.create(note)
+
+        // when
+        let restoredNote = try await repository.read(id: note.id)
+
+        // then
+        #expect(restoredNote == note)
+    }
+
+    @Test("저장되지 않은 ID로 조회하면 nil을 반환한다")
+    func readByIDReturnsNilWhenNoteDoesNotExist() async throws {
+        // when
+        let note = try await repository.read(id: .init())
+
+        // then
+        #expect(note == nil)
+    }
+
     @Test("Note를 수정하면 변경된 값을 반환한다")
     func updateChangesNote() async throws {
         // given

@@ -22,15 +22,14 @@ extension NoteRepositoryConcrete: NoteRepository {
 
     func read() async throws -> [Note] {
         let records = try modelContext.fetch(FetchDescriptor<Note.Record>())
-        return records.map({ record in
-            Note(
-                id: record.id,
-                createdDate: record.createdDate,
-                original: record.original,
-                translation: record.translation,
-                category: record.category
-            )
-        })
+        return records.map(note(from:))
+    }
+
+    func read(id: Note.ID) async throws -> Note? {
+        let descriptor = FetchDescriptor<Note.Record>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try modelContext.fetch(descriptor).first.map(note(from:))
     }
 
     func update(_ note: Note) async throws {
@@ -67,6 +66,20 @@ extension NoteRepositoryConcrete: NoteRepository {
             modelContext.rollback()
             throw error
         }
+    }
+
+}
+
+private extension NoteRepositoryConcrete {
+
+    func note(from record: Note.Record) -> Note {
+        .init(
+            id: record.id,
+            createdDate: record.createdDate,
+            original: record.original,
+            translation: record.translation,
+            category: record.category
+        )
     }
 
 }

@@ -243,6 +243,10 @@ private extension ManagingConversationUsecaseTests {
             notes
         }
 
+        func read(id: Note.ID) -> Note? {
+            notes.first(where: { $0.id == id })
+        }
+
         func update(_ note: Note) throws {}
 
         func delete(ids: [UUID]) {

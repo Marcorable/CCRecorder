@@ -27,6 +27,14 @@ extension ManagingNoteUsecaseConcrete: ManagingNoteUsecase {
         }
     }
 
+    func note(id: Note.ID) async -> Result<Note?, DomainError> {
+        do {
+            return .success(try await dependency.noteRepository.read(id: id))
+        } catch {
+            return .failure(.data(error))
+        }
+    }
+
     func updateNote(_ note: Note) async -> Result<Void, DomainError> {
         do {
             try await dependency.noteRepository.update(note)

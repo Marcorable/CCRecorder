@@ -33,7 +33,9 @@ enum ConversationDetailScreen {
                 )
             ) { store in
                 NoteDetailScreen.Root(store: store)
-                    .presentationDetents(store.note.category.presentationDetents)
+                    .presentationDetents(
+                        store.note?.category.presentationDetents ?? [.large]
+                    )
             }
             .alert(
                 "녹음 파일을 재생할 수 없습니다",
@@ -92,7 +94,7 @@ enum ConversationDetailScreen {
                     }
                     ForEach(store.notes) { note in
                         Button(note.original.isEmpty ? note.translation : note.original) {
-                            store.send(.view(.noteSelected(note)))
+                            store.send(.view(.noteSelected(note.id)))
                         }
                     }
                     .onDelete { store.send(.view(.notesDeleted($0))) }

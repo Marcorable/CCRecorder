@@ -1,7 +1,7 @@
 
 import Foundation
 
-public struct Party: Hashable, Identifiable, Sendable {
+public struct Party: Equatable, Identifiable, Sendable {
     public let id: UUID
     public var name: String
     public let isAvailable: Bool
