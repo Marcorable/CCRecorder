@@ -45,7 +45,7 @@ else {
 
 ## nil 비교
 
-Optional 이 있는지는 `!= nil` / `== nil` 로 쓴다. `.isNil` 같은 확장 프로퍼티는 쓰지 않는다. (QMarket `4684b6409` 리뷰 반영)
+Optional 이 있는지는 `!= nil` / `== nil` 로 쓴다. `.isNil` 같은 확장 프로퍼티는 쓰지 않는다.
 
 ```swift
 // ✅

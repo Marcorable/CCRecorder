@@ -1,6 +1,6 @@
 ---
 name: pr
-description: 작업 브랜치를 push 하고 Marco 의 PR 컨벤션([Type] 한글 요약)으로 PR 을 연다. PR 열어 달라는 요청, "PR", "/pr" 에 사용.
+description: 작업 브랜치를 push하고 저장소 규칙에 맞는 Pull Request를 연다. 저장소 규칙이 없으면 Marco의 기본 PR 컨벤션을 사용한다. PR 생성 요청, "PR", "/pr"에 사용한다.
 ---
 
 # PR

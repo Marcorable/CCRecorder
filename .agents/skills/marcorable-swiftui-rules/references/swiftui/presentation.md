@@ -5,6 +5,7 @@
 
 - `sheet(item:)`, `fullScreenCover(item:)`, `navigationDestination(item:)`처럼 목적지를 값으로 나타낼 수 있는 API를 우선한다
 - 목적지가 여러 개면 Bool을 늘리지 않고 식별 가능한 enum 또는 선택한 아키텍처의 destination 상태로 표현한다
-- 값 전체가 식별자인 enum·불변 값 타입은 프로젝트의 `IdentifiableFeature` 또는 표준 `Identifiable` 구현을 사용한다
+- item 기반 API의 destination은 안정적인 식별 값을 가진 `Identifiable` 타입으로 표현한다
+- 프로젝트에 같은 역할의 공용 프로토콜이 이미 있으면 사용할 수 있지만, presentation을 위해 새 추상화를 먼저 만들지 않는다
 - View는 상태에 맞는 destination을 선언적으로 고른다
 - 상태를 누가 소유하고 어떻게 변경하는지는 선택한 아키텍처 팩에서 정한다
