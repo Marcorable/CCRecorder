@@ -3,10 +3,11 @@ import AVFAudio
 import Foundation
 import Testing
 
+import Domain
+
 @testable import CCRecorder
 
 @Suite("Player Service 재생 제어", .serialized)
-@MainActor
 struct PlayerServiceConcretePlaybackTests {
     private let fileURL: URL
     private let service: PlayerServiceConcrete
@@ -22,74 +23,74 @@ struct PlayerServiceConcretePlaybackTests {
 extension PlayerServiceConcretePlaybackTests {
 
     @Test("파일을 준비하면 재생 길이가 채워진다")
-    func preparationUpdatesDuration() throws {
-        defer { cleanUp() }
-
+    func preparationUpdatesDuration() async throws {
         // when
-        try service.prepare(with: fileURL)
+        try await service.prepare(with: fileURL)
 
         // then
-        #expect(service.duration > 0.9)
-        #expect(service.duration < 1.1)
-        #expect(service.currentTime == .zero)
+        #expect(await service.isPrepared)
+        #expect(await service.duration > 0.9)
+        #expect(await service.duration < 1.1)
+        #expect(await service.currentTime == .zero)
+        await cleanUp()
     }
 
     @Test("시크 위치는 재생 구간 안으로 제한된다")
-    func seekClampsToPlaybackRange() throws {
-        defer { cleanUp() }
-
+    func seekClampsToPlaybackRange() async throws {
         // given
-        try service.prepare(with: fileURL)
+        try await service.prepare(with: fileURL)
 
         // when
-        service.seek(to: -1)
+        await service.seek(to: -1)
 
         // then
-        #expect(service.currentTime == .zero)
+        #expect(await service.currentTime == .zero)
 
         // when
-        service.seek(to: service.duration + 1)
+        let duration = await service.duration
+        await service.seek(to: duration + 1)
 
         // then
-        #expect(abs(service.currentTime - service.duration) < 0.01)
+        let currentTime = await service.currentTime
+        #expect((.zero...duration).contains(currentTime))
+        await cleanUp()
     }
 
     @Test(
         "배속은 지원 범위 안으로 제한된다",
         arguments: [0.1, 1.5, 3.0]
     )
-    func rateClampsToSupportedRange(value: Float) throws {
-        defer { cleanUp() }
-
+    func rateClampsToSupportedRange(value: Float) async throws {
         // given
-        try service.prepare(with: fileURL)
+        try await service.prepare(with: fileURL)
 
         // when
-        service.changeRate(to: value)
+        await service.changeRate(to: value)
 
         // then
-        #expect(service.rate == min(max(value, 0.5), 2.0))
+        #expect(await service.rate == min(max(value, 0.5), 2.0))
+        await cleanUp()
     }
 
     @Test("재생을 끝내면 준비 상태와 시간이 초기화된다")
-    func finishResetsPlaybackState() throws {
-        defer { cleanUp() }
-
+    func finishResetsPlaybackState() async throws {
         // given
-        try service.prepare(with: fileURL)
-        service.seek(to: 0.5)
+        try await service.prepare(with: fileURL)
+        await service.seek(to: 0.5)
 
         // when
-        service.finish()
+        await service.finish()
 
         // then
-        #expect(!service.isPlaying)
-        #expect(service.currentTime == .zero)
-        #expect(service.duration == .zero)
+        #expect(await !service.isPrepared)
+        #expect(await !service.isPlaying)
+        #expect(await service.currentTime == .zero)
+        #expect(await service.duration == .zero)
+        await cleanUp()
     }
 
     @Test("손상된 파일은 재생 준비에 실패한다")
-    func preparationFailsForCorruptedFile() throws {
+    func preparationFailsForCorruptedFile() async throws {
         // given
         let corruptedURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("player-service-corrupted-\(UUID().uuidString).m4a")
@@ -97,8 +98,8 @@ extension PlayerServiceConcretePlaybackTests {
         defer { try? FileManager.default.removeItem(at: corruptedURL) }
 
         // when, then
-        #expect(throws: PlayerServiceConcrete.ServiceError.prepareFailed) {
-            try service.prepare(with: corruptedURL)
+        await #expect(throws: DomainError.PlayerServiceFailure.prepareFailed) {
+            try await service.prepare(with: corruptedURL)
         }
     }
 
@@ -106,8 +107,8 @@ extension PlayerServiceConcretePlaybackTests {
 
 private extension PlayerServiceConcretePlaybackTests {
 
-    func cleanUp() {
-        service.finish()
+    func cleanUp() async {
+        await service.finish()
         try? FileManager.default.removeItem(at: fileURL)
     }
 

@@ -1,177 +1,142 @@
 
 import AVFAudio
+import Foundation
 
 import Domain
 
-@MainActor
-final class PlayerServiceConcrete: NSObject {
-    private(set) var isPlaying: Bool = false
-    private(set) var currentTime: TimeInterval = .zero
-    private(set) var duration: TimeInterval = .zero
-    private(set) var rate: Float = 1.0
-
+actor PlayerServiceConcrete {
     private var player: AVAudioPlayer?
-    private var ticker: Timer?
+    private var delegate: Delegate?
 
-    override init() {
-        super.init()
-    }
-
-    deinit {
-        ticker?.invalidate()
-    }
+    var isPrepared: Bool { player != nil }
+    var isPlaying: Bool { player?.isPlaying ?? false }
+    var currentTime: TimeInterval { player?.currentTime ?? .zero }
+    var duration: TimeInterval { player?.duration ?? .zero }
+    var rate: Float { player?.rate ?? 1 }
 }
 
 extension PlayerServiceConcrete: Service {
-
-    enum ServiceError: Error {
-        case prepareFailed
-    }
 
 }
 
 extension PlayerServiceConcrete: PlayerService {
 
-    func prepare(with fileURL: URL) throws {
+    func prepare(with fileURL: URL) throws(DomainError.PlayerServiceFailure) {
         do {
             let player = try AVAudioPlayer(contentsOf: fileURL)
             player.enableRate = true
             player.numberOfLoops = 0
-            player.volume = 1.0
-            player.rate = rate
-            player.delegate = self
+            player.volume = 1
+            player.rate = 1
+
+            let id = UUID()
+            let delegate = Delegate(
+                id: id,
+                finish: { [weak self] in
+                    Task { await self?.didFinish(id: id) }
+                },
+                fail: { [weak self] in
+                    Task { await self?.didFail(id: id) }
+                }
+            )
+            player.delegate = delegate
 
             guard player.prepareToPlay() else {
-                throw ServiceError.prepareFailed
+                throw DomainError.PlayerServiceFailure.prepareFailed
             }
 
             finish()
             self.player = player
-            self.currentTime = .zero
-            self.duration = player.duration
-        } catch let error as ServiceError {
+            self.delegate = delegate
+        } catch let error as DomainError.PlayerServiceFailure {
             throw error
         } catch {
-            throw ServiceError.prepareFailed
+            throw DomainError.PlayerServiceFailure.prepareFailed
         }
     }
 
     func play() {
-        guard let player, !isPlaying, player.play() else {
-            return
-        }
-
-        isPlaying = true
-        startTicker()
+        player?.play()
     }
 
     func pause() {
-        guard isPlaying, let player else {
-            return
-        }
-
-        player.pause()
-        updateCurrentTime(with: player)
-        isPlaying = false
-        stopTicker()
+        player?.pause()
     }
 
     func finish() {
         player?.stop()
         player = nil
-        isPlaying = false
-        currentTime = .zero
-        duration = .zero
-        stopTicker()
+        delegate = nil
     }
 
     func seek(to time: TimeInterval) {
         guard let player else {
             return
         }
-
-        stopTicker()
-        let seekPosition = min(max(time, .zero), duration)
-        player.currentTime = seekPosition
-        currentTime = seekPosition
-
-        if isPlaying {
-            player.play()
-            startTicker()
-        }
+        player.currentTime = min(
+            max(time, .zero),
+            player.duration
+        )
     }
 
     func changeRate(to value: Float) {
-        let rate = min(max(value, 0.5), 2.0)
-        self.rate = rate
-        player?.rate = rate
+        player?.rate = min(
+            max(value, 0.5),
+            2
+        )
     }
 
 }
 
 private extension PlayerServiceConcrete {
 
-    func startTicker() {
-        stopTicker()
-
-        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard
-                    let self,
-                    self.isPlaying,
-                    let player = self.player
-                else {
-                    return
-                }
-                self.updateCurrentTime(with: player)
-            }
+    func didFinish(id: UUID) {
+        guard delegate?.id == id else {
+            return
         }
-        RunLoop.main.add(timer, forMode: .common)
-        ticker = timer
+        player?.currentTime = .zero
     }
 
-    func stopTicker() {
-        ticker?.invalidate()
-        ticker = nil
-    }
-
-    func updateCurrentTime(with player: AVAudioPlayer) {
-        currentTime = player.currentTime
+    func didFail(id: UUID) {
+        guard delegate?.id == id else {
+            return
+        }
+        player?.stop()
+        player = nil
+        delegate = nil
     }
 
 }
 
-extension PlayerServiceConcrete: AVAudioPlayerDelegate {
+private extension PlayerServiceConcrete {
 
-    nonisolated func audioPlayerDidFinishPlaying(
-        _ player: AVAudioPlayer,
-        successfully flag: Bool
-    ) {
-        Task { @MainActor [weak self] in
-            guard self?.player === player else {
-                return
-            }
+    final class Delegate: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
+        let id: UUID
+        private let finish: @Sendable () -> Void
+        private let fail: @Sendable () -> Void
 
-            player.currentTime = .zero
-            self?.isPlaying = false
-            self?.currentTime = .zero
-            self?.stopTicker()
+        init(
+            id: UUID,
+            finish: @escaping @Sendable () -> Void,
+            fail: @escaping @Sendable () -> Void
+        ) {
+            self.id = id
+            self.finish = finish
+            self.fail = fail
         }
-    }
 
-    nonisolated func audioPlayerDecodeErrorDidOccur(
-        _ player: AVAudioPlayer,
-        error: Error?
-    ) {
-        Task { @MainActor [weak self] in
-            guard self?.player === player else {
-                return
-            }
+        func audioPlayerDidFinishPlaying(
+            _ player: AVAudioPlayer,
+            successfully flag: Bool
+        ) {
+            finish()
+        }
 
-            player.stop()
-            self?.isPlaying = false
-            self?.updateCurrentTime(with: player)
-            self?.stopTicker()
+        func audioPlayerDecodeErrorDidOccur(
+            _ player: AVAudioPlayer,
+            error: Error?
+        ) {
+            fail()
         }
     }
 

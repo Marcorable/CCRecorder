@@ -60,7 +60,7 @@ extension PlayingRecordUsecaseTests {
         // given
         await recordFileRepository.setFileURL(.init(filePath: "/tmp/record.m4a"))
         await recordFileRepository.setFileExists(true)
-        playerService.error = .failed
+        playerService.error = .prepareFailed
 
         // when
         do {
@@ -96,48 +96,45 @@ extension PlayingRecordUsecaseTests {
 
 private extension PlayingRecordUsecaseTests {
 
-    enum TestError: Error {
-        case failed
-    }
-
     @MainActor
     final class PlayerServiceSpy: PlayerService {
+        var isPrepared = false
         var isPlaying = false
         var currentTime: TimeInterval = .zero
         var duration: TimeInterval = .zero
         var rate: Float = 1
 
-        var error: TestError?
+        var error: DomainError.PlayerServiceFailure?
         private(set) var preparedFileURL: URL?
         private(set) var playCallCount = 0
         private(set) var pauseCallCount = 0
         private(set) var finishCallCount = 0
         private(set) var seekTime: TimeInterval?
 
-        func prepare(with fileURL: URL) throws {
+        func prepare(with fileURL: URL) async throws(DomainError.PlayerServiceFailure) {
             if let error {
                 throw error
             }
             preparedFileURL = fileURL
         }
 
-        func play() {
+        func play() async {
             playCallCount += 1
         }
 
-        func pause() {
+        func pause() async {
             pauseCallCount += 1
         }
 
-        func finish() {
+        func finish() async {
             finishCallCount += 1
         }
 
-        func seek(to time: TimeInterval) {
+        func seek(to time: TimeInterval) async {
             seekTime = time
         }
 
-        func changeRate(to value: Float) {
+        func changeRate(to value: Float) async {
             rate = value
         }
     }

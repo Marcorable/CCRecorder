@@ -6,6 +6,7 @@ import ComposableArchitecture
 
 @DependencyClient
 struct PlayingRecordClient: Sendable {
+    var isPrepared: @Sendable () async -> Bool = { false }
     var isPlaying: @Sendable () async -> Bool = { false }
     var currentTime: @Sendable () async -> TimeInterval = { .zero }
     var duration: @Sendable () async -> TimeInterval = { .zero }
@@ -22,6 +23,7 @@ extension PlayingRecordClient {
 
     init(usecase: PlayingRecordUsecase) {
         self.init(
+            isPrepared: { await usecase.isPrepared },
             isPlaying: { await usecase.isPlaying },
             currentTime: { await usecase.currentTime },
             duration: { await usecase.duration },
@@ -36,6 +38,7 @@ extension PlayingRecordClient {
     }
 
     static let preview: Self = .init(
+        isPrepared: { false },
         isPlaying: { false },
         currentTime: { .zero },
         duration: { .zero },
