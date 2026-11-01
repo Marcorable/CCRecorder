@@ -29,7 +29,6 @@ enum SettingScreen {
 
 }
 
-#if DEBUG
 #Preview {
     NavigationStack {
         SettingScreen.Root(
@@ -40,4 +39,3 @@ enum SettingScreen {
         )
     }
 }
-#endif

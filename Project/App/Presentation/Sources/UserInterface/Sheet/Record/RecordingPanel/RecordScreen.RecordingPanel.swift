@@ -147,7 +147,6 @@ extension RecordScreen.RecordingPanel {
 
 }
 
-#if DEBUG
 #Preview {
     Color(asset: Asset.Surface.Recorder.muted).overlay {
         RecordScreen.RecordingPanel(
@@ -157,11 +156,10 @@ extension RecordScreen.RecordingPanel {
                     currentTime: 3
                 ),
                 reducer: {
-                    RecordScreen.Root.Feature.preview
+                    RecordScreen.Root.Feature()
                 }
             )
         )
         .padding()
     }
 }
-#endif

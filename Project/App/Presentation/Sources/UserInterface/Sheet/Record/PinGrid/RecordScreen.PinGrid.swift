@@ -66,7 +66,6 @@ extension RecordScreen {
 
 }
 
-#if DEBUG
 #Preview {
     RecordScreen.PinGrid(
         store: .init(
@@ -76,9 +75,8 @@ extension RecordScreen {
                 pins: [3.0, 2.1]
             ),
             reducer: {
-                RecordScreen.Root.Feature.preview
+                RecordScreen.Root.Feature()
             }
         )
     )
 }
-#endif

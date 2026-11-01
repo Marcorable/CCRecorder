@@ -401,14 +401,3 @@ extension RecordScreen.Root.Feature {
     }
 
 }
-
-#if DEBUG
-extension RecordScreen.Root.Feature {
-
-    @MainActor
-    static var preview: Self {
-        .init()
-    }
-
-}
-#endif

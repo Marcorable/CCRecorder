@@ -204,14 +204,3 @@ extension MainScreen.Root.Feature {
     }
 
 }
-
-#if DEBUG
-extension MainScreen.Root.Feature {
-
-    @MainActor
-    static var preview: Self {
-        .init()
-    }
-
-}
-#endif

@@ -95,15 +95,13 @@ enum MainScreen {
 
 }
 
-#if DEBUG
 #Preview {
     MainScreen.Root(
         store: .init(
             initialState: .init(),
             reducer: {
-                MainScreen.Root.Feature.preview
+                MainScreen.Root.Feature()
             }
         )
     )
 }
-#endif

@@ -156,14 +156,3 @@ extension AlertState where Action == NoteDetailScreen.Root.Feature.Action.Alert 
     }
 
 }
-
-#if DEBUG
-extension NoteDetailScreen.Root.Feature {
-
-    @MainActor
-    static var preview: Self {
-        .init()
-    }
-
-}
-#endif

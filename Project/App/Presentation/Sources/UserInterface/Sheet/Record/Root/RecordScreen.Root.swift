@@ -52,15 +52,13 @@ extension RecordScreen {
 
 }
 
-#if DEBUG
 #Preview {
     RecordScreen.Root(
         store: .init(
             initialState: .init(),
             reducer: {
-                RecordScreen.Root.Feature.preview
+                RecordScreen.Root.Feature()
             }
         )
     )
 }
-#endif

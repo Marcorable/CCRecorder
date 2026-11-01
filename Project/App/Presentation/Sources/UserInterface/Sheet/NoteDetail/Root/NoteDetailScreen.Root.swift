@@ -97,7 +97,6 @@ extension NoteDetailScreen.Root {
 
 }
 
-#if DEBUG
 #Preview("Vocabulary") {
     let note: Note = .init(
         createdDate: .init(),
@@ -109,7 +108,7 @@ extension NoteDetailScreen.Root {
         store: .init(
             initialState: .init(noteID: note.id),
             reducer: {
-                NoteDetailScreen.Root.Feature.preview
+                NoteDetailScreen.Root.Feature()
             },
             withDependencies: {
                 $0.managingNoteUsecase.note = { _ in .success(note) }
@@ -129,7 +128,7 @@ extension NoteDetailScreen.Root {
         store: .init(
             initialState: .init(noteID: note.id),
             reducer: {
-                NoteDetailScreen.Root.Feature.preview
+                NoteDetailScreen.Root.Feature()
             },
             withDependencies: {
                 $0.managingNoteUsecase.note = { _ in .success(note) }
@@ -137,4 +136,3 @@ extension NoteDetailScreen.Root {
         )
     )
 }
-#endif
