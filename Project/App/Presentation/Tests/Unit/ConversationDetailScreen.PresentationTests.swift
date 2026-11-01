@@ -44,7 +44,7 @@ extension ConversationDetailScreenPresentationTests {
             $0.playbackPanel.failure = .prepareFailed
         }
         await store.receive(\.playbackPanel.delegate.failed) {
-            $0.playbackFailure = .prepareFailed
+            $0.alert = .playbackFailed(.prepareFailed)
         }
     }
 

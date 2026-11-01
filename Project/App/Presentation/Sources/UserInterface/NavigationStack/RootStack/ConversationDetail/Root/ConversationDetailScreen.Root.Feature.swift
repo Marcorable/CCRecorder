@@ -31,7 +31,7 @@ extension ConversationDetailScreen.Root {
                         return .none
 
                     case .playbackPanel(.delegate(.failed(let failure))):
-                        state.playbackFailure = failure
+                        state.alert = .playbackFailed(failure)
                         return .none
 
                     case .view(let action):
@@ -40,13 +40,14 @@ extension ConversationDetailScreen.Root {
                     case .response(let action):
                         return reduce(into: &state, action: action)
 
-                    case .notes, .playbackPanel, .noteDetail:
+                    case .notes, .playbackPanel, .noteDetail, .alert:
                         return .none
                 }
             }
             .ifLet(\.$noteDetail, action: \.noteDetail) {
                 NoteDetailScreen.Root.Feature()
             }
+            .ifLet(\.$alert, action: \.alert)
         }
     }
 
@@ -120,9 +121,6 @@ extension ConversationDetailScreen.Root.Feature {
                 state.conversation = conversation
                 return update(conversation)
 
-            case .alertDismissed:
-                state.playbackFailure = nil
-                return .none
         }
     }
 
@@ -177,7 +175,7 @@ extension ConversationDetailScreen.Root.Feature {
         var isEditing = false
         var notes: ConversationDetailScreen.Notes.Feature.State
         var playbackPanel: ConversationDetailScreen.PlaybackPanel.Feature.State = .init()
-        var playbackFailure: ConversationDetailScreen.PlaybackPanel.Feature.State.Failure?
+        @Presents var alert: AlertState<Action.Alert>?
         @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
 
         init(conversationID: Conversation.ID) {
@@ -193,6 +191,7 @@ extension ConversationDetailScreen.Root.Feature {
         case notes(ConversationDetailScreen.Notes.Feature.Action)
         case playbackPanel(ConversationDetailScreen.PlaybackPanel.Feature.Action)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
+        case alert(PresentationAction<Alert>)
 
         @CasePathable
         enum View {
@@ -204,13 +203,14 @@ extension ConversationDetailScreen.Root.Feature {
             case partyInputChanged(String)
             case partyAdded
             case partyRemoved(Party.ID)
-            case alertDismissed
         }
 
         @CasePathable
         enum Response {
             case conversationLoaded(Result<Conversation?, DomainError>)
         }
+
+        enum Alert: Equatable {}
     }
 
 }

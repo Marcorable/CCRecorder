@@ -55,15 +55,7 @@ enum ConversationDetailScreen {
                         store.note?.category.presentationDetents ?? [.large]
                     )
             }
-            .alert(
-                "녹음 파일을 재생할 수 없습니다",
-                isPresented: Binding(
-                    get: { store.playbackFailure != nil },
-                    set: { _ in store.send(.view(.alertDismissed)) }
-                )
-            ) {
-                Button("확인", role: .cancel) {}
-            }
+            .alert($store.scope(state: \.alert, action: \.alert))
         }
 
     }
