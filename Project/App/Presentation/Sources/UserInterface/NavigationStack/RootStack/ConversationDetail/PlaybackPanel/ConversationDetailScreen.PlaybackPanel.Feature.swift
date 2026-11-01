@@ -15,7 +15,6 @@ extension ConversationDetailScreen.PlaybackPanel {
                 switch action {
                     case .prepare(let fileName, let pins):
                         state.pins = pins
-                        state.failure = nil
                         return .run { send in
                             await send(.response(.prepared(
                                 TaskResult {
@@ -67,14 +66,13 @@ extension ConversationDetailScreen.PlaybackPanel {
                         return playbackUpdates()
 
                     case .response(.prepared(.failure(let error))):
-                        let failure: State.Failure = switch error as? DomainError {
-                            case .playingRecordUsecase(.fileNotFound):
-                                .fileNotFound
+                        let failure: DomainError.PlayingRecordUsecaseFailure = switch error as? DomainError {
+                            case .playingRecordUsecase(let failure):
+                                failure
 
-                            case .playingRecordUsecase(.prepareFailed), .none, .some:
+                            case .none, .some:
                                 .prepareFailed
                         }
-                        state.failure = failure
                         return .send(.delegate(.failed(failure)))
 
                     case let .response(.updated(
@@ -120,19 +118,14 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
 
     @ObservableState
     struct State: Equatable {
+        @Shared(.appStorage(Key.skipInterval.rawValue)) var skipInterval: SkipInterval = .five
+
         var isPrepared = false
         var isPlaying = false
         var currentTime: TimeInterval = .zero
         var duration: TimeInterval = .zero
         var rate: Float = 1
         var pins: [TimeInterval] = []
-        var failure: Failure?
-        @Shared(.appStorage(Key.skipInterval.rawValue)) var skipInterval: SkipInterval = .five
-
-        enum Failure: Equatable {
-            case fileNotFound
-            case prepareFailed
-        }
     }
 
     @CasePathable
@@ -168,7 +161,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
 
         @CasePathable
         enum Delegate {
-            case failed(State.Failure)
+            case failed(DomainError.PlayingRecordUsecaseFailure)
         }
     }
 

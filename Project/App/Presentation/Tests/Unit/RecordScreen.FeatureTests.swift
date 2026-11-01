@@ -83,7 +83,7 @@ extension RecordScreenFeatureTests {
     func latePreparationResponseIsIgnored() async {
         // given
         var state: RecordScreen.Root.Feature.State = .init()
-        state.isFinished = true
+        state.phase = .finished
         let store: TestStoreOf<RecordScreen.Root.Feature> = .init(
             initialState: state,
             reducer: { RecordScreen.Root.Feature() }
@@ -91,6 +91,28 @@ extension RecordScreenFeatureTests {
 
         // when, then
         await store.send(.response(.prepared(3)))
+    }
+
+    @Test("화면이 닫힌 뒤 도착한 ticker 응답은 상태를 되살리지 않는다")
+    func lateTickerResponseIsIgnored() async {
+        // given
+        var state: RecordScreen.Root.Feature.State = .init()
+        state.phase = .finished
+        state.currentTime = 2
+        let store: TestStoreOf<RecordScreen.Root.Feature> = .init(
+            initialState: state,
+            reducer: { RecordScreen.Root.Feature() }
+        )
+
+        // when, then
+        await store.send(
+            .response(
+                .recorderUpdated(
+                    isRecording: true,
+                    currentTime: 3
+                )
+            )
+        )
     }
 
     @Test("녹음 저장에 실패하면 다시 시도할 수 있는 상태가 된다")

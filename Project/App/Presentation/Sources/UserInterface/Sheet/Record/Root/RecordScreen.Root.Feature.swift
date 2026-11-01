@@ -66,19 +66,21 @@ extension RecordScreen.Root.Feature {
         var phase: Phase = .preparing
         var currentTime: TimeInterval = .zero
         var pins: [TimeInterval] = []
-        var isFinished: Bool = false
 
         var isRecording: Bool { phase == .recording }
+        var isFinished: Bool { phase == .finished }
         var isAbleToToggleRecording: Bool {
             switch phase {
                 case .idle, .recording, .paused:
                     true
 
-                case .preparing, .saving:
+                case .preparing, .saving, .finished:
                     false
             }
         }
-        var isAbleToSave: Bool { currentTime > 0 && phase != .saving }
+        var isAbleToSave: Bool {
+            currentTime > 0 && phase != .saving && phase != .finished
+        }
 
         enum Phase: Equatable {
             case preparing
@@ -86,6 +88,7 @@ extension RecordScreen.Root.Feature {
             case recording
             case paused
             case saving
+            case finished
         }
     }
 
@@ -267,6 +270,9 @@ extension RecordScreen.Root.Feature {
                 return .none
 
             case .recorderUpdated(let isRecording, let currentTime):
+                guard !state.isFinished else {
+                    return .none
+                }
                 if isRecording {
                     state.phase = .recording
                 } else if currentTime > 0 {
@@ -296,7 +302,7 @@ extension RecordScreen.Root.Feature {
                 )
 
             case .saved:
-                state.isFinished = true
+                state.phase = .finished
                 return .run { _ in
                     await dismiss()
                 }
@@ -310,7 +316,7 @@ extension RecordScreen.Root.Feature {
     ) -> Effect<Action> {
         switch action {
             case .cancelConfirmed:
-                state.isFinished = true
+                state.phase = .finished
                 return .merge(
                     .cancel(id: CancelID.prepare),
                     .cancel(id: CancelID.save),
@@ -363,7 +369,7 @@ extension RecordScreen.Root.Feature {
                 )
 
             case .openSettingsTapped:
-                state.isFinished = true
+                state.phase = .finished
                 return .merge(
                     .cancel(id: CancelID.prepare),
                     .cancel(id: CancelID.save),
@@ -381,7 +387,7 @@ extension RecordScreen.Root.Feature {
                 )
 
             case .closeAfterFailure:
-                state.isFinished = true
+                state.phase = .finished
                 return .merge(
                     .cancel(id: CancelID.prepare),
                     .cancel(id: CancelID.save),

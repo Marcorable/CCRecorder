@@ -148,7 +148,7 @@ extension MainScreenPresentationTests {
         var state: MainScreen.Root.Feature.State = .init()
         state.onboard = nil
         state.record = .init()
-        state.record?.isFinished = true
+        state.record?.phase = .finished
         let store: TestStoreOf<MainScreen.Root.Feature> = .init(
             initialState: state,
             reducer: { MainScreen.Root.Feature() },

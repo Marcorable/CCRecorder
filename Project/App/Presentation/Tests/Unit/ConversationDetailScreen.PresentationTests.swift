@@ -40,11 +40,11 @@ extension ConversationDetailScreenPresentationTests {
         await store.receive(\.notes.load)
         await store.receive(\.playbackPanel.prepare)
         await store.receive(\.notes.response.notesLoaded)
-        await store.receive(\.playbackPanel.response.prepared) {
-            $0.playbackPanel.failure = .prepareFailed
-        }
+        await store.receive(\.playbackPanel.response.prepared)
         await store.receive(\.playbackPanel.delegate.failed) {
-            $0.alert = .playbackFailed(.prepareFailed)
+            $0.alert = .playbackFailed(
+                message: "녹음 파일을 준비하지 못했습니다"
+            )
         }
     }
 

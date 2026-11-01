@@ -31,7 +31,11 @@ extension ConversationDetailScreen.Root {
                         return .none
 
                     case .playbackPanel(.delegate(.failed(let failure))):
-                        state.alert = .playbackFailed(failure)
+                        let message = switch failure {
+                            case .fileNotFound:  "녹음 파일을 찾을 수 없습니다"
+                            case .prepareFailed: "녹음 파일을 준비하지 못했습니다"
+                        }
+                        state.alert = .playbackFailed(message: message)
                         return .none
 
                     case .view(let action):

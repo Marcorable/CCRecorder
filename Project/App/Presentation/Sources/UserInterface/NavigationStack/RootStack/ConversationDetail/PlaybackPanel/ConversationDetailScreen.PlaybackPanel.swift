@@ -29,11 +29,8 @@ extension ConversationDetailScreen {
                 .foregroundStyle(.gray)
                 .font(.caption)
                 .overlay {
-                    if store.failure == .prepareFailed {
-                        Text("재생할 수 없는 녹음 파일")
-                            .font(.headline)
-                    } else if isPlaybackDisabled {
-                        Text("녹음 파일 없음")
+                    if isPlaybackDisabled {
+                        Text("재생할 수 없음")
                             .font(.headline)
                     }
                 }
