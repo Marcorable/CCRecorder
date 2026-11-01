@@ -140,15 +140,19 @@ extension NoteDetailScreen.Root.Feature {
 extension AlertState where Action == NoteDetailScreen.Root.Feature.Action.Alert {
 
     static var saveFailed: Self {
-        Self {
-            TextState("노트 저장 실패")
-        } actions: {
-            ButtonState(role: .cancel) {
-                TextState("확인")
+        .init(
+            title: {
+                TextState("노트 저장 실패")
+            },
+            actions: {
+                ButtonState(role: .cancel) {
+                    TextState("확인")
+                }
+            },
+            message: {
+                TextState("잠시 후 다시 시도해 주세요")
             }
-        } message: {
-            TextState("잠시 후 다시 시도해 주세요")
-        }
+        )
     }
 
 }

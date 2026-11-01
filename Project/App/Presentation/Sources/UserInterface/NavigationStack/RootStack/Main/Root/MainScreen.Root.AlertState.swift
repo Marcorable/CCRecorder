@@ -35,33 +35,41 @@ extension AlertState where Action == MainScreen.Root.Feature.Action.Alert {
         title: String,
         retryAction: Action
     ) -> Self {
-        Self {
-            TextState(title)
-        } actions: {
-            ButtonState(action: retryAction) {
-                TextState("다시 시도")
+        .init(
+            title: {
+                TextState(title)
+            },
+            actions: {
+                ButtonState(action: retryAction) {
+                    TextState("다시 시도")
+                }
+                ButtonState(role: .cancel) {
+                    TextState("취소")
+                }
+            },
+            message: {
+                TextState("잠시 후 다시 시도해 주세요")
             }
-            ButtonState(role: .cancel) {
-                TextState("취소")
-            }
-        } message: {
-            TextState("잠시 후 다시 시도해 주세요")
-        }
+        )
     }
 
     private static func failureAlert(
         title: String,
         message: String
     ) -> Self {
-        Self {
-            TextState(title)
-        } actions: {
-            ButtonState(role: .cancel) {
-                TextState("확인")
+        .init(
+            title: {
+                TextState(title)
+            },
+            actions: {
+                ButtonState(role: .cancel) {
+                    TextState("확인")
+                }
+            },
+            message: {
+                TextState(message)
             }
-        } message: {
-            TextState(message)
-        }
+        )
     }
 
 }
