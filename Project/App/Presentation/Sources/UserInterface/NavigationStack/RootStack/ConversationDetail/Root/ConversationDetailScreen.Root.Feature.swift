@@ -44,6 +44,17 @@ extension ConversationDetailScreen.Root {
                     case .response(let action):
                         return reduce(into: &state, action: action)
 
+                    case .conversationUpdateRequested(let conversation):
+                        state.conversation = conversation
+                        return .run { _ in
+                            try await Task.sleep(for: .seconds(1))
+                            try await managingConversationUsecase.update(conversation)
+                        }
+                        .cancellable(
+                            id: CancelID.update,
+                            cancelInFlight: true
+                        )
+
                     case .notes, .playbackPanel, .noteDetail, .alert:
                         return .none
                 }
@@ -85,20 +96,18 @@ extension ConversationDetailScreen.Root.Feature {
                 )
 
             case .titleChanged(let title):
-                guard var conversation = state.conversation else {
+                guard var updatingItem = state.conversation else {
                     return .none
                 }
-                conversation.title = title
-                state.conversation = conversation
-                return update(conversation)
+                updatingItem.title = title
+                return .send(.conversationUpdateRequested(updatingItem))
 
             case .topicChanged(let topic):
-                guard var conversation = state.conversation else {
+                guard var updatingItem = state.conversation else {
                     return .none
                 }
-                conversation.topic = topic
-                state.conversation = conversation
-                return update(conversation)
+                updatingItem.topic = topic
+                return .send(.conversationUpdateRequested(updatingItem))
 
             case .editingToggled:
                 state.isEditing.toggle()
@@ -109,21 +118,19 @@ extension ConversationDetailScreen.Root.Feature {
                 return .none
 
             case .partyAdded:
-                guard !state.partyInput.isEmpty, var conversation = state.conversation else {
+                guard !state.partyInput.isEmpty, var updatingItem = state.conversation else {
                     return .none
                 }
-                conversation.parties.append(.init(name: state.partyInput))
-                state.conversation = conversation
+                updatingItem.parties.append(.init(name: state.partyInput))
                 state.partyInput = ""
-                return update(conversation)
+                return .send(.conversationUpdateRequested(updatingItem))
 
             case .partyRemoved(let id):
-                guard var conversation = state.conversation else {
+                guard var updatingItem = state.conversation else {
                     return .none
                 }
-                conversation.parties.removeAll(where: { $0.id == id })
-                state.conversation = conversation
-                return update(conversation)
+                updatingItem.parties.removeAll(where: { $0.id == id })
+                return .send(.conversationUpdateRequested(updatingItem))
 
         }
     }
@@ -151,14 +158,6 @@ extension ConversationDetailScreen.Root.Feature {
                 state.conversationLoadFailed = true
                 return .none
         }
-    }
-
-    private func update(_ conversation: Conversation) -> Effect<Action> {
-        .run { _ in
-            try await Task.sleep(for: .seconds(1))
-            try await managingConversationUsecase.update(conversation)
-        }
-        .cancellable(id: CancelID.update, cancelInFlight: true)
     }
 
     private enum CancelID {
@@ -192,6 +191,7 @@ extension ConversationDetailScreen.Root.Feature {
     enum Action: ViewAction {
         case view(View)
         case response(Response)
+        case conversationUpdateRequested(Conversation)
         case notes(ConversationDetailScreen.Notes.Feature.Action)
         case playbackPanel(ConversationDetailScreen.PlaybackPanel.Feature.Action)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
