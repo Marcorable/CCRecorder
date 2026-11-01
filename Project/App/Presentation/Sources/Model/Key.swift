@@ -2,10 +2,11 @@
 import SwiftUI
 import Foundation
 
+import ComposableArchitecture
+
 public enum Key: String {
     // MARK: 앱 상태
     case isFirstLaunched
-    case isLegacyStoreMigrated
 
     // MARK: 화면 설정
     case displayMode
@@ -57,22 +58,56 @@ extension AppStorage {
 
 extension UserDefaults {
 
-//    public func bool(forKey key: Key) -> Bool {
-//        bool(forKey: key.rawValue)
-//    }
+    public func bool(forKey key: Key) -> Bool {
+        bool(forKey: key.rawValue)
+    }
 
-//    public func set(
-//        _ value: Bool,
-//        forKey key: Key
-//    ) {
-//        set(
-//            value,
-//            forKey: key.rawValue
-//        )
-//    }
-//
-//    public func removeObject(forKey key: Key) {
-//        removeObject(forKey: key.rawValue)
-//    }
+    public func set(
+        _ value: Bool,
+        forKey key: Key
+    ) {
+        set(
+            value,
+            forKey: key.rawValue
+        )
+    }
+
+    public func removeObject(forKey key: Key) {
+        removeObject(forKey: key.rawValue)
+    }
+
+}
+
+extension SharedReaderKey {
+
+    static func appStorage(
+        _ key: Key,
+        store: UserDefaults? = nil
+    ) -> Self where Self == AppStorageKey<Bool> {
+        .appStorage(
+            key.rawValue,
+            store: store
+        )
+    }
+
+    static func appStorage<Value: RawRepresentable<String>>(
+        _ key: Key,
+        store: UserDefaults? = nil
+    ) -> Self where Self == AppStorageKey<Value> {
+        .appStorage(
+            key.rawValue,
+            store: store
+        )
+    }
+
+    static func appStorage<Value: RawRepresentable<Int>>(
+        _ key: Key,
+        store: UserDefaults? = nil
+    ) -> Self where Self == AppStorageKey<Value> {
+        .appStorage(
+            key.rawValue,
+            store: store
+        )
+    }
 
 }

@@ -1,7 +1,7 @@
 
 import Foundation
 
-public enum SkipInterval: Int, CaseIterable {
+enum SkipInterval: Int, CaseIterable {
     case five = 5
     case ten = 10
     case fifteen = 15
@@ -10,6 +10,6 @@ public enum SkipInterval: Int, CaseIterable {
 
 extension SkipInterval {
 
-    public var timeInterval: TimeInterval { TimeInterval(rawValue) }
+    var timeInterval: TimeInterval { TimeInterval(rawValue) }
 
 }
