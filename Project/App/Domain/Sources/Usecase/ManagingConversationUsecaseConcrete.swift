@@ -91,6 +91,8 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
             try await dependency.conversationRepository.update(updatingItem)
         } catch is CancellationError {
             throw CancellationError()
+        } catch let error as DomainError {
+            throw error
         } catch {
             throw DomainError.data(error)
         }

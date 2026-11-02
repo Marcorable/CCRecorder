@@ -182,6 +182,21 @@ extension ManagingConversationUsecaseTests {
         #expect(updated.noteIds == [noteID])
     }
 
+    @Test("존재하지 않는 Conversation 수정은 Usecase 오류를 유지한다")
+    func updateMissingConversationThrowsUsecaseError() async {
+        // given
+        let conversation = conversation()
+
+        // when, then
+        do {
+            try await usecase.update(conversation)
+            Issue.record("Conversation 없음 오류를 던져야 합니다.")
+        } catch DomainError.managingConversationUsecase(.conversationNotFound) {
+        } catch {
+            Issue.record("Usecase 오류를 그대로 전달해야 합니다.")
+        }
+    }
+
     @Test("Note를 삭제하면 Conversation 연결도 제거한다")
     func deleteNotesRemovesConversationReferences() async throws {
         // given

@@ -44,8 +44,10 @@ extension ConversationDetailScreen.Notes {
                         return .send(.performNextMutation)
 
                     case .performNextMutation:
-                        guard !state.isMutating,
-                              let mutation = state.pendingMutations.first else {
+                        guard
+                            !state.isMutating,
+                            let mutation = state.pendingMutations.first
+                        else {
                             return .none
                         }
                         state.isMutating = true
