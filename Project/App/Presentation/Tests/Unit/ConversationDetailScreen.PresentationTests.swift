@@ -83,23 +83,59 @@ extension ConversationDetailScreenPresentationTests {
         }
     }
 
+    @Test("수정 직후 화면을 닫아도 최신 내용을 저장한다")
+    func disappearingFlushesPendingConversationUpdate() async {
+        // given
+        let updates = ConversationUpdates()
+        let clock = TestClock<Duration>()
+        var state: ConversationDetailScreen.Root.Feature.State = .init(
+            conversationID: conversation.id
+        )
+        state.conversation = conversation
+        let store = makeStore(
+            state: state,
+            clock: clock,
+            update: { await updates.append($0) }
+        )
+
+        // when, then
+        await store.send(.view(.titleChanged("수정된 제목")))
+        await store.receive(\.conversationUpdateRequested) {
+            $0.conversation?.title = "수정된 제목"
+            $0.conversationUpdateRevision = 1
+        }
+        await store.send(.view(.disappeared))
+        await store.receive(\.conversationPersistenceRequested)
+        await store.receive(\.notes.cancel)
+        await store.receive(\.playbackPanel.finish)
+        await store.receive(\.response.conversationPersisted) {
+            $0.persistedConversationRevision = 1
+        }
+        #expect(await updates.values().map(\.title) == ["수정된 제목"])
+    }
+
 }
 
 private extension ConversationDetailScreenPresentationTests {
 
     func makeStore(
         state: ConversationDetailScreen.Root.Feature.State? = nil,
-        notes: [Note] = []
+        notes: [Note] = [],
+        clock: TestClock<Duration>? = nil,
+        update: @escaping @Sendable (Conversation) async throws -> Void = { _ in }
     ) -> TestStoreOf<ConversationDetailScreen.Root.Feature> {
         .init(
             initialState: state ?? .init(conversationID: conversation.id),
             reducer: { ConversationDetailScreen.Root.Feature() },
             withDependencies: {
+                if let clock {
+                    $0.continuousClock = clock
+                }
                 $0.managingConversationUsecase = .init(
                     conversations: { .success([]) },
                     conversation: { _ in .success(conversation) },
                     notes: { _ in .success(notes) },
-                    update: { _ in },
+                    update: update,
                     deleteConversations: { _ in .success(()) },
                     addNote: { _, _ in conversation },
                     deleteNotes: { _, _ in conversation }
@@ -107,12 +143,25 @@ private extension ConversationDetailScreenPresentationTests {
                 $0.playingRecordUsecase.prepare = { _ in
                     throw TestError.failed
                 }
+                $0.playingRecordUsecase.finish = {}
             }
         )
     }
 
     enum TestError: Error {
         case failed
+    }
+
+    actor ConversationUpdates {
+        private var conversations: [Conversation] = []
+
+        func append(_ conversation: Conversation) {
+            conversations.append(conversation)
+        }
+
+        func values() -> [Conversation] {
+            conversations
+        }
     }
 
 }

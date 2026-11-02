@@ -80,7 +80,15 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
 
     func update(_ conversation: Conversation) async throws {
         do {
-            try await dependency.conversationRepository.update(conversation)
+            guard var updatingItem = try await dependency.conversationRepository.read(
+                id: conversation.id
+            ) else {
+                throw DomainError.managingConversationUsecase(.conversationNotFound)
+            }
+            updatingItem.title = conversation.title
+            updatingItem.topic = conversation.topic
+            updatingItem.parties = conversation.parties
+            try await dependency.conversationRepository.update(updatingItem)
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -92,25 +100,23 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
         content: String,
         to conversationID: Conversation.ID
     ) async throws -> Conversation {
-        guard let conversation = try await dependency.conversationRepository.read(
+        guard var updatingItem = try await dependency.conversationRepository.read(
             id: conversationID
         ) else {
             throw DomainError.managingConversationUsecase(.conversationNotFound)
         }
         guard !content.isEmpty else {
-            return conversation
+            return updatingItem
         }
 
         let note = note(content: content)
-        var updatedConversation = conversation
-        updatedConversation.noteIds.append(note.id)
-
+        updatingItem.noteIds.append(note.id)
         do {
             try Task.checkCancellation()
             try await dependency.noteRepository.create(note)
             try Task.checkCancellation()
-            try await dependency.conversationRepository.update(updatedConversation)
-            return updatedConversation
+            try await dependency.conversationRepository.update(updatingItem)
+            return updatingItem
         } catch {
             try? await dependency.noteRepository.delete(ids: [note.id])
             if error is CancellationError {
@@ -134,15 +140,14 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
         }
 
         let idSet = Set(ids)
-        var updatedConversation = conversation
-        updatedConversation.noteIds.removeAll { idSet.contains($0) }
-
+        var updatingItem = conversation
+        updatingItem.noteIds.removeAll(where: { idSet.contains($0) })
         do {
             try Task.checkCancellation()
-            try await dependency.conversationRepository.update(updatedConversation)
+            try await dependency.conversationRepository.update(updatingItem)
             try Task.checkCancellation()
             try await dependency.noteRepository.delete(ids: ids)
-            return updatedConversation
+            return updatingItem
         } catch {
             try? await dependency.conversationRepository.update(conversation)
             if error is CancellationError {
