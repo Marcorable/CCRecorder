@@ -118,7 +118,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
 
     @ObservableState
     struct State: Equatable {
-        @Shared(.appStorage(Key.skipInterval.rawValue)) var skipInterval: SkipInterval = .five
+        @Shared(.appStorage(.skipInterval)) var skipInterval: SkipInterval = .five
 
         var isPrepared = false
         var isPlaying = false

@@ -160,7 +160,7 @@ extension MainScreen.Root.Feature {
 
     @ObservableState
     struct State: Equatable {
-        @Shared(.appStorage(Key.isFirstLaunched.rawValue)) var isFirstLaunched: Bool = true
+        @Shared(.appStorage(.isFirstLaunched)) var isFirstLaunched: Bool = true
 
         @Presents var onboard: OnboardScreen.Root.Feature.State?
         @Presents var record: RecordScreen.Root.Feature.State?

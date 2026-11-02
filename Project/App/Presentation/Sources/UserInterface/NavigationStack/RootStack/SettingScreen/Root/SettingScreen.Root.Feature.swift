@@ -42,9 +42,9 @@ extension SettingScreen.Root.Feature {
 
     @ObservableState
     struct State: Equatable {
-        @Shared(.appStorage(Key.displayMode.rawValue)) var displayMode: DisplayMode = .system
-        @Shared(.appStorage(Key.skipInterval.rawValue)) var skipInterval: SkipInterval = .five
-        @Shared(.appStorage(Key.isIdleTimerDisabled.rawValue)) var isIdleTimerDisabled: Bool = false
+        @Shared(.appStorage(.displayMode)) var displayMode: DisplayMode = .system
+        @Shared(.appStorage(.skipInterval)) var skipInterval: SkipInterval = .five
+        @Shared(.appStorage(.isIdleTimerDisabled)) var isIdleTimerDisabled: Bool = false
         @Presents var tutorial: OnboardScreen.Root.Feature.State?
 
         let appVersion: String

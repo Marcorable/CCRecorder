@@ -58,4 +58,17 @@ enum Action: ViewAction {
 - TCA 연결 Action은 조합 API가 요구하는 형태를 유지한다
 - 분류를 추가할 때는 기존 분류와 역할이 겹치지 않는지 먼저 확인한다
 
+## 의도 Action과 Effect helper
+
+여러 Effect를 시작하거나 저장을 요청하는 동작 자체가 Feature의 의미 있는 의도라면 private Effect 함수로 숨기지 않고 Action으로 표현한다.
+
+```swift
+case conversationUpdateRequested(Conversation)
+```
+
+- 이름은 `update`보다 `conversationUpdateRequested`처럼 대상과 의도를 드러낸다
+- View Action의 후속 처리라면 `.send(.conversationUpdateRequested(conversation))`로 reducer 흐름에 다시 넣는다
+- `response`는 의존성 작업의 결과에 사용하며 내부 요청 의도를 넣지 않는다
+- 단순 값 변환이나 여러 Effect를 조립하는 구현 세부이고 독립적인 사건이 아니라면 private helper로 유지할 수 있다
+
 Action 분류 뒤 reducer 구현을 정리해야 하면 `reducer-decomposition.md`를 따른다.
