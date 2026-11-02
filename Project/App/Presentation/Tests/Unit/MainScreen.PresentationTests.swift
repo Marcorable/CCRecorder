@@ -111,6 +111,7 @@ extension MainScreenPresentationTests {
     @Test("녹음 화면을 닫으면 선택한 노트 목록만 다시 불러온다")
     func recordDismissReloadsSelectedList() async {
         // given
+        let spy = CallSpy()
         var state: MainScreen.Root.Feature.State = .init()
         state.onboard = nil
         state.record = .init()
@@ -120,6 +121,9 @@ extension MainScreenPresentationTests {
             reducer: { MainScreen.Root.Feature() },
             withDependencies: {
                 $0.managingNoteUsecase.loadNotes = { .success([]) }
+                $0.recordingUsecase.cancel = {
+                    await spy.call()
+                }
             }
         )
 
@@ -134,6 +138,40 @@ extension MainScreenPresentationTests {
             $0.noteList.isLoading = false
             $0.noteList.notes = []
         }
+        #expect(await spy.callCount == 1)
+    }
+
+    @Test("저장을 완료한 녹음 화면을 닫으면 녹음을 취소하지 않는다")
+    func finishedRecordDismissDoesNotCancelRecording() async {
+        // given
+        let spy = CallSpy()
+        var state: MainScreen.Root.Feature.State = .init()
+        state.onboard = nil
+        state.record = .init()
+        state.record?.isFinished = true
+        let store: TestStoreOf<MainScreen.Root.Feature> = .init(
+            initialState: state,
+            reducer: { MainScreen.Root.Feature() },
+            withDependencies: {
+                $0.managingConversationUsecase.conversations = { .success([]) }
+                $0.recordingUsecase.cancel = {
+                    await spy.call()
+                }
+            }
+        )
+
+        // when, then
+        await store.send(.record(.dismiss)) {
+            $0.record = nil
+        }
+        await store.receive(\.conversationList.view.reload) {
+            $0.conversationList.isLoading = true
+        }
+        await store.receive(\.conversationList.response.conversationsLoaded) {
+            $0.conversationList.isLoading = false
+            $0.conversationList.conversations = []
+        }
+        #expect(await spy.callCount == 0)
     }
 
 }
@@ -143,5 +181,13 @@ private actor RouteSpy {
 
     func push(_ route: RootStack.Route) {
         routes.append(route)
+    }
+}
+
+private actor CallSpy {
+    private(set) var callCount = 0
+
+    func call() {
+        callCount += 1
     }
 }

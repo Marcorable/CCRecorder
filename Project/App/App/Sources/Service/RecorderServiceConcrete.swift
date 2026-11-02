@@ -3,21 +3,15 @@ import AVFAudio
 
 import Domain
 
-@MainActor
-final class RecorderServiceConcrete {
-    private var state: State = .idle
-    private var pausedTime: TimeInterval = .zero
+actor RecorderServiceConcrete {
     private var recorder: AVAudioRecorder?
 
     var isRecording: Bool {
-        state == .recording
+        recorder?.isRecording ?? false
     }
 
     var currentTime: TimeInterval {
-        guard state == .recording, let recorder else {
-            return pausedTime
-        }
-        return recorder.currentTime
+        recorder?.currentTime ?? .zero
     }
 
     init() {}
@@ -25,22 +19,11 @@ final class RecorderServiceConcrete {
 
 extension RecorderServiceConcrete: Service {
 
-    enum State {
-        case idle
-        case recording
-        case paused
-    }
-
-    enum ServiceError: Error {
-        case prepareFailed
-        case notPrepared
-    }
-
 }
 
 extension RecorderServiceConcrete: RecorderService {
 
-    func prepare(with fileURL: URL) throws {
+    func prepare(with fileURL: URL) throws(DomainError.RecorderServiceFailure) {
         do {
             let recorder = try AVAudioRecorder(
                 url: fileURL,
@@ -53,67 +36,50 @@ extension RecorderServiceConcrete: RecorderService {
             )
 
             guard recorder.prepareToRecord() else {
-                throw ServiceError.prepareFailed
+                throw DomainError.RecorderServiceFailure.prepareFailed
             }
 
+            self.recorder?.stop()
             self.recorder = recorder
-            self.state = .idle
-            self.pausedTime = .zero
-        } catch let error as ServiceError {
+        } catch let error as DomainError.RecorderServiceFailure {
             throw error
         } catch {
-            throw ServiceError.prepareFailed
+            throw DomainError.RecorderServiceFailure.prepareFailed
         }
     }
 
     func start() {
         guard
             let recorder,
-            state != .recording,
+            !recorder.isRecording,
             recorder.record()
         else {
             return
         }
-
-        state = .recording
     }
 
     func pause() {
-        guard state == .recording, let recorder else {
+        guard let recorder, recorder.isRecording else {
             return
         }
-
-        pausedTime = recorder.currentTime
         recorder.pause()
-        state = .paused
     }
 
-    func finish() throws -> URL {
+    func finish() throws(DomainError.RecorderServiceFailure) -> URL {
         guard let recorder else {
-            throw ServiceError.notPrepared
+            throw DomainError.RecorderServiceFailure.notPrepared
         }
 
         let fileURL = recorder.url
-        pausedTime = recorder.currentTime
         recorder.stop()
-        cleanUp()
+        self.recorder = nil
 
         return fileURL
     }
 
     func cancel() {
         recorder?.stop()
-        cleanUp()
-        pausedTime = .zero
-    }
-
-}
-
-private extension RecorderServiceConcrete {
-
-    func cleanUp() {
         recorder = nil
-        state = .idle
     }
 
 }

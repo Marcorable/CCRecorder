@@ -104,7 +104,6 @@ extension RecordScreen.Root.Feature {
             case removePinButtonTapped(Int)
             case requestCancelButtonTapped
             case requestSaveButtonTapped
-            case disappeared
         }
 
         @CasePathable
@@ -205,23 +204,6 @@ extension RecordScreen.Root.Feature {
                 state.alert = .confirmSave
                 return .none
 
-            case .disappeared:
-                guard !state.isFinished else {
-                    return .merge(
-                        .cancel(id: CancelID.prepare),
-                        .cancel(id: CancelID.save),
-                        .cancel(id: CancelID.ticker)
-                    )
-                }
-                state.isFinished = true
-                return .merge(
-                    .cancel(id: CancelID.prepare),
-                    .cancel(id: CancelID.save),
-                    .cancel(id: CancelID.ticker),
-                    .run { _ in
-                        await recordingUsecase.cancel()
-                    }
-                )
         }
     }
 

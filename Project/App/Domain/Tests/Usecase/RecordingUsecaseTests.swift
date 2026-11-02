@@ -43,7 +43,7 @@ extension RecordingUsecaseTests {
     @Test("Recorder 준비에 실패하면 생성한 파일을 정리한다")
     func prepareFailureCleansUpFile() async {
         // given
-        recorderService.prepareError = .failed
+        recorderService.prepareError = .prepareFailed
 
         // when
         do {
@@ -127,30 +127,32 @@ private extension RecordingUsecaseTests {
     final class RecorderServiceSpy: RecorderService {
         var isRecording = false
         var currentTime: TimeInterval = .zero
-        var prepareError: TestError?
+        var prepareError: DomainError.RecorderServiceFailure?
         private(set) var preparedFileURL: URL?
         private(set) var cancelCallCount = 0
 
-        func prepare(with fileURL: URL) throws {
+        func prepare(
+            with fileURL: URL
+        ) async throws(DomainError.RecorderServiceFailure) {
             if let prepareError {
                 throw prepareError
             }
             preparedFileURL = fileURL
         }
 
-        func start() {
+        func start() async {
             isRecording = true
         }
 
-        func pause() {
+        func pause() async {
             isRecording = false
         }
 
-        func finish() throws -> URL {
+        func finish() async throws(DomainError.RecorderServiceFailure) -> URL {
             .init(filePath: "/tmp/record.m4a")
         }
 
-        func cancel() {
+        func cancel() async {
             cancelCallCount += 1
         }
     }

@@ -221,6 +221,7 @@ extension ConversationDetailScreen.Root.Feature {
                     while !Task.isCancelled {
                         await send(.response(.playbackUpdated(
                             .init(
+                                isPrepared: await playingRecordUsecase.isPrepared(),
                                 isPlaying: await playingRecordUsecase.isPlaying(),
                                 currentTime: await playingRecordUsecase.currentTime(),
                                 duration: await playingRecordUsecase.duration(),
@@ -293,6 +294,7 @@ extension ConversationDetailScreen.Root.Feature {
         @Shared(.appStorage(Key.skipInterval.rawValue)) var skipInterval: SkipInterval = .five
 
         struct Playback: Equatable {
+            var isPrepared: Bool = false
             var isPlaying: Bool = false
             var currentTime: TimeInterval = .zero
             var duration: TimeInterval = .zero

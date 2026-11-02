@@ -73,7 +73,7 @@ extension ConversationDetailScreen {
 
 private extension ConversationDetailScreen.PlaybackPanel {
 
-    var isPlaybackDisabled: Bool { store.playback.duration == .zero }
+    var isPlaybackDisabled: Bool { !store.playback.isPrepared }
     var displayedTime: TimeInterval {
         isEditing ? editingTime : store.playback.currentTime
     }

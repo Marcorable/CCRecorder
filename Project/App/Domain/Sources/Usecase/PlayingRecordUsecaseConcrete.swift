@@ -19,6 +19,12 @@ extension PlayingRecordUsecaseConcrete {
 
 extension PlayingRecordUsecaseConcrete: PlayingRecordUsecase {
 
+    var isPrepared: Bool {
+        get async {
+            await dependency.playerService.isPrepared
+        }
+    }
+
     var isPlaying: Bool {
         get async {
             await dependency.playerService.isPlaying

@@ -2,6 +2,7 @@
 import Foundation
 
 public protocol PlayingRecordUsecase: AnyObject, Sendable {
+    var isPrepared: Bool { get async }
     var isPlaying: Bool { get async }
     var currentTime: TimeInterval { get async }
     var duration: TimeInterval { get async }

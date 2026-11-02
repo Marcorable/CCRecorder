@@ -1,8 +1,8 @@
 
 import UIKit
 
-@MainActor
 protocol Service {
+    @MainActor
     static func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]?
@@ -11,6 +11,7 @@ protocol Service {
 
 extension Service {
 
+    @MainActor
     static func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]?
