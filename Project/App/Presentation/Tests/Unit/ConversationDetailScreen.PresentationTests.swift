@@ -105,13 +105,72 @@ extension ConversationDetailScreenPresentationTests {
             $0.conversationUpdateRevision = 1
         }
         await store.send(.view(.disappeared))
-        await store.receive(\.conversationPersistenceRequested)
+        await store.receive(\.conversationPersistenceRequested) {
+            $0.isPersistingConversation = true
+        }
         await store.receive(\.notes.cancel)
         await store.receive(\.playbackPanel.finish)
         await store.receive(\.response.conversationPersisted) {
             $0.persistedConversationRevision = 1
+            $0.isPersistingConversation = false
         }
         #expect(await updates.values().map(\.title) == ["수정된 제목"])
+    }
+
+    @Test("메타데이터 저장 중 발생한 최신 변경을 순서대로 저장한다")
+    func conversationUpdatesArePersistedSequentially() async {
+        // given
+        let updates = SuspendedConversationUpdates()
+        let clock = TestClock<Duration>()
+        var state: ConversationDetailScreen.Root.Feature.State = .init(
+            conversationID: conversation.id
+        )
+        state.conversation = conversation
+        let store = makeStore(
+            state: state,
+            clock: clock,
+            update: { await updates.append($0) }
+        )
+
+        // when, then
+        await store.send(.view(.titleChanged("첫 번째 제목")))
+        await store.receive(\.conversationUpdateRequested) {
+            $0.conversation?.title = "첫 번째 제목"
+            $0.conversationUpdateRevision = 1
+        }
+        await clock.advance(by: .seconds(1))
+        await store.receive(\.conversationPersistenceRequested) {
+            $0.isPersistingConversation = true
+        }
+        await updates.waitUntilFirstUpdateStarts()
+
+        await store.send(.view(.titleChanged("두 번째 제목")))
+        await store.receive(\.conversationUpdateRequested) {
+            $0.conversation?.title = "두 번째 제목"
+            $0.conversationUpdateRevision = 2
+        }
+        await clock.advance(by: .seconds(1))
+        await store.receive(\.conversationPersistenceRequested)
+        #expect(await updates.values().map(\.title) == ["첫 번째 제목"])
+
+        await updates.finishFirstUpdate()
+        await store.receive(\.response.conversationPersisted) {
+            $0.persistedConversationRevision = 1
+            $0.isPersistingConversation = false
+        }
+        await store.receive(\.conversationPersistenceRequested) {
+            $0.isPersistingConversation = true
+        }
+        await store.receive(\.response.conversationPersisted) {
+            $0.persistedConversationRevision = 2
+            $0.isPersistingConversation = false
+        }
+        #expect(
+            await updates.values().map(\.title) == [
+                "첫 번째 제목",
+                "두 번째 제목"
+            ]
+        )
     }
 
 }
@@ -157,6 +216,41 @@ private extension ConversationDetailScreenPresentationTests {
 
         func append(_ conversation: Conversation) {
             conversations.append(conversation)
+        }
+
+        func values() -> [Conversation] {
+            conversations
+        }
+    }
+
+    actor SuspendedConversationUpdates {
+        private var conversations: [Conversation] = []
+        private var firstUpdateContinuation: CheckedContinuation<Void, Never>?
+        private var firstUpdateWaiters: [CheckedContinuation<Void, Never>] = []
+
+        func append(_ conversation: Conversation) async {
+            conversations.append(conversation)
+            if conversations.count == 1 {
+                firstUpdateWaiters.forEach({ $0.resume() })
+                firstUpdateWaiters.removeAll()
+                await withCheckedContinuation { continuation in
+                    firstUpdateContinuation = continuation
+                }
+            }
+        }
+
+        func waitUntilFirstUpdateStarts() async {
+            guard conversations.isEmpty else {
+                return
+            }
+            await withCheckedContinuation { continuation in
+                firstUpdateWaiters.append(continuation)
+            }
+        }
+
+        func finishFirstUpdate() {
+            firstUpdateContinuation?.resume()
+            firstUpdateContinuation = nil
         }
 
         func values() -> [Conversation] {

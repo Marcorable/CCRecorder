@@ -65,6 +65,10 @@ extension ConversationDetailScreen.Root {
                         let revision,
                         let conversation
                     ):
+                        guard !state.isPersistingConversation else {
+                            return .none
+                        }
+                        state.isPersistingConversation = true
                         return persist(
                             revision: revision,
                             conversation: conversation
@@ -187,15 +191,39 @@ extension ConversationDetailScreen.Root.Feature {
                 return .none
 
             case .conversationPersisted(let revision, .success):
+                state.isPersistingConversation = false
                 state.persistedConversationRevision = max(
                     state.persistedConversationRevision,
                     revision
                 )
-                return .none
+                return persistLatestConversationIfNeeded(
+                    after: revision,
+                    state: state
+                )
 
-            case .conversationPersisted(_, .failure):
-                return .none
+            case .conversationPersisted(let revision, .failure):
+                state.isPersistingConversation = false
+                return persistLatestConversationIfNeeded(
+                    after: revision,
+                    state: state
+                )
         }
+    }
+
+    private func persistLatestConversationIfNeeded(
+        after revision: Int,
+        state: State
+    ) -> Effect<Action> {
+        guard
+            let conversation = state.conversation,
+            revision < state.conversationUpdateRevision
+        else {
+            return .none
+        }
+        return .send(.conversationPersistenceRequested(
+            revision: state.conversationUpdateRevision,
+            conversation: conversation
+        ))
     }
 
     private func persist(
@@ -228,6 +256,7 @@ extension ConversationDetailScreen.Root.Feature {
         var conversationLoadFailed = false
         var conversationUpdateRevision = 0
         var persistedConversationRevision = 0
+        var isPersistingConversation = false
         var partyInput = ""
         var isEditing = false
         var notes: ConversationDetailScreen.Notes.Feature.State
