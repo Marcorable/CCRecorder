@@ -12,6 +12,7 @@ description: "Marco의 TCA Feature 구성 규칙. TCA State·Action·Reducer·Bi
 - `references/architecture/dependency.md`
 - `references/architecture/effect-lifecycle.md`
 - `references/architecture/feature-composition.md`
+- `references/architecture/presentation.md`
 - `references/architecture/preview.md`
 - `references/architecture/reducer-decomposition.md`
 - `references/architecture/store-initialization.md`

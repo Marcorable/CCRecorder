@@ -1,0 +1,8 @@
+add-api-endpoint
+add-repository-operation
+add-usecase-operation
+implement-application-operation
+migrate-aggregate
+separate-persistence-model
+switch-source-of-truth
+wire-feature-dependency

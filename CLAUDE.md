@@ -10,6 +10,7 @@
 
 - 공통 정본은 `agent-common/`이다. `.claude/`, `.agents/`의 문서는 생성물이므로 직접 수정하지 않는다.
 - 코드 작업 전에는 관련 `agent-common/marcorable-tca/rules/` 문서를 읽고 따른다.
+- 절차 작업 전에는 해당 스킬을 사용한다. 스킬의 실제 내용은 `agent-common/marcorable-tca/skills/`에 있다.
 <!-- marcorable-kit:common:marcorable-tca:end -->
 
 <!-- marcorable-kit:common:marcorable-swiftui:start -->
@@ -17,7 +18,6 @@
 
 - 공통 정본은 `agent-common/`이다. `.claude/`, `.agents/`의 문서는 생성물이므로 직접 수정하지 않는다.
 - 코드 작업 전에는 관련 `agent-common/marcorable-swiftui/rules/` 문서를 읽고 따른다.
-- 절차 작업 전에는 해당 스킬을 사용한다. 스킬의 실제 내용은 `agent-common/marcorable-swiftui/skills/`에 있다.
 <!-- marcorable-kit:common:marcorable-swiftui:end -->
 
 <!-- marcorable-kit:common:marcorable-swift:start -->
@@ -27,3 +27,18 @@
 - 코드 작업 전에는 관련 `agent-common/marcorable-swift/rules/` 문서를 읽고 따른다.
 - 절차 작업 전에는 해당 스킬을 사용한다. 스킬의 실제 내용은 `agent-common/marcorable-swift/skills/`에 있다.
 <!-- marcorable-kit:common:marcorable-swift:end -->
+
+<!-- marcorable-kit:common:marcorable-ui:start -->
+# Marcorable 공통 에이전트 문서 — marcorable-ui
+
+- 공통 정본은 `agent-common/`이다. `.claude/`, `.agents/`의 문서는 생성물이므로 직접 수정하지 않는다.
+- 절차 작업 전에는 해당 스킬을 사용한다. 스킬의 실제 내용은 `agent-common/marcorable-ui/skills/`에 있다.
+<!-- marcorable-kit:common:marcorable-ui:end -->
+
+<!-- marcorable-kit:common:marcorable-application:start -->
+# Marcorable 공통 에이전트 문서 — marcorable-application
+
+- 공통 정본은 `agent-common/`이다. `.claude/`, `.agents/`의 문서는 생성물이므로 직접 수정하지 않는다.
+- 코드 작업 전에는 관련 `agent-common/marcorable-application/rules/` 문서를 읽고 따른다.
+- 절차 작업 전에는 해당 스킬을 사용한다. 스킬의 실제 내용은 `agent-common/marcorable-application/skills/`에 있다.
+<!-- marcorable-kit:common:marcorable-application:end -->

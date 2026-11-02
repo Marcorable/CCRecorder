@@ -34,4 +34,4 @@
 
 ## 상태별 확인
 
-불러오기 전, 값 없음, 결과 없음, 오류와 로딩 상태도 프리뷰에서 깨지지 않아야 한다. 상태의 의미는 `agent-common/marcorable-swiftui/rules/application/screen-state.md`를 따르고, 표시 기본값을 만드는 위치는 선택한 아키텍처가 정한다.
+불러오기 전, 값 없음, 결과 없음, 오류와 로딩 상태도 프리뷰에서 깨지지 않아야 한다. 상태의 의미는 `agent-common/marcorable-application/rules/application/screen-state.md`를 따르고, 표시 기본값을 만드는 위치는 선택한 아키텍처가 정한다.
