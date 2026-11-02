@@ -8,6 +8,7 @@ extension ConversationDetailScreen.Root {
 
     @Reducer
     struct Feature {
+        @Dependency(\.continuousClock) private var clock
         @Dependency(\.managingConversationUsecase) private var managingConversationUsecase
 
         var body: some ReducerOf<Self> {
@@ -27,7 +28,7 @@ extension ConversationDetailScreen.Root {
                         return .none
 
                     case .notes(.delegate(.conversationUpdated(let conversation))):
-                        state.conversation = conversation
+                        state.conversation?.noteIds = conversation.noteIds
                         return .none
 
                     case .playbackPanel(.delegate(.failed(let failure))):
@@ -46,13 +47,31 @@ extension ConversationDetailScreen.Root {
 
                     case .conversationUpdateRequested(let conversation):
                         state.conversation = conversation
-                        return .run { _ in
-                            try await Task.sleep(for: .seconds(1))
-                            try await managingConversationUsecase.update(conversation)
+                        state.conversationUpdateRevision += 1
+                        let revision = state.conversationUpdateRevision
+                        return .run { send in
+                            try await clock.sleep(for: .seconds(1))
+                            await send(.conversationPersistenceRequested(
+                                revision: revision,
+                                conversation: conversation
+                            ))
                         }
                         .cancellable(
                             id: CancelID.update,
                             cancelInFlight: true
+                        )
+
+                    case .conversationPersistenceRequested(
+                        let revision,
+                        let conversation
+                    ):
+                        guard !state.isPersistingConversation else {
+                            return .none
+                        }
+                        state.isPersistingConversation = true
+                        return persist(
+                            revision: revision,
+                            conversation: conversation
                         )
 
                     case .notes, .playbackPanel, .noteDetail, .alert:
@@ -88,11 +107,24 @@ extension ConversationDetailScreen.Root.Feature {
                 )
 
             case .disappeared:
-                return .merge(
+                let persistence: Effect<Action> = if let conversation = state.conversation,
+                                                     state.persistedConversationRevision
+                                                     < state.conversationUpdateRevision {
+                    .send(.conversationPersistenceRequested(
+                        revision: state.conversationUpdateRevision,
+                        conversation: conversation
+                    ))
+                } else {
+                    .none
+                }
+                return .concatenate(
                     .cancel(id: CancelID.loadConversation),
                     .cancel(id: CancelID.update),
-                    .send(.notes(.cancel)),
-                    .send(.playbackPanel(.finish))
+                    .merge(
+                        persistence,
+                        .send(.notes(.cancel)),
+                        .send(.playbackPanel(.finish))
+                    )
                 )
 
             case .titleChanged(let title):
@@ -157,6 +189,54 @@ extension ConversationDetailScreen.Root.Feature {
             case .conversationLoaded(.failure):
                 state.conversationLoadFailed = true
                 return .none
+
+            case .conversationPersisted(let revision, .success):
+                state.isPersistingConversation = false
+                state.persistedConversationRevision = max(
+                    state.persistedConversationRevision,
+                    revision
+                )
+                return persistLatestConversationIfNeeded(
+                    after: revision,
+                    state: state
+                )
+
+            case .conversationPersisted(let revision, .failure):
+                state.isPersistingConversation = false
+                return persistLatestConversationIfNeeded(
+                    after: revision,
+                    state: state
+                )
+        }
+    }
+
+    private func persistLatestConversationIfNeeded(
+        after revision: Int,
+        state: State
+    ) -> Effect<Action> {
+        guard
+            let conversation = state.conversation,
+            revision < state.conversationUpdateRevision
+        else {
+            return .none
+        }
+        return .send(.conversationPersistenceRequested(
+            revision: state.conversationUpdateRevision,
+            conversation: conversation
+        ))
+    }
+
+    private func persist(
+        revision: Int,
+        conversation: Conversation
+    ) -> Effect<Action> {
+        .run { send in
+            await send(.response(.conversationPersisted(
+                revision: revision,
+                TaskResult {
+                    try await managingConversationUsecase.update(conversation)
+                }
+            )))
         }
     }
 
@@ -174,6 +254,9 @@ extension ConversationDetailScreen.Root.Feature {
         let conversationID: Conversation.ID
         var conversation: Conversation?
         var conversationLoadFailed = false
+        var conversationUpdateRevision = 0
+        var persistedConversationRevision = 0
+        var isPersistingConversation = false
         var partyInput = ""
         var isEditing = false
         var notes: ConversationDetailScreen.Notes.Feature.State
@@ -192,6 +275,10 @@ extension ConversationDetailScreen.Root.Feature {
         case view(View)
         case response(Response)
         case conversationUpdateRequested(Conversation)
+        case conversationPersistenceRequested(
+            revision: Int,
+            conversation: Conversation
+        )
         case notes(ConversationDetailScreen.Notes.Feature.Action)
         case playbackPanel(ConversationDetailScreen.PlaybackPanel.Feature.Action)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
@@ -212,6 +299,10 @@ extension ConversationDetailScreen.Root.Feature {
         @CasePathable
         enum Response {
             case conversationLoaded(Result<Conversation?, DomainError>)
+            case conversationPersisted(
+                revision: Int,
+                TaskResult<Void>
+            )
         }
 
         enum Alert: Equatable {}

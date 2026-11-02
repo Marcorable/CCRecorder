@@ -163,6 +163,40 @@ extension ManagingConversationUsecaseTests {
         }
     }
 
+    @Test("정보 수정은 최신 Note 연결을 유지한다")
+    func updatePreservesLatestNoteReferences() async throws {
+        // given
+        let noteID = UUID()
+        let stored = conversation(noteIds: [noteID])
+        await conversationRepository.setConversations([stored])
+        var editingItem = stored
+        editingItem.title = "수정된 제목"
+        editingItem.noteIds = []
+
+        // when
+        try await usecase.update(editingItem)
+
+        // then
+        let updated = try #require(await conversationRepository.updatedConversation())
+        #expect(updated.title == "수정된 제목")
+        #expect(updated.noteIds == [noteID])
+    }
+
+    @Test("존재하지 않는 Conversation 수정은 Usecase 오류를 유지한다")
+    func updateMissingConversationThrowsUsecaseError() async {
+        // given
+        let conversation = conversation()
+
+        // when, then
+        do {
+            try await usecase.update(conversation)
+            Issue.record("Conversation 없음 오류를 던져야 합니다.")
+        } catch DomainError.managingConversationUsecase(.conversationNotFound) {
+        } catch {
+            Issue.record("Usecase 오류를 그대로 전달해야 합니다.")
+        }
+    }
+
     @Test("Note를 삭제하면 Conversation 연결도 제거한다")
     func deleteNotesRemovesConversationReferences() async throws {
         // given
@@ -223,6 +257,12 @@ private extension ManagingConversationUsecaseTests {
                 throw updateError
             }
             updated = conversation
+            guard let index = conversations.firstIndex(where: {
+                $0.id == conversation.id
+            }) else {
+                return
+            }
+            conversations[index] = conversation
         }
 
         func delete(ids: [UUID]) throws {}
