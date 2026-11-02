@@ -4,10 +4,6 @@ import ProjectDescriptionHelpers
 
 let packages: [Package] = [
     .remote(
-        url: "https://github.com/Marcorable/marcorable-mvvm.git",
-        requirement: .exact("0.2.0")
-    ),
-    .remote(
         url: "https://github.com/pointfreeco/swift-composable-architecture",
         requirement: .exact("1.26.1")
     ),
@@ -45,9 +41,14 @@ let dataTests = Target.tests(
 
 let presentation = Target.module(
     name: "Presentation",
-    buildableFolders: ["Presentation/Sources"],
+    product: .staticFramework,
+    buildableFolders: [
+        "Presentation/Sources",
+        "Presentation/Resources",
+    ],
     dependencies: [
         .target(name: "Domain"),
+        .package(product: "ComposableArchitecture"),
         .package(product: "Dependencies"),
         .package(product: "DependenciesMacros"),
         .package(product: "IssueReporting"),
@@ -84,14 +85,12 @@ let app = Target.target(
         .target(name: "Presentation"),
         .target(name: "Domain"),
         .target(name: "Data"),
-        .package(product: "NavigationCoordinator"),
-        .package(product: "ComposableArchitecture"),
     ],
     settings: .settings(
         base: [
             "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
-            "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
             "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
+            "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "",
             "DEVELOPMENT_ASSET_PATHS": "\"App/Resources/Preview Content\"",
             "DEVELOPMENT_TEAM": "9486RJPBM5",
             "ENABLE_PREVIEWS": "YES",
@@ -107,6 +106,7 @@ let tests = Target.tests(
     buildableFolders: ["Tests/Unit"],
     dependencies: [
         .target(name: "CCRecorder"),
+        .target(name: "Presentation"),
     ]
 )
 

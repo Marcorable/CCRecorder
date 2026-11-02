@@ -28,12 +28,10 @@ UserInterface/
     ├── Screen.swift                    # 라우트
     ├── Main/
     │   ├── MainScreen.swift
-    │   ├── MainScreen.Root.swift
     │   └── TabBar/
     │       └── MainScreen.TabBar.swift
     ├── ConversationList/
     │   ├── ConversationListScreen.swift
-    │   ├── ConversationListScreen.Root.swift
     │   └── Board/                      # 한 화면에서만 쓴다
     │       ├── ConversationListScreen.Board.swift
     │       └── ConversationListScreen.Board.Row.swift
@@ -117,7 +115,7 @@ struct NoteList: View {
 두 번째 화면에서 쓰게 될 때 컴포넌트로 옮긴다.
 `<Name>Screen.<Sub>` 로 중첩하고, 화면 폴더 아래 **서브뷰 이름의 폴더** `Screens/<Name>/<Sub>/` 에 둔다 (`agent-common/marcorable-swiftui/rules/swiftui/view-composition.md`).
 
-- `Subview/` 같은 중간 폴더를 두지 않는다. 화면 파일은 `<Name>Screen.swift`, `<Name>Screen.Root.swift`처럼 파일명으로 구분되므로 서브뷰 폴더와 섞이지 않는다
+- `Subview/` 같은 중간 폴더를 두지 않는다. 화면 파일은 `<Name>Screen.swift`로 구분되므로 서브뷰 폴더와 섞이지 않는다
 - 파일이 하나뿐인 서브뷰도 폴더를 둔다
 - 서브뷰에 중첩된 하위 View(`Board.Row`)와 값 타입(`PlaybackPanel.Speed`)은 그 서브뷰 폴더 안에 파일로 둔다. 폴더를 더 만들지 않는다
 
@@ -125,7 +123,6 @@ struct NoteList: View {
 // ✅
 Screens/ConversationDetail/
 ├── ConversationDetailScreen.swift
-├── ConversationDetailScreen.Root.swift
 └── PlaybackPanel/
     ├── ConversationDetailScreen.PlaybackPanel.swift
     ├── ConversationDetailScreen.PlaybackPanel.Speed.swift

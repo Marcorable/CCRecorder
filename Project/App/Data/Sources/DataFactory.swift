@@ -4,21 +4,20 @@ import SwiftData
 import Domain
 
 public enum DataFactory {
-    private static var modelContainer: ModelContainer!
+    @MainActor private weak static var conversationRepository: ConversationRepositoryConcrete?
+    @MainActor private weak static var noteRepository: NoteRepositoryConcrete?
+    @MainActor private weak static var partyRepository: PartyRepositoryConcrete?
 }
 
 extension DataFactory {
 
-    public static func setup(
-        _ isStoredInMemoryOnly: Bool
-    ) throws {
-        self.modelContainer = try ModelContainer(
-            for: Note.Record.self,
-            Conversation.Record.self,
-            Party.Record.self,
-            configurations: .init(
-                isStoredInMemoryOnly: isStoredInMemoryOnly
-            )
+    public static func setup() -> Schema {
+        .init(
+            [
+                Note.Record.self,
+                Conversation.Record.self,
+                Party.Record.self
+            ]
         )
     }
 
@@ -26,20 +25,50 @@ extension DataFactory {
 
 extension DataFactory {
 
-    public static func makeRecordFileRepository() -> RecordFileRepository {
-        RecordFileRepositoryConcrete()
+    public static func recordFileRepository() -> RecordFileRepository {
+        RecordFileRepositoryConcrete(
+            fileManager: .default,
+            baseURL: nil
+        )
     }
 
-    public static func makeNoteRepository() -> NoteRepository {
-        NoteRepositoryConcrete(modelContainer: modelContainer)
+    @MainActor
+    public static func noteRepository(
+        modelContainer: ModelContainer
+    ) -> NoteRepository {
+        if let repository = noteRepository {
+            return repository
+        } else {
+            let repository = NoteRepositoryConcrete(modelContainer: modelContainer)
+            self.noteRepository = repository
+            return repository
+        }
     }
 
-    public static func makeConversationRepository() -> ConversationRepository {
-        ConversationRepositoryConcrete(modelContainer: modelContainer)
+    @MainActor
+    public static func conversationRepository(
+        modelContainer: ModelContainer
+    ) -> ConversationRepository {
+        if let repository = conversationRepository {
+            return repository
+        } else {
+            let repository = ConversationRepositoryConcrete(modelContainer: modelContainer)
+            self.conversationRepository = repository
+            return repository
+        }
     }
 
-    public static func makePartyRepository() -> PartyRepository {
-        PartyRepositoryConcrete(modelContainer: modelContainer)
+    @MainActor
+    public static func partyRepository(
+        modelContainer: ModelContainer
+    ) -> PartyRepository {
+        if let repository = partyRepository {
+            return repository
+        } else {
+            let repository = PartyRepositoryConcrete(modelContainer: modelContainer)
+            self.partyRepository = repository
+            return repository
+        }
     }
 
 }

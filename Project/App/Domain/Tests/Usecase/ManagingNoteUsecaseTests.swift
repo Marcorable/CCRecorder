@@ -59,6 +59,9 @@ extension ManagingNoteUsecaseTests {
 
             case .failure(.data(let error)):
                 #expect(error is TestError)
+
+            case .failure:
+                Issue.record("Data 오류를 반환해야 합니다.")
         }
     }
 
@@ -114,6 +117,9 @@ extension ManagingNoteUsecaseTests {
 
             case .failure(.data(let error)):
                 #expect(error is TestError)
+
+            case .failure:
+                Issue.record("Data 오류를 반환해야 합니다.")
         }
     }
 

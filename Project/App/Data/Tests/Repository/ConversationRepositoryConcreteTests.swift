@@ -2,25 +2,22 @@
 import Testing
 import Foundation
 
-import Data
 import Domain
+@testable import Data
 
-extension DataRepositoryTests {
+@Suite("Conversation 저장소")
+@MainActor
+struct ConversationRepositoryConcreteTests {
+    private let repository: any ConversationRepository
 
-    @Suite("Conversation 저장소")
-    @MainActor
-    struct ConversationRepositoryConcreteTests {
-        private let repository: any ConversationRepository
-
-        init() throws {
-            try DataFactory.setup(true)
-            self.repository = DataFactory.makeConversationRepository()
-        }
+    init() throws {
+        self.repository = ConversationRepositoryConcrete(
+            modelContainer: try makeTestModelContainer()
+        )
     }
-
 }
 
-extension DataRepositoryTests.ConversationRepositoryConcreteTests {
+extension ConversationRepositoryConcreteTests {
 
     @Test("저장된 Conversation이 없으면 빈 목록을 반환한다")
     func readReturnsEmptyWhenNoConversationExists() async throws {

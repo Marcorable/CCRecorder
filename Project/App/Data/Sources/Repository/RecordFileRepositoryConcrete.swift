@@ -3,7 +3,7 @@ import Foundation
 
 import Domain
 
-actor RecordFileRepositoryConcrete {
+final actor RecordFileRepositoryConcrete {
     private static let directoryName: String = "Record"
     private static let fileExtension: String = "m4a"
 
@@ -12,8 +12,8 @@ actor RecordFileRepositoryConcrete {
     private let now: @Sendable () -> Date
 
     init(
-        fileManager: FileManager = .default,
-        baseURL: URL? = nil,
+        fileManager: FileManager,
+        baseURL: URL?,
         now: @escaping @Sendable () -> Date = { .init() }
     ) {
         let documentURL = baseURL ?? fileManager.urls(

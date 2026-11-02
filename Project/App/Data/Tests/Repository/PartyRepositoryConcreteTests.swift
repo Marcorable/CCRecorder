@@ -1,25 +1,22 @@
 
 import Testing
 
-import Data
 import Domain
+@testable import Data
 
-extension DataRepositoryTests {
+@Suite("Party 저장소")
+@MainActor
+struct PartyRepositoryConcreteTests {
+    private let repository: any PartyRepository
 
-    @Suite("Party 저장소")
-    @MainActor
-    struct PartyRepositoryConcreteTests {
-        private let repository: any PartyRepository
-
-        init() throws {
-            try DataFactory.setup(true)
-            self.repository = DataFactory.makePartyRepository()
-        }
+    init() throws {
+        self.repository = PartyRepositoryConcrete(
+            modelContainer: try makeTestModelContainer()
+        )
     }
-
 }
 
-extension DataRepositoryTests.PartyRepositoryConcreteTests {
+extension PartyRepositoryConcreteTests {
 
     @Test("저장된 Party가 없으면 빈 목록을 반환한다")
     func readReturnsEmptyWhenNoPartyExists() async throws {

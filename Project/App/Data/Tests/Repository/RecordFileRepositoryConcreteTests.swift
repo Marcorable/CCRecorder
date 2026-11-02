@@ -4,37 +4,34 @@ import Foundation
 
 @testable import Data
 
-extension DataRepositoryTests {
+@Suite("녹음 파일 저장소")
+struct RecordFileRepositoryConcreteTests {
+    private let baseURL: URL
+    private let repository: RecordFileRepositoryConcrete
 
-    @Suite("녹음 파일 저장소")
-    struct RecordFileRepositoryConcreteTests {
-        private let baseURL: URL
-        private let repository: RecordFileRepositoryConcrete
-
-        init() throws {
-            let baseURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(
-                    UUID().uuidString,
-                    isDirectory: true
-                )
-            try FileManager.default.createDirectory(
-                at: baseURL,
-                withIntermediateDirectories: true
+    init() throws {
+        let baseURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(
+                UUID().uuidString,
+                isDirectory: true
             )
+        try FileManager.default.createDirectory(
+            at: baseURL,
+            withIntermediateDirectories: true
+        )
 
-            self.baseURL = baseURL
-            self.repository = .init(
-                baseURL: baseURL,
-                now: {
-                    Date(timeIntervalSince1970: 1_798_000_509)
-                }
-            )
-        }
+        self.baseURL = baseURL
+        self.repository = .init(
+            fileManager: .default,
+            baseURL: baseURL,
+            now: {
+                Date(timeIntervalSince1970: 1_798_000_509)
+            }
+        )
     }
-
 }
 
-extension DataRepositoryTests.RecordFileRepositoryConcreteTests {
+extension RecordFileRepositoryConcreteTests {
 
     @Test("새 녹음 파일 URL을 생성하며 디렉토리를 준비한다")
     func makeRecordingURLPreparesDirectory() async throws {
@@ -85,7 +82,7 @@ extension DataRepositoryTests.RecordFileRepositoryConcreteTests {
 
 }
 
-private extension DataRepositoryTests.RecordFileRepositoryConcreteTests {
+private extension RecordFileRepositoryConcreteTests {
 
     func cleanUp() {
         try? FileManager.default.removeItem(at: baseURL)

@@ -5,7 +5,7 @@ import Foundation
 import Domain
 
 @ModelActor
-actor ConversationRepositoryConcrete {}
+final actor ConversationRepositoryConcrete {}
 
 extension ConversationRepositoryConcrete: ConversationRepository {
 

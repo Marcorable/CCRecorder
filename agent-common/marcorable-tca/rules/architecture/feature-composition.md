@@ -8,9 +8,7 @@ paths:
 화면은 `<Name>Screen` 네임스페이스 아래 `Root`와 `Root.Feature`로 구성한다. 화면 안에서만 쓰는 타입은 사용하는 State 또는 Feature에 중첩한다.
 
 ```swift
-enum RecordScreen {}
-
-extension RecordScreen {
+enum RecordScreen {
 
     struct Root: View {
         let store: StoreOf<Feature>
