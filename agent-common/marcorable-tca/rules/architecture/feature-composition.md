@@ -51,6 +51,32 @@ extension RecordScreen.Root.Feature {
 - 화면 밖에서도 재사용하는 Entity·Usecase·Repository 타입은 Screen에 중첩하지 않는다
 - State initializer가 저장 프로퍼티를 그대로 대입하기만 하면 프로퍼티 기본값과 합성 initializer를 사용한다
 
+## Root Feature 책임
+
+`<Name>Screen.Root.Feature`는 화면 전체를 조정하는 경계다. 모든 하위 업무를 직접 처리하는 단일 Feature로 만들지 않는다.
+
+Root는 다음 책임을 소유한다.
+
+- 화면을 구성하는 Child Feature의 State와 `Scope`
+- sheet·fullScreenCover·alert 같은 presentation
+- navigation과 화면 진입·종료
+- 최초 데이터 조회와 그 결과에 따른 Child Feature 구성
+- 둘 이상의 Child Feature가 함께 관여하는 상위 시나리오
+
+하위 View에서 발생하는 주 업무는 해당 영역의 Child Feature가 소유한다. Child Feature는 부모 Store가 생성될 때 캡처한 Dependency를 상속하므로, Root가 Dependency 호출을 대신 전달하지 않는다.
+
+- 재생 영역은 재생 State, 제어 Action, ticker Effect와 취소 범위를 소유한다
+- 검색 영역은 검색어, 결과, 검색 Effect와 실패 상태를 소유한다
+- 입력 영역은 입력값, 검증, 저장 Action과 응답을 소유한다
+
+Root는 Child Feature의 의미 있는 완료·선택 같은 사건만 `delegate`로 받아 화면 전체 흐름에 반영한다. Child의 내부 Action과 Dependency 응답을 Root Action으로 중계하지 않는다.
+
+Entity 하나를 Root와 여러 Child State에 복제해 동기화하지 않는다. 화면 전체에서 공유하는 Source of Truth가 필요하면 다음 순서로 경계를 정한다.
+
+1. Entity의 실제 변경 업무를 소유하는 Feature 한 곳을 정한다.
+2. 다른 Child에는 ID나 필요한 불변 입력만 전달한다.
+3. 여러 Child가 항상 같은 Entity 전체를 변경해야 한다면 억지로 분리하지 않고 Root 소유를 유지한다.
+
 ## 하위 View와 Child Feature
 
 하위 View가 부모 상태를 표시하고 부모 Action만 보낸다면 부모 Store를 전달한다. 중간 List가 있더라도 별도 상태와 생명주기가 없다면 Store 전달만 담당하고 Feature를 추가하지 않는다.
@@ -72,6 +98,8 @@ Scope(
 ```
 
 Child Feature 분리는 View 계층의 깊이가 아니라 상태와 생명주기의 소유권으로 결정한다.
+
+View 구조와 Feature 구조는 일치하지 않아도 된다. 여러 하위 View가 하나의 업무 상태를 함께 사용하면 동일한 Child Store를 각각 scope해 전달한다. 예를 들어 입력창과 목록이 모두 노트 업무에 속하면 서로 다른 View여도 하나의 `NotesFeature`가 소유할 수 있다.
 
 ## Navigation 컨테이너와 화면
 

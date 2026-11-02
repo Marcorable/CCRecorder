@@ -63,7 +63,7 @@ extension ManagingConversationUsecaseTests {
     @Test("Conversation 조회에 실패하면 Data 오류를 반환한다")
     func conversationReturnsDataErrorWhenRepositoryFails() async {
         // given
-        await conversationRepository.setError(.failed)
+        await conversationRepository.setReadError(.failed)
 
         // when
         let result = await usecase.conversation(id: .init())
@@ -92,9 +92,10 @@ extension ManagingConversationUsecaseTests {
         )
         await noteRepository.setNotes([second, first])
         let conversation = conversation(noteIds: [first.id, second.id])
+        await conversationRepository.setConversations([conversation])
 
         // when
-        let notes = try await usecase.notes(of: conversation).get()
+        let notes = try await usecase.notes(conversationID: conversation.id).get()
 
         // then
         #expect(notes.map(\.id) == [first.id, second.id])
@@ -104,11 +105,12 @@ extension ManagingConversationUsecaseTests {
     func addNoteCreatesEnglishNote() async throws {
         // given
         let conversation = conversation()
+        await conversationRepository.setConversations([conversation])
 
         // when
         let updated = try await usecase.addNote(
             content: "Nice to meet you",
-            to: conversation
+            to: conversation.id
         )
 
         // then
@@ -123,10 +125,14 @@ extension ManagingConversationUsecaseTests {
 
     @Test("한글 Note를 번역 값으로 생성한다")
     func addNoteCreatesKoreanTranslation() async throws {
+        // given
+        let conversation = conversation()
+        await conversationRepository.setConversations([conversation])
+
         // when
         _ = try await usecase.addNote(
             content: "반가워요",
-            to: conversation()
+            to: conversation.id
         )
 
         // then
@@ -139,13 +145,15 @@ extension ManagingConversationUsecaseTests {
     @Test("Conversation 연결에 실패하면 생성한 Note를 제거한다")
     func addNoteRemovesNoteWhenConversationUpdateFails() async {
         // given
-        await conversationRepository.setError(.failed)
+        let conversation = conversation()
+        await conversationRepository.setConversations([conversation])
+        await conversationRepository.setUpdateError(.failed)
 
         // when
         do {
             _ = try await usecase.addNote(
                 content: "Hello",
-                to: conversation()
+                to: conversation.id
             )
             Issue.record("Data 오류를 던져야 합니다.")
         } catch {
@@ -161,11 +169,12 @@ extension ManagingConversationUsecaseTests {
         let deletedID = UUID()
         let remainingID = UUID()
         let conversation = conversation(noteIds: [deletedID, remainingID])
+        await conversationRepository.setConversations([conversation])
 
         // when
         let updated = try await usecase.deleteNotes(
             ids: [deletedID],
-            from: conversation
+            from: conversation.id
         )
 
         // then
@@ -194,7 +203,8 @@ private extension ManagingConversationUsecaseTests {
     }
 
     actor ConversationRepositorySpy: ConversationRepository {
-        private var error: TestError?
+        private var readError: TestError?
+        private var updateError: TestError?
         private var updated: Conversation?
         private var conversations: [Conversation] = []
 
@@ -202,23 +212,27 @@ private extension ManagingConversationUsecaseTests {
         func read() throws -> [Conversation] { conversations }
 
         func read(id: Conversation.ID) throws -> Conversation? {
-            if let error {
-                throw error
+            if let readError {
+                throw readError
             }
             return conversations.first(where: { $0.id == id })
         }
 
         func update(_ conversation: Conversation) throws {
-            if let error {
-                throw error
+            if let updateError {
+                throw updateError
             }
             updated = conversation
         }
 
         func delete(ids: [UUID]) throws {}
 
-        func setError(_ error: TestError) {
-            self.error = error
+        func setReadError(_ error: TestError) {
+            readError = error
+        }
+
+        func setUpdateError(_ error: TestError) {
+            updateError = error
         }
 
         func setConversations(_ conversations: [Conversation]) {

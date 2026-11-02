@@ -5,7 +5,6 @@ import Presentation
 
 @main
 struct CCRecorderApp: App {
-    @AppStorage(.displayMode) private var displayMode: DisplayMode = .system
     @AppStorage(.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
 
     enum Status {
@@ -35,7 +34,6 @@ struct CCRecorderApp: App {
 
                 case .launched:
                     PresentationFactory.rootStack
-                        .preferredColorScheme(userColorScheme)
                         .onChange(of: isIdleTimerDisabled, initial: true) {
                             UIApplication.shared.isIdleTimerDisabled = isIdleTimerDisabled
                         }
@@ -45,21 +43,4 @@ struct CCRecorderApp: App {
             }
         }
     }
-}
-
-extension CCRecorderApp {
-
-    private var userColorScheme: ColorScheme? {
-        switch displayMode {
-            case .system:
-                nil
-
-            case .light:
-                .light
-
-            case .dark:
-                .dark
-        }
-    }
-
 }

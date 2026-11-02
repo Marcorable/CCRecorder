@@ -37,9 +37,14 @@ extension ConversationDetailScreenPresentationTests {
         await store.receive(\.response.conversationLoaded) {
             $0.conversation = conversation
         }
-        await store.receive(\.response.notesLoaded)
-        await store.receive(\.response.playbackPrepared) {
-            $0.playbackFailure = .prepareFailed
+        await store.receive(\.notes.load)
+        await store.receive(\.playbackPanel.prepare)
+        await store.receive(\.notes.response.notesLoaded)
+        await store.receive(\.playbackPanel.response.prepared)
+        await store.receive(\.playbackPanel.delegate.failed) {
+            $0.alert = .playbackFailed(
+                message: "녹음 파일을 준비하지 못했습니다"
+            )
         }
     }
 
@@ -49,7 +54,8 @@ extension ConversationDetailScreenPresentationTests {
         let store = makeStore()
 
         // when, then
-        await store.send(.view(.noteSelected(note.id))) {
+        await store.send(.notes(.view(.noteSelected(note.id))))
+        await store.receive(\.notes.delegate.noteSelected) {
             $0.noteDetail = .init(noteID: note.id)
         }
     }
@@ -71,8 +77,9 @@ extension ConversationDetailScreenPresentationTests {
         await store.send(.noteDetail(.dismiss)) {
             $0.noteDetail = nil
         }
-        await store.receive(\.response.notesLoaded) {
-            $0.notes = [note]
+        await store.receive(\.notes.load)
+        await store.receive(\.notes.response.notesLoaded) {
+            $0.notes.notes = [note]
         }
     }
 
@@ -94,8 +101,8 @@ private extension ConversationDetailScreenPresentationTests {
                     notes: { _ in .success(notes) },
                     update: { _ in },
                     deleteConversations: { _ in .success(()) },
-                    addNote: { _, conversation in conversation },
-                    deleteNotes: { _, conversation in conversation }
+                    addNote: { _, _ in conversation },
+                    deleteNotes: { _, _ in conversation }
                 )
                 $0.playingRecordUsecase.prepare = { _ in
                     throw TestError.failed

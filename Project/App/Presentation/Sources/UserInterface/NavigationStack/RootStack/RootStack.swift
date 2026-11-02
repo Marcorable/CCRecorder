@@ -4,30 +4,10 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RootStack: View {
+    @AppStorage(.displayMode) private var displayMode: DisplayMode = .system
+
     @State private var viewModel: ViewModel = .init()
     @State private var conversationReloadID = 0
-    private var client: Client {
-        .init(
-            push: {
-                await viewModel.push([$0])
-            },
-            pushContentsOf: {
-                await viewModel.push($0)
-            },
-            pop: {
-                await viewModel.pop(1)
-            },
-            pops: {
-                await viewModel.pop($0)
-            },
-            popToRoot: {
-                await viewModel.popToRoot()
-            },
-            reStack: {
-                await viewModel.restack($0)
-            }
-        )
-    }
 
     var body: some View {
         NavigationStack(
@@ -46,6 +26,7 @@ struct RootStack: View {
                 }
             }
         )
+        .preferredColorScheme(userColorScheme)
         .environment(viewModel)
         .onChange(of: viewModel.paths) { oldValue, newValue in
             guard
@@ -80,6 +61,46 @@ struct RootStack: View {
 
         func restack(_ routes: [Route]) {
             self.paths = routes
+        }
+    }
+
+}
+
+private extension RootStack {
+
+    var client: Client {
+        .init(
+            push: {
+                await viewModel.push([$0])
+            },
+            pushContentsOf: {
+                await viewModel.push($0)
+            },
+            pop: {
+                await viewModel.pop(1)
+            },
+            pops: {
+                await viewModel.pop($0)
+            },
+            popToRoot: {
+                await viewModel.popToRoot()
+            },
+            reStack: {
+                await viewModel.restack($0)
+            }
+        )
+    }
+
+    var userColorScheme: ColorScheme? {
+        switch displayMode {
+            case .system:
+                nil
+
+            case .light:
+                .light
+
+            case .dark:
+                .dark
         }
     }
 
