@@ -5,6 +5,7 @@ import ComposableArchitecture
 
 struct RootStack: View {
     @State private var viewModel: ViewModel = .init()
+    @State private var conversationReloadID = 0
     private var client: Client {
         .init(
             push: {
@@ -34,7 +35,8 @@ struct RootStack: View {
             root: {
                 Factory.make(
                     by: .main,
-                    with: client
+                    with: client,
+                    conversationReloadID: conversationReloadID
                 )
                 .navigationDestination(for: Route.self) { route in
                     Factory.make(
@@ -45,6 +47,15 @@ struct RootStack: View {
             }
         )
         .environment(viewModel)
+        .onChange(of: viewModel.paths) { oldValue, newValue in
+            guard
+                oldValue.count > newValue.count,
+                case .conversationDetail? = oldValue.last
+            else {
+                return
+            }
+            conversationReloadID += 1
+        }
     }
 
     @MainActor

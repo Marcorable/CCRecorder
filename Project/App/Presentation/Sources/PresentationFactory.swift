@@ -59,11 +59,13 @@ extension PresentationFactory {
     @ViewBuilder
     static func make(
         by route: RootStack.Route,
-        with navigator: RootStack.Client
+        with navigator: RootStack.Client,
+        conversationReloadID: Int = 0
     ) -> some View {
         switch route {
             case .main:
                 MainScreen.Root(
+                    conversationReloadID: conversationReloadID,
                     store: .init(
                         initialState: .init(),
                         reducer: {
