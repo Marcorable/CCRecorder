@@ -8,7 +8,7 @@ extension MainScreen.ConversationList {
 
     @Reducer
     struct Feature {
-        let managingConversationUsecase: ManagingConversationUsecase
+        @Dependency(\.managingConversationUsecase) private var managingConversationUsecase
 
         var body: some ReducerOf<Self> {
             Reduce { state, action in
@@ -59,10 +59,10 @@ extension MainScreen.ConversationList.Feature {
                 )
 
             case .conversationTapped(let id):
-                guard let conversation = state.conversations?.first(where: { $0.id == id }) else {
+                guard state.conversations?.contains(where: { $0.id == id }) == true else {
                     return .none
                 }
-                return .send(.delegate(.conversationSelected(conversation)))
+                return .send(.delegate(.conversationSelected(id)))
 
             case .deleteRequested(let offsets):
                 guard let conversations = state.conversations else {
@@ -158,7 +158,7 @@ extension MainScreen.ConversationList.Feature {
 
         @CasePathable
         enum Delegate {
-            case conversationSelected(Conversation)
+            case conversationSelected(Conversation.ID)
             case loadFailed
             case deleteFailed
         }

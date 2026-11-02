@@ -31,6 +31,7 @@ extension MainScreen {
                     )
                 }
             }
+            .accessibilityIdentifier("main.noteList")
             .navigationTitle("Note")
             .task {
                 await store.send(.view(.task)).finish()

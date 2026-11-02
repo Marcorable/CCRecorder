@@ -20,6 +20,24 @@ struct ManagingNoteUsecaseTests {
 
 extension ManagingNoteUsecaseTests {
 
+    @Test("ID에 해당하는 Note를 반환한다")
+    func noteReturnsMatchingNote() async throws {
+        // given
+        let note = Note(
+            createdDate: .init(),
+            original: "Hello",
+            translation: "안녕",
+            category: .vocabulary
+        )
+        await repository.setNotes([note])
+
+        // when
+        let result = try await usecase.note(id: note.id).get()
+
+        // then
+        #expect(result == note)
+    }
+
     @Test("저장된 Note 목록을 불러온다")
     func loadNotesReturnsRepositoryNotes() async {
         // given
@@ -148,6 +166,13 @@ private extension ManagingNoteUsecaseTests {
                 throw error
             }
             return notes
+        }
+
+        func read(id: Note.ID) throws -> Note? {
+            if let error {
+                throw error
+            }
+            return notes.first(where: { $0.id == id })
         }
 
         func update(_ note: Note) throws {

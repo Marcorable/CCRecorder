@@ -57,22 +57,22 @@ extension AppStorage {
 
 extension UserDefaults {
 
-    public func bool(forKey key: Key) -> Bool {
-        bool(forKey: key.rawValue)
-    }
+//    public func bool(forKey key: Key) -> Bool {
+//        bool(forKey: key.rawValue)
+//    }
 
-    public func set(
-        _ value: Bool,
-        forKey key: Key
-    ) {
-        set(
-            value,
-            forKey: key.rawValue
-        )
-    }
-
-    public func removeObject(forKey key: Key) {
-        removeObject(forKey: key.rawValue)
-    }
+//    public func set(
+//        _ value: Bool,
+//        forKey key: Key
+//    ) {
+//        set(
+//            value,
+//            forKey: key.rawValue
+//        )
+//    }
+//
+//    public func removeObject(forKey key: Key) {
+//        removeObject(forKey: key.rawValue)
+//    }
 
 }

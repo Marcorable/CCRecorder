@@ -8,8 +8,7 @@ extension NoteDetailScreen.Root {
     @Reducer
     struct Feature {
         @Dependency(\.dismiss) private var dismiss
-
-        let managingNoteUsecase: ManagingNoteUsecase
+        @Dependency(\.managingNoteUsecase) private var managingNoteUsecase
 
         var body: some ReducerOf<Self> {
             BindingReducer()
@@ -18,12 +17,19 @@ extension NoteDetailScreen.Root {
                     case .binding:
                         return .none
 
+                    case .view(.appeared):
+                        let id = state.noteID
+                        return .run { send in
+                            await send(.response(.noteLoaded(
+                                await managingNoteUsecase.note(id)
+                            )))
+                        }
+
                     case .view(.saveButtonTapped):
-                        guard state.isAbleToSave else {
+                        guard state.isAbleToSave, let note = state.noteForSaving else {
                             return .none
                         }
                         state.isSaving = true
-                        let note = state.noteForSaving
                         return .run { send in
                             await send(
                                 .response(
@@ -33,6 +39,17 @@ extension NoteDetailScreen.Root {
                                 )
                             )
                         }
+
+                    case .response(.noteLoaded(.success(let note))):
+                        state.note = note
+                        state.noteLoadFailed = note == nil
+                        state.original = note?.original ?? ""
+                        state.translation = note?.translation ?? ""
+                        return .none
+
+                    case .response(.noteLoaded(.failure)):
+                        state.noteLoadFailed = true
+                        return .none
 
                     case .response(.noteUpdated(.success)):
                         return .run { _ in
@@ -60,25 +77,26 @@ extension NoteDetailScreen.Root.Feature {
     struct State: Equatable {
         @Presents var alert: AlertState<Action.Alert>?
 
-        let note: Note
-        var original: String
-        var translation: String
+        let noteID: Note.ID
+        var note: Note?
+        var noteLoadFailed = false
+        var original: String = ""
+        var translation: String = ""
         var isSaving: Bool = false
 
-        init(note: Note) {
-            self.note = note
-            self.original = note.original
-            self.translation = note.translation
-        }
-
         var isAbleToSave: Bool {
+            guard let note else {
+                return false
+            }
             let isEdited = original != note.original || translation != note.translation
             let isEmpty = original.isEmpty && translation.isEmpty
             return isEdited && !isEmpty && !isSaving
         }
 
-        var noteForSaving: Note {
-            var note = note
+        var noteForSaving: Note? {
+            guard var note else {
+                return nil
+            }
             note.original = original
             note.translation = translation
             note.category = category
@@ -103,11 +121,13 @@ extension NoteDetailScreen.Root.Feature {
 
         @CasePathable
         enum View {
+            case appeared
             case saveButtonTapped
         }
 
         @CasePathable
         enum Response {
+            case noteLoaded(Result<Note?, DomainError>)
             case noteUpdated(Result<Void, DomainError>)
         }
 
@@ -138,9 +158,7 @@ extension NoteDetailScreen.Root.Feature {
 
     @MainActor
     static var preview: Self {
-        .init(
-            managingNoteUsecase: FakeManagingNoteUsecase()
-        )
+        .init()
     }
 
 }

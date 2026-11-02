@@ -8,7 +8,7 @@ extension MainScreen.NoteList {
 
     @Reducer
     struct Feature {
-        let managingNoteUsecase: ManagingNoteUsecase
+        @Dependency(\.managingNoteUsecase) private var managingNoteUsecase
 
         var body: some ReducerOf<Self> {
             Reduce { state, action in
@@ -18,6 +18,9 @@ extension MainScreen.NoteList {
 
                     case .response(let action):
                         return reduce(into: &state, action: action)
+
+                    case .noteDetailDismissed:
+                        return loadNotes(into: &state)
 
                     case .delegate:
                         return .none
@@ -45,10 +48,10 @@ extension MainScreen.NoteList.Feature {
                 return loadNotes(into: &state)
 
             case .noteTapped(let id):
-                guard let note = state.notes?.first(where: { $0.id == id }) else {
+                guard state.notes?.contains(where: { $0.id == id }) == true else {
                     return .none
                 }
-                return .send(.delegate(.noteSelected(note)))
+                return .send(.delegate(.noteSelected(id)))
 
             case .deleteRequested(let offsets):
                 guard let rows = state.rows else {
@@ -65,7 +68,7 @@ extension MainScreen.NoteList.Feature {
                         .response(
                             .notesDeleted(
                                 ids: ids,
-                                result: await managingNoteUsecase.deleteNotes(ids: ids)
+                                result: await managingNoteUsecase.deleteNotes(ids)
                             )
                         )
                     )
@@ -136,6 +139,7 @@ extension MainScreen.NoteList.Feature {
     enum Action: ViewAction {
         case view(View)
         case response(Response)
+        case noteDetailDismissed
         case delegate(Delegate)
 
         @CasePathable
@@ -157,7 +161,7 @@ extension MainScreen.NoteList.Feature {
 
         @CasePathable
         enum Delegate {
-            case noteSelected(Note)
+            case noteSelected(Note.ID)
             case loadFailed
             case deleteFailed
         }

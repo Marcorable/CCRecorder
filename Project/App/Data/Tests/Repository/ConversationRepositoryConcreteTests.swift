@@ -64,6 +64,35 @@ extension ConversationRepositoryConcreteTests {
         #expect(restoredConversation.parties.allSatisfy({ !$0.isAvailable }))
     }
 
+    @Test("ID로 저장된 Conversation을 조회한다")
+    func readByIDReturnsCreatedConversation() async throws {
+        // given
+        let conversation = Conversation(
+            createdDate: .init(timeIntervalSince1970: 1_000),
+            recordFileName: "record.m4a",
+            pins: [],
+            title: "Title",
+            topic: "Topic",
+            parties: []
+        )
+        try await repository.create(conversation)
+
+        // when
+        let restoredConversation = try await repository.read(id: conversation.id)
+
+        // then
+        #expect(restoredConversation == conversation)
+    }
+
+    @Test("저장되지 않은 ID로 조회하면 nil을 반환한다")
+    func readByIDReturnsNilWhenConversationDoesNotExist() async throws {
+        // when
+        let conversation = try await repository.read(id: .init())
+
+        // then
+        #expect(conversation == nil)
+    }
+
     @Test("Conversation을 수정하면 변경된 값을 반환한다")
     func updateChangesConversation() async throws {
         // given

@@ -30,26 +30,23 @@ extension ConversationRepositoryConcrete: ConversationRepository {
         let partiesById = Dictionary(
             uniqueKeysWithValues: partyRecords.map({ ($0.id, $0) })
         )
-        return records.map({ record in
-            let parties = record.parties.map({ snapshot in
-                let party = partiesById[snapshot.id]
-                return Party(
-                    id: snapshot.id,
-                    name: party?.name ?? snapshot.name,
-                    isAvailable: party != nil
-                )
-            })
-            return Conversation(
-                id: record.id,
-                createdDate: record.createdDate,
-                recordFileName: record.recordFileName,
-                pins: record.pins,
-                title: record.title,
-                topic: record.topic,
-                noteIds: record.noteIds,
-                parties: parties
-            )
-        })
+        return records.map({ conversation(from: $0, partiesById: partiesById) })
+    }
+
+    func read(id: Conversation.ID) async throws -> Conversation? {
+        let descriptor = FetchDescriptor<Conversation.Record>(
+            predicate: #Predicate { $0.id == id }
+        )
+        guard let record = try modelContext.fetch(descriptor).first else {
+            return nil
+        }
+        let partyRecords = try modelContext.fetch(
+            FetchDescriptor<Party.Record>()
+        )
+        let partiesById = Dictionary(
+            uniqueKeysWithValues: partyRecords.map({ ($0.id, $0) })
+        )
+        return conversation(from: record, partiesById: partiesById)
     }
 
     func update(_ conversation: Conversation) async throws {
@@ -91,6 +88,34 @@ extension ConversationRepositoryConcrete: ConversationRepository {
             modelContext.rollback()
             throw error
         }
+    }
+
+}
+
+private extension ConversationRepositoryConcrete {
+
+    func conversation(
+        from record: Conversation.Record,
+        partiesById: [Party.ID: Party.Record]
+    ) -> Conversation {
+        let parties = record.parties.map({ snapshot in
+            let party = partiesById[snapshot.id]
+            return Party(
+                id: snapshot.id,
+                name: party?.name ?? snapshot.name,
+                isAvailable: party != nil
+            )
+        })
+        return .init(
+            id: record.id,
+            createdDate: record.createdDate,
+            recordFileName: record.recordFileName,
+            pins: record.pins,
+            title: record.title,
+            topic: record.topic,
+            noteIds: record.noteIds,
+            parties: parties
+        )
     }
 
 }

@@ -6,26 +6,20 @@ extension MainScreen.Root {
 
     @Reducer
     struct Feature {
-        let managingConversationUsecase: ManagingConversationUsecase
-        let managingNoteUsecase: ManagingNoteUsecase
-        let recordingUsecase: RecordingUsecase
+        @Dependency(\.navigator) private var navigator
 
         var body: some ReducerOf<Self> {
             Scope(
                 state: \.conversationList,
                 action: \.conversationList
             ) {
-                MainScreen.ConversationList.Feature(
-                    managingConversationUsecase: managingConversationUsecase
-                )
+                MainScreen.ConversationList.Feature()
             }
             Scope(
                 state: \.noteList,
                 action: \.noteList
             ) {
-                MainScreen.NoteList.Feature(
-                    managingNoteUsecase: managingNoteUsecase
-                )
+                MainScreen.NoteList.Feature()
             }
             Reduce { state, action in
                 switch action {
@@ -47,21 +41,28 @@ extension MainScreen.Root {
                                 return .send(.noteList(.view(.reload)))
                         }
 
+                    case .onboard(.dismiss):
+                        state.$isFirstLaunched.withLock { $0 = false }
+                        return .none
+
                     case .noteDetail(.dismiss):
-                        return .send(.noteList(.view(.reload)))
+                        return .send(.noteList(.noteDetailDismissed))
 
                     case .alert(.presented(let action)):
                         return reduce(into: &state, action: action)
 
-                    case .conversationList, .noteList, .record, .noteDetail, .alert, .delegate:
+                    case .conversationList, .noteList, .onboard, .record, .noteDetail, .alert:
                         return .none
                 }
             }
+            .ifLet(\.$onboard, action: \.onboard) {
+                OnboardScreen.Root.Feature()
+            }
             .ifLet(\.$record, action: \.record) {
-                RecordScreen.Root.Feature(recordingUsecase: recordingUsecase)
+                RecordScreen.Root.Feature()
             }
             .ifLet(\.$noteDetail, action: \.noteDetail) {
-                NoteDetailScreen.Root.Feature(managingNoteUsecase: managingNoteUsecase)
+                NoteDetailScreen.Root.Feature()
             }
             .ifLet(\.$alert, action: \.alert)
         }
@@ -85,7 +86,9 @@ extension MainScreen.Root.Feature {
                 return .none
 
             case .settingButtonTapped:
-                return .send(.delegate(.settingRequested))
+                return .run { _ in
+                    await navigator.push(.setting)
+                }
         }
     }
 
@@ -94,8 +97,10 @@ extension MainScreen.Root.Feature {
         action: MainScreen.ConversationList.Feature.Action.Delegate
     ) -> Effect<Action> {
         switch action {
-            case .conversationSelected(let conversation):
-                return .send(.delegate(.conversationSelected(conversation)))
+            case .conversationSelected(let id):
+                return .run { _ in
+                    await navigator.push(.conversationDetail(id))
+                }
 
             case .loadFailed:
                 state.alert = .conversationLoadFailed
@@ -112,8 +117,8 @@ extension MainScreen.Root.Feature {
         action: MainScreen.NoteList.Feature.Action.Delegate
     ) -> Effect<Action> {
         switch action {
-            case .noteSelected(let note):
-                state.noteDetail = .init(note: note)
+            case .noteSelected(let id):
+                state.noteDetail = .init(noteID: id)
                 return .none
 
             case .loadFailed:
@@ -145,6 +150,9 @@ extension MainScreen.Root.Feature {
 
     @ObservableState
     struct State: Equatable {
+        @Shared(.appStorage(Key.isFirstLaunched.rawValue)) var isFirstLaunched: Bool = true
+
+        @Presents var onboard: OnboardScreen.Root.Feature.State?
         @Presents var record: RecordScreen.Root.Feature.State?
         @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
         @Presents var alert: AlertState<Action.Alert>?
@@ -152,6 +160,12 @@ extension MainScreen.Root.Feature {
         var conversationList: MainScreen.ConversationList.Feature.State = .init()
         var noteList: MainScreen.NoteList.Feature.State = .init()
         var selectedTab: MainScreen.Tab = .conversationList
+
+        init() {
+            if isFirstLaunched {
+                onboard = .init()
+            }
+        }
     }
 
     @CasePathable
@@ -159,10 +173,10 @@ extension MainScreen.Root.Feature {
         case view(View)
         case conversationList(MainScreen.ConversationList.Feature.Action)
         case noteList(MainScreen.NoteList.Feature.Action)
+        case onboard(PresentationAction<OnboardScreen.Root.Feature.Action>)
         case record(PresentationAction<RecordScreen.Root.Feature.Action>)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
         case alert(PresentationAction<Alert>)
-        case delegate(Delegate)
 
         @CasePathable
         enum View {
@@ -177,11 +191,6 @@ extension MainScreen.Root.Feature {
             case retryNoteLoad
         }
 
-        @CasePathable
-        enum Delegate {
-            case conversationSelected(Conversation)
-            case settingRequested
-        }
     }
 
 }
@@ -191,11 +200,7 @@ extension MainScreen.Root.Feature {
 
     @MainActor
     static var preview: Self {
-        .init(
-            managingConversationUsecase: FakeManagingConversationUsecase(),
-            managingNoteUsecase: FakeManagingNoteUsecase(),
-            recordingUsecase: FakeRecordingUsecase()
-        )
+        .init()
     }
 
 }

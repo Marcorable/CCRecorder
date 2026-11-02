@@ -41,11 +41,13 @@ extension MainScreen {
                 )
             }
             .padding(.vertical)
-            .background(Color.Surface.Background.grouped)
+            .background(Color(asset: Asset.Surface.Background.grouped))
         }
 
         private var recordButtonColor: Color {
-            colorScheme == .dark ? .Logo.Muted.blue : .Logo.Prominent.blue
+            colorScheme == .dark
+                ? Color(asset: Asset.Logo.Muted.blue)
+                : Color(asset: Asset.Logo.Prominent.blue)
         }
     }
 
@@ -90,10 +92,14 @@ extension MainScreen.TabBar {
         private var currentTintColor: Color {
             switch tab {
                 case .conversationList:
-                    isSelected ? .Logo.Prominent.green : .Logo.Muted.green
+                    isSelected
+                        ? Color(asset: Asset.Logo.Prominent.green)
+                        : Color(asset: Asset.Logo.Muted.green)
 
                 case .noteList:
-                    isSelected ? .Logo.Prominent.red : .Logo.Muted.red
+                    isSelected
+                        ? Color(asset: Asset.Logo.Prominent.red)
+                        : Color(asset: Asset.Logo.Muted.red)
             }
         }
     }

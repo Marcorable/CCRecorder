@@ -3,30 +3,31 @@ import SwiftUI
 
 import Presentation
 
-enum LaunchState {
-    case preprocess
-    case launched
-}
-
 @main
 struct CCRecorderApp: App {
-    @AppStorage(.isFirstLaunched) private var isFirstLaunched: Bool = true
     @AppStorage(.displayMode) private var displayMode: DisplayMode = .system
     @AppStorage(.isIdleTimerDisabled) private var isIdleTimerDisabled: Bool = false
 
-    @State private var state: LaunchState = .preprocess
+    enum Status {
+        case preprocess
+        case launched
+        case forcedUpdate
+    }
+
+    @State private var status: Status = .preprocess
+
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
         WindowGroup {
-            switch state {
+            switch status {
                 case .preprocess:
                     PresentationFactory.launchScreen
                         .task {
                             do {
-                                try await setup()
-                                try await Task.sleep(for: .seconds(2)) // FIXME: Launch Process
+                                try await Task.sleep(for: .seconds(2)) // TODO: Launch Process
 
-                                state = .launched
+                                status = .launched
                             } catch {
                                 print("\(Self.self) \(#function) - \(error)")
                             }
@@ -34,14 +35,13 @@ struct CCRecorderApp: App {
 
                 case .launched:
                     PresentationFactory.rootStack
-                        .fullScreenCover(isPresented: $isFirstLaunched) {
-                            PresentationFactory.onboardScreen
-                        }
-                        .animation(.easeInOut, value: isFirstLaunched)
                         .preferredColorScheme(userColorScheme)
                         .onChange(of: isIdleTimerDisabled, initial: true) {
                             UIApplication.shared.isIdleTimerDisabled = isIdleTimerDisabled
                         }
+
+                case .forcedUpdate:
+                    PresentationFactory.forcedUpdateScreen
             }
         }
     }

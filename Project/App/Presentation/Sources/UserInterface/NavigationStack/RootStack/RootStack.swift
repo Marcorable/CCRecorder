@@ -4,54 +4,72 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RootStack: View {
-    @Bindable var store: StoreOf<Feature>
-
-    var body: some View {
-        NavigationStack(
-            path: $store.scope(
-                \.path,
-                action: \.path
-            ),
-            root: {
-                MainScreen.Root(
-                    store: store.scope(
-                        state: \.main,
-                        action: \.main
-                    )
-                )
+    @State private var viewModel: ViewModel = .init()
+    private var client: Client {
+        .init(
+            push: {
+                await viewModel.push([$0])
             },
-            destination: { store in
-                switch store.state {
-                    case .conversationDetail:
-                        if let store = store.scope(
-                            state: \.conversationDetail,
-                            action: \.conversationDetail
-                        ) {
-                            ConversationDetailScreen.Root(store: store)
-                        }
-
-                    case .setting:
-                        if let store = store.scope(
-                            state: \.setting,
-                            action: \.setting
-                        ) {
-                            SettingScreen.Root(store: store)
-                        }
-                }
+            pushContentsOf: {
+                await viewModel.push($0)
+            },
+            pop: {
+                await viewModel.pop(1)
+            },
+            pops: {
+                await viewModel.pop($0)
+            },
+            popToRoot: {
+                await viewModel.popToRoot()
+            },
+            reStack: {
+                await viewModel.restack($0)
             }
         )
     }
-}
 
-#if DEBUG
-#Preview {
-    RootStack(
-        store: .init(
-            initialState: .init(),
-            reducer: {
-                RootStack.Feature.preview
+    var body: some View {
+        NavigationStack(
+            path: $viewModel.paths,
+            root: {
+                Factory.make(
+                    by: .main,
+                    with: client
+                )
+                .navigationDestination(for: Route.self) { route in
+                    Factory.make(
+                        by: route,
+                        with: client
+                    )
+                }
             }
         )
-    )
+        .environment(viewModel)
+    }
+
+    @MainActor
+    @Observable
+    final class ViewModel {
+        fileprivate var paths: [Route] = []
+
+        func push(_ routes: [Route]) {
+            paths.append(contentsOf: routes)
+        }
+
+        func pop(_ count: Int) {
+            guard count > 0, count <= paths.count else {
+                return
+            }
+            paths.removeLast(count)
+        }
+
+        func popToRoot() {
+            paths.removeAll()
+        }
+
+        func restack(_ routes: [Route]) {
+            self.paths = routes
+        }
+    }
+
 }
-#endif

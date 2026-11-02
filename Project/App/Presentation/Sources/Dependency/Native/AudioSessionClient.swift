@@ -18,11 +18,7 @@ extension AudioSessionClient {
         case denied
     }
 
-}
-
-extension AudioSessionClient: DependencyKey {
-
-    static let liveValue = Self(
+    static let live: Self = .init(
         authorizationStatus: {
             switch AVAudioApplication.shared.recordPermission {
                 case .undetermined:
@@ -54,16 +50,16 @@ extension AudioSessionClient: DependencyKey {
         }
     )
 
-    static let previewValue = Self()
-    static let testValue = Self()
+    static let preview: Self = .init()
 
 }
 
 extension DependencyValues {
 
-    var audioSession: AudioSessionClient {
-        get { self[AudioSessionClient.self] }
-        set { self[AudioSessionClient.self] = newValue }
-    }
+    @DependencyEntry(
+        liveValue: AudioSessionClient.live,
+        previewValue: AudioSessionClient.preview
+    )
+    var audioSession: AudioSessionClient = .init()
 
 }

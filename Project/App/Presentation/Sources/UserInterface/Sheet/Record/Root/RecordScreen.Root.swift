@@ -8,7 +8,7 @@ enum RecordScreen {}
 extension RecordScreen {
 
     struct Root: View {
-        @Bindable var store: StoreOf<Feature>
+        @State var store: StoreOf<Feature>
 
         var body: some View {
             NavigationView {

@@ -29,6 +29,14 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
         }
     }
 
+    func conversation(id: Conversation.ID) async -> Result<Conversation?, DomainError> {
+        do {
+            return .success(try await dependency.conversationRepository.read(id: id))
+        } catch {
+            return .failure(.data(error))
+        }
+    }
+
     func deleteConversations(
         _ conversations: [Conversation]
     ) async -> Result<Void, DomainError> {

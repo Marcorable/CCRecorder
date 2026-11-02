@@ -32,7 +32,7 @@ extension PresentationFactory {
         }
     }
 
-    public static func register(_ dependency: Dependency) {
+    public static func setup(_ dependency: Dependency) {
         self.dependency = dependency
     }
 
@@ -44,55 +44,69 @@ extension PresentationFactory {
         LaunchScreen.Root()
     }
 
-    public static var onboardScreen: some View {
-        OnboardScreen.Root(
-            store: .init(
-                initialState: .init(),
-                reducer: { OnboardScreen.Root.Feature() }
-            )
-        )
+    public static var forcedUpdateScreen: some View {
+        EmptyView() // TODO: 강제 업데이트 화면
+    }
+
+    public static var rootStack: some View {
+        RootStack()
     }
 
 }
 
 extension PresentationFactory {
 
-    public static func make(sheet: Sheet) -> some View {
-        switch sheet {
-            case .noteDetail(let note):
-                NoteDetailScreen.Root(
+    @ViewBuilder
+    static func make(
+        by route: RootStack.Route,
+        with navigator: RootStack.Client
+    ) -> some View {
+        switch route {
+            case .main:
+                MainScreen.Root(
                     store: .init(
-                        initialState: .init(note: note),
+                        initialState: .init(),
                         reducer: {
-                            NoteDetailScreen.Root.Feature(
-                                managingNoteUsecase: dependency.managingNoteUsecase()
-                            )
+                            MainScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.navigator = navigator
+                            $0.managingConversationUsecase = .init(usecase: dependency.managingConversationUsecase())
+                            $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
+                            $0.recordingUsecase = .init(usecase: dependency.recordingUsecase())
                         }
                     )
                 )
-                .presentationDetents(note.category.presentationDetents)
-        }
-    }
 
-}
-
-// 임시
-extension PresentationFactory {
-
-    public static var rootStack: some View {
-        RootStack(
-            store: .init(
-                initialState: .init(),
-                reducer: {
-                    RootStack.Feature(
-                        managingConversationUsecase: dependency.managingConversationUsecase(),
-                        managingNoteUsecase: dependency.managingNoteUsecase(),
-                        playingRecordUsecase: dependency.playingRecordUsecase(),
-                        recordingUsecase: dependency.recordingUsecase()
+            case .conversationDetail(let id):
+                ConversationDetailScreen.Root(
+                    store: .init(
+                        initialState: .init(conversationID: id),
+                        reducer: {
+                            ConversationDetailScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.navigator = navigator
+                            $0.managingConversationUsecase = .init(usecase: dependency.managingConversationUsecase())
+                            $0.managingNoteUsecase = .init(usecase: dependency.managingNoteUsecase())
+                            $0.playingRecordUsecase = .init(usecase: dependency.playingRecordUsecase())
+                        }
                     )
-                }
-            )
-        )
+                )
+
+            case .setting:
+                SettingScreen.Root(
+                    store: .init(
+                        initialState: .init(),
+                        reducer: {
+                            SettingScreen.Root.Feature()
+                        },
+                        withDependencies: {
+                            $0.navigator = navigator
+                        }
+                    )
+                )
+        }
     }
 
 }

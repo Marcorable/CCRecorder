@@ -188,6 +188,7 @@ private extension RecordingUsecaseTests {
         }
 
         func read() throws -> [Conversation] { [] }
+        func read(id: Conversation.ID) throws -> Conversation? { nil }
         func update(_ conversation: Conversation) throws {}
         func delete(ids: [UUID]) throws {}
 

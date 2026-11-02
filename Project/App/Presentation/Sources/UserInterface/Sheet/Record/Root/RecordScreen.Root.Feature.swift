@@ -14,8 +14,7 @@ extension RecordScreen.Root {
         @Dependency(\.dismiss) private var dismiss
         @Dependency(\.openURL) private var openURL
         @Dependency(\.audioSession) private var audioSession
-
-        let recordingUsecase: RecordingUsecase
+        @Dependency(\.recordingUsecase) private var recordingUsecase
 
         var body: some ReducerOf<Self> {
             Scope(
@@ -174,8 +173,8 @@ extension RecordScreen.Root.Feature {
                     await send(
                         .response(
                             .recorderUpdated(
-                                isRecording: await recordingUsecase.isRecording,
-                                currentTime: await recordingUsecase.currentTime
+                                isRecording: await recordingUsecase.isRecording(),
+                                currentTime: await recordingUsecase.currentTime()
                             )
                         )
                     )
@@ -237,7 +236,7 @@ extension RecordScreen.Root.Feature {
                         try audioSession.activate()
                         try await recordingUsecase.prepare()
                         try Task.checkCancellation()
-                        await send(.response(.prepared(await recordingUsecase.currentTime)))
+                        await send(.response(.prepared(await recordingUsecase.currentTime())))
                     } catch is CancellationError {
                         return
                     } catch let DomainError.recordingUsecase(error) {
@@ -302,8 +301,8 @@ extension RecordScreen.Root.Feature {
                         await send(
                             .response(
                                 .recorderUpdated(
-                                    isRecording: await recordingUsecase.isRecording,
-                                    currentTime: await recordingUsecase.currentTime
+                                    isRecording: await recordingUsecase.isRecording(),
+                                    currentTime: await recordingUsecase.currentTime()
                                 )
                             )
                         )
@@ -420,9 +419,7 @@ extension RecordScreen.Root.Feature {
 
     @MainActor
     static var preview: Self {
-        .init(
-            recordingUsecase: FakeRecordingUsecase()
-        )
+        .init()
     }
 
 }

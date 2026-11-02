@@ -34,6 +34,14 @@
         "identifier" : "74FDC675EC3EFCC5334FB76B",
         "name" : "CCRecorderTests"
       }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "2EC8FB27A7E19CDFA290227E",
+        "name" : "PresentationTests"
+      }
     }
   ],
   "version" : 1
