@@ -18,7 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 RecorderServiceConcrete.self
             ] as [Service.Type] {
                 guard serviceType.application(application, didFinishLaunchingWithOptions: launchOptions) else {
-                    return false
+                    fatalError("Failed to initialize \(serviceType)")
                 }
             }
             let schema = DataFactory.setup()
@@ -68,8 +68,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 )
             )
         } catch {
-            print("\(Self.self) \(#function) - \(error)")
-            return false
+            fatalError("Failed to initialize application: \(error)")
         }
 
         return true
