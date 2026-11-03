@@ -120,6 +120,62 @@ extension ConversationDetailScreenPlaybackPanelTests {
         #expect(preparation.steps == [.activateSession])
     }
 
+    @Test("일시 정지 중 탐색과 배속 변경을 상태에 반영한다")
+    func controlsUpdatePausedState() async {
+        // given
+        let playback = PlaybackSpy()
+        var state = ConversationDetailScreen.PlaybackPanel.Feature.State()
+        state.isPrepared = true
+        state.isPlaying = true
+        state.currentTime = 3
+        state.duration = 20
+        let store = TestStore(
+            initialState: state,
+            reducer: {
+                ConversationDetailScreen.PlaybackPanel.Feature()
+            },
+            withDependencies: {
+                $0.playingRecordUsecase = .init(
+                    isPrepared: { true },
+                    isPlaying: { await playback.readIsPlaying() },
+                    currentTime: { await playback.readCurrentTime() },
+                    duration: { 20 },
+                    rate: { await playback.readRate() },
+                    prepare: { _ in },
+                    play: { await playback.play() },
+                    pause: { await playback.pause() },
+                    finish: { await playback.finish() },
+                    seek: { await playback.seek(to: $0) },
+                    changeRate: { await playback.changeRate(to: $0) }
+                )
+            }
+        )
+
+        await store.send(.view(.pauseButtonTapped)) {
+            $0.isPlaying = false
+        }
+        await playback.waitUntilPaused()
+
+        // when, then
+        await store.send(.view(.skipForwardTapped)) {
+            $0.currentTime = 8
+        }
+        await store.receive(\.response.seekStarted)
+        await store.receive(\.response.seekCompleted)
+        await store.send(.view(.skipForwardTapped)) {
+            $0.currentTime = 13
+        }
+        await store.receive(\.response.seekStarted)
+        await store.receive(\.response.seekCompleted)
+        await store.send(.view(.rateChanged(1.5))) {
+            $0.rate = 1.5
+        }
+        await store.receive(\.response.rateChangeStarted)
+        await store.receive(\.response.rateChangeCompleted)
+        #expect(await playback.soughtTimes == [8, 13])
+        #expect(await playback.readRate() == 1.5)
+    }
+
     @Test("AVAudioSession 알림을 인터럽션 이벤트로 변환한다")
     func convertsAudioSessionNotificationsToEvents() {
         let began = Notification(
@@ -199,8 +255,11 @@ private extension ConversationDetailScreenPlaybackPanelTests {
         private(set) var isPlaying = true
         private(set) var isPlayingReadCount = 0
         private(set) var playCallCount = 0
+        private(set) var soughtTimes: [TimeInterval] = []
         private var pauseContinuations: [CheckedContinuation<Void, Never>] = []
         private var pauseCallCount = 0
+        private var currentTime: TimeInterval = 3
+        private var rate: Float = 1
 
         func readIsPlaying() -> Bool {
             isPlayingReadCount += 1
@@ -210,6 +269,14 @@ private extension ConversationDetailScreenPlaybackPanelTests {
         func play() {
             playCallCount += 1
             isPlaying = true
+        }
+
+        func readCurrentTime() -> TimeInterval {
+            currentTime
+        }
+
+        func readRate() -> Float {
+            rate
         }
 
         func pause() {
@@ -230,6 +297,15 @@ private extension ConversationDetailScreenPlaybackPanelTests {
 
         func finish() {
             isPlaying = false
+        }
+
+        func seek(to time: TimeInterval) {
+            soughtTimes.append(time)
+            currentTime = time
+        }
+
+        func changeRate(to rate: Float) {
+            self.rate = rate
         }
     }
 

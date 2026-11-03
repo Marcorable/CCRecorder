@@ -81,6 +81,10 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
             case playbackStarted(TaskResult<Void>)
             case playbackUpdates
             case audioSessionEvent(AudioSessionClient.Event)
+            case seekStarted(TimeInterval)
+            case seekCompleted(TimeInterval)
+            case rateChangeStarted(Float)
+            case rateChangeCompleted(Float)
             case updated(
                 isPrepared: Bool,
                 isPlaying: Bool,
@@ -101,6 +105,8 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
         case audioSession
         case prepare
         case playbackStart
+        case seek
+        case rateChange
         case ticker
     }
 
@@ -119,6 +125,8 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                     .merge(
                         .cancel(id: CancelID.prepare),
                         .cancel(id: CancelID.playbackStart),
+                        .cancel(id: CancelID.seek),
+                        .cancel(id: CancelID.rateChange),
                         .cancel(id: CancelID.ticker),
                         .cancel(id: CancelID.audioSession)
                     ),
@@ -145,6 +153,8 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 return .merge(
                     .cancel(id: CancelID.prepare),
                     .cancel(id: CancelID.playbackStart),
+                    .cancel(id: CancelID.seek),
+                    .cancel(id: CancelID.rateChange),
                     .cancel(id: CancelID.ticker),
                     .cancel(id: CancelID.audioSession),
                     .run { _ in await playingRecordUsecase.finish() }
@@ -179,15 +189,27 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 )
 
             case .seekChanged(let time):
-                return .run { _ in await playingRecordUsecase.seek(time) }
+                state.currentTime = min(
+                    max(time, .zero),
+                    state.duration
+                )
+                return .send(.response(.seekStarted(time)))
 
             case .skipBackwardTapped:
-                let time = state.currentTime - state.skipInterval.timeInterval
-                return .run { _ in await playingRecordUsecase.seek(time) }
+                let time = max(
+                    state.currentTime - state.skipInterval.timeInterval,
+                    .zero
+                )
+                state.currentTime = time
+                return .send(.response(.seekStarted(time)))
 
             case .skipForwardTapped:
-                let time = state.currentTime + state.skipInterval.timeInterval
-                return .run { _ in await playingRecordUsecase.seek(time) }
+                let time = min(
+                    state.currentTime + state.skipInterval.timeInterval,
+                    state.duration
+                )
+                state.currentTime = time
+                return .send(.response(.seekStarted(time)))
 
             case .nextPinTapped:
                 guard let pin = state.pins.sorted().first(
@@ -195,10 +217,12 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 ) else {
                     return .none
                 }
-                return .run { _ in await playingRecordUsecase.seek(pin) }
+                state.currentTime = pin
+                return .send(.response(.seekStarted(pin)))
 
             case .rateChanged(let rate):
-                return .run { _ in await playingRecordUsecase.changeRate(rate) }
+                state.rate = rate
+                return .send(.response(.rateChangeStarted(rate)))
         }
     }
 
@@ -252,6 +276,44 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
             case .playbackStarted(.failure):
                 state.isPlaying = false
                 return .send(.delegate(.interrupted))
+
+            case .seekStarted(let time):
+                return .run { send in
+                    await playingRecordUsecase.seek(time)
+                    guard !Task.isCancelled else {
+                        return
+                    }
+                    await send(.response(.seekCompleted(
+                        await playingRecordUsecase.currentTime()
+                    )))
+                }
+                .cancellable(
+                    id: CancelID.seek,
+                    cancelInFlight: true
+                )
+
+            case .seekCompleted(let currentTime):
+                state.currentTime = currentTime
+                return .none
+
+            case .rateChangeStarted(let rate):
+                return .run { send in
+                    await playingRecordUsecase.changeRate(rate)
+                    guard !Task.isCancelled else {
+                        return
+                    }
+                    await send(.response(.rateChangeCompleted(
+                        await playingRecordUsecase.rate()
+                    )))
+                }
+                .cancellable(
+                    id: CancelID.rateChange,
+                    cancelInFlight: true
+                )
+
+            case .rateChangeCompleted(let rate):
+                state.rate = rate
+                return .none
 
             case .playbackUpdates:
                 return .run { send in
