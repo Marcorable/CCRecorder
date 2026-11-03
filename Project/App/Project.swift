@@ -29,6 +29,7 @@ let domainTests = Target.tests(
 let data = Target.module(
     name: "Data",
     buildableFolders: ["Data/Sources"],
+    resources: ["Data/Resources/**"],
     dependencies: [
         .target(name: "Domain"),
     ]

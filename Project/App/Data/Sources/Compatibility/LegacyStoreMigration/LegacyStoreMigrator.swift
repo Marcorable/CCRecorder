@@ -1,0 +1,520 @@
+
+import CoreData
+import SwiftData
+import Foundation
+
+import Domain
+
+@Model
+final class LegacyStoreMigrationRecord {
+    #Unique<LegacyStoreMigrationRecord>([\.id])
+
+    var id: String
+    var completedDate: Date
+
+    init(
+        id: String,
+        completedDate: Date
+    ) {
+        self.id = id
+        self.completedDate = completedDate
+    }
+}
+
+struct LegacyStoreMigrationReport: Sendable {
+    let status: Status
+    let conversationCount: Int
+    let noteCount: Int
+    let partyCount: Int
+    let issues: [String]
+}
+
+extension LegacyStoreMigrationReport {
+
+    enum Status: Equatable, Sendable {
+        case alreadyMigrated
+        case completed
+        case partial
+    }
+
+}
+
+@MainActor
+struct LegacyStoreMigrator {
+    private static let migrationID: String = "v1-v2-to-record-v1"
+
+    private let dependency: Dependency
+
+    init(dependency: Dependency = .live) {
+        self.dependency = dependency
+    }
+}
+
+extension LegacyStoreMigrator {
+
+    struct Dependency {
+        let legacySwiftDataStoreURL: URL
+        let legacyCoreDataStoreURL: URL
+        let legacyRecordDirectoryURL: URL
+        let currentRecordDirectoryURL: URL
+        let legacyCoreDataModelURL: URL?
+        let temporaryDirectoryURL: URL
+        let fileManager: FileManager
+        let now: @Sendable () -> Date
+    }
+
+}
+
+extension LegacyStoreMigrator.Dependency {
+
+    static var live: Self {
+        let fileManager = FileManager.default
+        let documentsURL = fileManager.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        )[0]
+        let legacyConfiguration = ModelConfiguration(
+            schema: LegacyV2Store.schema,
+            cloudKitDatabase: .none
+        )
+
+        return .init(
+            legacySwiftDataStoreURL: legacyConfiguration.url,
+            legacyCoreDataStoreURL: NSPersistentContainer.defaultDirectoryURL()
+                .appendingPathComponent(LegacyV1Store.modelName)
+                .appendingPathExtension("sqlite"),
+            legacyRecordDirectoryURL: documentsURL.appendingPathComponent(
+                "Records",
+                isDirectory: true
+            ),
+            currentRecordDirectoryURL: documentsURL.appendingPathComponent(
+                "Record",
+                isDirectory: true
+            ),
+            legacyCoreDataModelURL: LegacyV1Store.bundledModelURL,
+            temporaryDirectoryURL: fileManager.temporaryDirectory,
+            fileManager: fileManager,
+            now: { .init() }
+        )
+    }
+
+}
+
+extension LegacyStoreMigrator {
+
+    func migrate(into modelContainer: ModelContainer) -> LegacyStoreMigrationReport {
+        let context = modelContainer.mainContext
+        if isCompleted(in: context) {
+            return .init(
+                status: .alreadyMigrated,
+                conversationCount: 0,
+                noteCount: 0,
+                partyCount: 0,
+                issues: []
+            )
+        }
+
+        var issues: [String] = []
+        let sources = loadSources(
+            currentSchema: modelContainer.schema,
+            issues: &issues
+        )
+        var createdFileURLs: [URL] = []
+        let counts: MigrationCounts
+        do {
+            counts = try insert(
+                sources,
+                into: context,
+                issues: &issues,
+                createdFileURLs: &createdFileURLs
+            )
+            if issues.isEmpty {
+                context.insert(
+                    LegacyStoreMigrationRecord(
+                        id: Self.migrationID,
+                        completedDate: dependency.now()
+                    )
+                )
+            }
+            try context.save()
+        } catch {
+            context.rollback()
+            removeCreatedFiles(createdFileURLs)
+            issues.append("Record 저장 실패: \(error)")
+            return .init(
+                status: .partial,
+                conversationCount: 0,
+                noteCount: 0,
+                partyCount: 0,
+                issues: issues
+            )
+        }
+
+        return .init(
+            status: issues.isEmpty ? .completed : .partial,
+            conversationCount: counts.conversations,
+            noteCount: counts.notes,
+            partyCount: counts.parties,
+            issues: issues
+        )
+    }
+
+}
+
+private extension LegacyStoreMigrator {
+
+    struct MigrationCounts {
+        var conversations: Int = 0
+        var notes: Int = 0
+        var parties: Int = 0
+    }
+
+    enum SourceStoreError: Error {
+        case unsupportedSwiftDataStore(Error, Error)
+        case legacyModelNotFound
+    }
+
+    func isCompleted(in context: ModelContext) -> Bool {
+        let migrationID = Self.migrationID
+        let descriptor = FetchDescriptor<LegacyStoreMigrationRecord>(
+            predicate: #Predicate { $0.id == migrationID }
+        )
+        return ((try? context.fetchCount(descriptor)) ?? 0) > 0
+    }
+
+    func loadSources(
+        currentSchema: Schema,
+        issues: inout [String]
+    ) -> [LegacyStoreMigrationData] {
+        var sources: [LegacyStoreMigrationData] = []
+        if fileExists(at: dependency.legacySwiftDataStoreURL) {
+            do {
+                sources.append(
+                    try loadSwiftDataSource(currentSchema: currentSchema)
+                )
+            } catch {
+                issues.append("v2 저장소 읽기 실패: \(error)")
+            }
+        }
+        if fileExists(at: dependency.legacyCoreDataStoreURL) {
+            do {
+                guard let modelURL = dependency.legacyCoreDataModelURL else {
+                    throw SourceStoreError.legacyModelNotFound
+                }
+                let source = try withCopiedStore(
+                    at: dependency.legacyCoreDataStoreURL,
+                    load: { copiedStoreURL in
+                        try LegacyV1Store.load(
+                            from: copiedStoreURL,
+                            modelURL: modelURL,
+                            recordDirectory: dependency.legacyRecordDirectoryURL
+                        )
+                    }
+                )
+                sources.append(source)
+            } catch {
+                issues.append("v1 저장소 읽기 실패: \(error)")
+            }
+        }
+        return sources
+    }
+
+    func loadSwiftDataSource(currentSchema: Schema) throws -> LegacyStoreMigrationData {
+        do {
+            return try withCopiedStore(
+                at: dependency.legacySwiftDataStoreURL,
+                load: LegacyV2Store.load(from:)
+            )
+        } catch {
+            let legacyError = error
+            do {
+                return try withCopiedStore(
+                    at: dependency.legacySwiftDataStoreURL,
+                    load: { copiedStoreURL in
+                        try RecordStoreSource.load(
+                            from: copiedStoreURL,
+                            schema: currentSchema
+                        )
+                    }
+                )
+            } catch {
+                throw SourceStoreError.unsupportedSwiftDataStore(
+                    legacyError,
+                    error
+                )
+            }
+        }
+    }
+
+    func withCopiedStore<Result>(
+        at storeURL: URL,
+        load: (URL) throws -> Result
+    ) throws -> Result {
+        let directoryURL = dependency.temporaryDirectoryURL.appendingPathComponent(
+            UUID().uuidString,
+            isDirectory: true
+        )
+        try dependency.fileManager.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true
+        )
+        defer {
+            try? dependency.fileManager.removeItem(at: directoryURL)
+        }
+
+        let copiedStoreURL = directoryURL.appendingPathComponent(
+            storeURL.lastPathComponent,
+            isDirectory: false
+        )
+        for suffix in ["", "-wal", "-shm"] {
+            let sourceURL = storeURL
+                .deletingLastPathComponent()
+                .appendingPathComponent(storeURL.lastPathComponent + suffix)
+            guard fileExists(at: sourceURL) else {
+                continue
+            }
+            try dependency.fileManager.copyItem(
+                at: sourceURL,
+                to: directoryURL.appendingPathComponent(
+                    storeURL.lastPathComponent + suffix,
+                    isDirectory: false
+                )
+            )
+        }
+        return try load(copiedStoreURL)
+    }
+
+    func insert(
+        _ sources: [LegacyStoreMigrationData],
+        into context: ModelContext,
+        issues: inout [String],
+        createdFileURLs: inout [URL]
+    ) throws -> MigrationCounts {
+        let existingConversations = try context.fetch(
+            FetchDescriptor<Domain.Conversation.Record>()
+        )
+        let existingNotes = try context.fetch(
+            FetchDescriptor<Domain.Note.Record>()
+        )
+        let existingParties = try context.fetch(
+            FetchDescriptor<Domain.Party.Record>()
+        )
+        var conversationsByID = Dictionary(
+            uniqueKeysWithValues: existingConversations.map({ ($0.id, $0) })
+        )
+        var noteIDs = Set(existingNotes.map({ $0.id }))
+        var partyIDs = Set(existingParties.map({ $0.id }))
+        var claimedFileNames: [String: UUID] = [:]
+        for conversation in existingConversations where !conversation.recordFileName.isEmpty {
+            claimedFileNames[conversation.recordFileName] = conversation.id
+        }
+        var counts = MigrationCounts()
+
+        for source in sources {
+            let sourceParties: [LegacyStoreMigrationData.Party]
+            switch source.recordSource {
+                case .currentDirectory:
+                    sourceParties = source.parties
+
+                case .legacyDirectory:
+                    sourceParties = source.conversations
+                        .filter({ conversationsByID[$0.id] == nil })
+                        .flatMap({ $0.parties })
+            }
+            for party in sourceParties where !partyIDs.contains(party.id) {
+                context.insert(
+                    Domain.Party.Record(
+                        .init(
+                            id: party.id,
+                            name: party.name,
+                            isAvailable: true
+                        )
+                    )
+                )
+                partyIDs.insert(party.id)
+                counts.parties += 1
+            }
+            for note in source.notes where !noteIDs.contains(note.id) {
+                context.insert(
+                    Domain.Note.Record(
+                        .init(
+                            id: note.id,
+                            createdDate: note.createdDate,
+                            original: note.original,
+                            translation: note.translation,
+                            category: note.category == .sentence
+                                ? .sentence
+                                : .vocabulary
+                        )
+                    )
+                )
+                noteIDs.insert(note.id)
+                counts.notes += 1
+            }
+            for conversation in source.conversations {
+                let existingRecord = conversationsByID[conversation.id]
+                let recordFileName = migratedRecordFileName(
+                    of: conversation,
+                    source: source.recordSource,
+                    existingRecord: existingRecord,
+                    claimedFileNames: &claimedFileNames,
+                    issues: &issues,
+                    createdFileURLs: &createdFileURLs
+                )
+                guard existingRecord == nil else {
+                    continue
+                }
+                let domainConversation = Domain.Conversation(
+                    id: conversation.id,
+                    createdDate: conversation.createdDate,
+                    recordFileName: recordFileName,
+                    pins: conversation.pins,
+                    title: conversation.title,
+                    topic: conversation.topic,
+                    noteIds: conversation.noteIds,
+                    parties: conversation.parties.map({ party in
+                        .init(
+                            id: party.id,
+                            name: party.name,
+                            isAvailable: true
+                        )
+                    })
+                )
+                let record = Domain.Conversation.Record(domainConversation)
+                context.insert(record)
+                conversationsByID[conversation.id] = record
+                counts.conversations += 1
+            }
+        }
+        return counts
+    }
+
+}
+
+private extension LegacyStoreMigrator {
+
+    func migratedRecordFileName(
+        of conversation: LegacyStoreMigrationData.Conversation,
+        source: LegacyStoreMigrationData.RecordSource,
+        existingRecord: Domain.Conversation.Record?,
+        claimedFileNames: inout [String: UUID],
+        issues: inout [String],
+        createdFileURLs: inout [URL]
+    ) -> String {
+        guard case .legacyDirectory(let sourceDirectoryURL) = source else {
+            if !conversation.recordFileName.isEmpty {
+                claimedFileNames[conversation.recordFileName] = conversation.id
+            }
+            return conversation.recordFileName
+        }
+        guard isValidFileName(conversation.recordFileName) else {
+            return ""
+        }
+
+        let sourceFileURL = sourceDirectoryURL.appendingPathComponent(
+            conversation.recordFileName,
+            isDirectory: false
+        )
+        let targetFileName: String
+        if let existingRecord, isValidFileName(existingRecord.recordFileName) {
+            targetFileName = existingRecord.recordFileName
+        } else if let ownerID = claimedFileNames[conversation.recordFileName], ownerID != conversation.id {
+            targetFileName = uniqueFileName(
+                for: conversation.recordFileName,
+                conversationID: conversation.id,
+                claimedFileNames: claimedFileNames
+            )
+        } else {
+            targetFileName = conversation.recordFileName
+        }
+        claimedFileNames[targetFileName] = conversation.id
+
+        let targetFileURL = dependency.currentRecordDirectoryURL.appendingPathComponent(
+            targetFileName,
+            isDirectory: false
+        )
+        guard !fileExists(at: targetFileURL) else {
+            return targetFileName
+        }
+
+        let copySourceURL: URL
+        if fileExists(at: sourceFileURL) {
+            copySourceURL = sourceFileURL
+        } else {
+            let sharedFileURL = dependency.currentRecordDirectoryURL.appendingPathComponent(
+                conversation.recordFileName,
+                isDirectory: false
+            )
+            guard fileExists(at: sharedFileURL) else {
+                return targetFileName
+            }
+            copySourceURL = sharedFileURL
+        }
+
+        do {
+            try dependency.fileManager.createDirectory(
+                at: dependency.currentRecordDirectoryURL,
+                withIntermediateDirectories: true
+            )
+            try dependency.fileManager.copyItem(
+                at: copySourceURL,
+                to: targetFileURL
+            )
+            createdFileURLs.append(targetFileURL)
+        } catch {
+            issues.append(
+                "녹음 파일 복사 실패(\(conversation.id.uuidString)): \(error)"
+            )
+        }
+        return targetFileName
+    }
+
+    func uniqueFileName(
+        for fileName: String,
+        conversationID: UUID,
+        claimedFileNames: [String: UUID]
+    ) -> String {
+        let sourceURL = URL(fileURLWithPath: fileName)
+        let stem = sourceURL.deletingPathExtension().lastPathComponent
+        let fileExtension = sourceURL.pathExtension
+        let suffixes = [
+            String(conversationID.uuidString.prefix(8)),
+            conversationID.uuidString
+        ]
+        for suffix in suffixes {
+            let candidate = fileExtension.isEmpty
+                ? "\(stem)_\(suffix)"
+                : "\(stem)_\(suffix).\(fileExtension)"
+            let candidateURL = dependency.currentRecordDirectoryURL.appendingPathComponent(
+                candidate,
+                isDirectory: false
+            )
+            if claimedFileNames[candidate] == nil, !fileExists(at: candidateURL) {
+                return candidate
+            }
+        }
+        return fileExtension.isEmpty
+            ? conversationID.uuidString
+            : "\(conversationID.uuidString).\(fileExtension)"
+    }
+
+    func isValidFileName(_ fileName: String) -> Bool {
+        !fileName.isEmpty
+            && !fileName.contains("/")
+            && fileName != "."
+            && fileName != ".."
+    }
+
+    func fileExists(at url: URL) -> Bool {
+        dependency.fileManager.fileExists(
+            atPath: url.path(percentEncoded: false)
+        )
+    }
+
+    func removeCreatedFiles(_ fileURLs: [URL]) {
+        for fileURL in fileURLs {
+            try? dependency.fileManager.removeItem(at: fileURL)
+        }
+    }
+
+}
