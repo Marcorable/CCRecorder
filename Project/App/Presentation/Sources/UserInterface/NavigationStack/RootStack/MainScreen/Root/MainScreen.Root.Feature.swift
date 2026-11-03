@@ -1,4 +1,7 @@
 
+import UIKit
+import Foundation
+
 import Domain
 import ComposableArchitecture
 
@@ -7,6 +10,8 @@ extension MainScreen.Root {
     @Reducer
     struct Feature {
         @Dependency(\.navigator) private var navigator
+        @Dependency(\.openURL) private var openURL
+        @Dependency(\.audioSession) private var audioSession
         @Dependency(\.recordingUsecase) private var recordingUsecase
 
         var body: some ReducerOf<Self> {
@@ -31,6 +36,12 @@ extension MainScreen.Root {
                         return reduce(into: &state, action: action)
 
                     case .noteList(.delegate(let action)):
+                        return reduce(into: &state, action: action)
+
+                    case .response(let action):
+                        return reduce(into: &state, action: action)
+
+                    case .record(.presented(.delegate(let action))):
                         return reduce(into: &state, action: action)
 
                     case .record(.dismiss):
@@ -92,12 +103,67 @@ extension MainScreen.Root.Feature {
                 return .none
 
             case .recordButtonTapped:
-                state.record = .init()
-                return .none
+                guard state.isAbleToRequestRecording else {
+                    return .none
+                }
+                switch audioSession.authorizationStatus() {
+                    case .authorized:
+                        state.record = .init()
+                        return .none
+
+                    case .denied:
+                        state.alert = .permissionDenied
+                        return .none
+
+                    case .notDetermined:
+                        state.recordingEntryPhase = .requestingAuthorization
+                        return .run { send in
+                            let status = await audioSession.requestAuthorization()
+                            try Task.checkCancellation()
+                            await send(.response(.recordAuthorization(status)))
+                        }
+                        .cancellable(
+                            id: CancelID.recordAuthorization,
+                            cancelInFlight: true
+                        )
+                }
 
             case .settingButtonTapped:
                 return .run { _ in
                     await navigator.push(.setting)
+                }
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: Action.Response
+    ) -> Effect<Action> {
+        switch action {
+            case .recordAuthorization(.authorized):
+                state.recordingEntryPhase = .idle
+                state.record = .init()
+                return .none
+
+            case .recordAuthorization(.notDetermined),
+                    .recordAuthorization(.denied):
+                state.recordingEntryPhase = .idle
+                state.alert = .permissionDenied
+                return .none
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: RecordScreen.Root.Feature.Action.Delegate
+    ) -> Effect<Action> {
+        switch action {
+            case .authorizationUnavailable:
+                state.recordingEntryPhase = .idle
+                state.record = nil
+                state.alert = .permissionDenied
+                return .run { _ in
+                    await recordingUsecase.cancel()
                 }
         }
     }
@@ -146,6 +212,15 @@ extension MainScreen.Root.Feature {
         action: Action.Alert
     ) -> Effect<Action> {
         switch action {
+            case .openSettingsTapped:
+                state.recordingEntryPhase = .idle
+                return .run { _ in
+                    guard let url = URL(string: UIApplication.openSettingsURLString) else {
+                        return
+                    }
+                    await openURL(url)
+                }
+
             case .retryConversationLoad:
                 return .send(.conversationList(.view(.reload)))
 
@@ -170,11 +245,21 @@ extension MainScreen.Root.Feature {
         var conversationList: MainScreen.ConversationList.Feature.State = .init()
         var noteList: MainScreen.NoteList.Feature.State = .init()
         var selectedTab: MainScreen.Tab = .conversationList
+        var recordingEntryPhase: RecordingEntryPhase = .idle
+
+        var isAbleToRequestRecording: Bool {
+            recordingEntryPhase == .idle
+        }
 
         init() {
             if isFirstLaunched {
                 onboard = .init()
             }
+        }
+
+        enum RecordingEntryPhase: Equatable {
+            case idle
+            case requestingAuthorization
         }
     }
 
@@ -183,6 +268,7 @@ extension MainScreen.Root.Feature {
         case view(View)
         case conversationList(MainScreen.ConversationList.Feature.Action)
         case noteList(MainScreen.NoteList.Feature.Action)
+        case response(Response)
         case onboard(PresentationAction<OnboardScreen.Root.Feature.Action>)
         case record(PresentationAction<RecordScreen.Root.Feature.Action>)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
@@ -196,11 +282,21 @@ extension MainScreen.Root.Feature {
         }
 
         @CasePathable
+        enum Response {
+            case recordAuthorization(AudioSessionClient.Status)
+        }
+
+        @CasePathable
         enum Alert: Equatable {
+            case openSettingsTapped
             case retryConversationLoad
             case retryNoteLoad
         }
 
+    }
+
+    private enum CancelID {
+        case recordAuthorization
     }
 
 }

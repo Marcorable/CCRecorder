@@ -1,5 +1,4 @@
 
-import UIKit
 import Foundation
 
 import Domain
@@ -12,7 +11,6 @@ extension RecordScreen.Root {
         @Dependency(\.continuousClock) private var clock
         @Dependency(\.date.now) private var now
         @Dependency(\.dismiss) private var dismiss
-        @Dependency(\.openURL) private var openURL
         @Dependency(\.audioSession) private var audioSession
         @Dependency(\.recordingUsecase) private var recordingUsecase
 
@@ -39,6 +37,9 @@ extension RecordScreen.Root {
                             into: &state,
                             action: action
                         )
+
+                    case .delegate:
+                        return .none
 
                     case .alert(.presented(let action)):
                         return reduce(
@@ -97,6 +98,7 @@ extension RecordScreen.Root.Feature {
         case conversationInfo(RecordScreen.ConversationInfoBox.Feature.Action)
         case view(View)
         case response(Response)
+        case delegate(Delegate)
         case alert(PresentationAction<Alert>)
 
         @CasePathable
@@ -119,10 +121,14 @@ extension RecordScreen.Root.Feature {
         }
 
         @CasePathable
+        enum Delegate {
+            case authorizationUnavailable
+        }
+
+        @CasePathable
         enum Alert {
             case cancelConfirmed
             case saveConfirmed
-            case openSettingsTapped
             case closeAfterFailure
         }
     }
@@ -146,15 +152,8 @@ extension RecordScreen.Root.Feature {
                 state.phase = .preparing
                 return .run { send in
                     let status = audioSession.authorizationStatus()
-                    let resolvedStatus = switch status {
-                        case .notDetermined:
-                            await audioSession.requestAuthorization()
-
-                        case .authorized, .denied:
-                            status
-                    }
                     try Task.checkCancellation()
-                    await send(.response(.audioSessionAuthorization(resolvedStatus)))
+                    await send(.response(.audioSessionAuthorization(status)))
                 }
                 .cancellable(
                     id: CancelID.prepare,
@@ -240,9 +239,8 @@ extension RecordScreen.Root.Feature {
                 guard !state.isFinished else {
                     return .none
                 }
-                state.phase = .idle
-                state.alert = .permissionDenied
-                return .none
+                state.phase = .finished
+                return .send(.delegate(.authorizationUnavailable))
 
             case .prepared(let currentTime):
                 guard !state.isFinished else {
@@ -366,24 +364,6 @@ extension RecordScreen.Root.Feature {
                         id: CancelID.save,
                         cancelInFlight: true
                     )
-                )
-
-            case .openSettingsTapped:
-                state.phase = .finished
-                return .merge(
-                    .cancel(id: CancelID.prepare),
-                    .cancel(id: CancelID.save),
-                    .cancel(id: CancelID.ticker),
-                    .run { _ in
-                        guard let url = URL(string: UIApplication.openSettingsURLString) else {
-                            return
-                        }
-                        await openURL(url)
-                    },
-                    .run { _ in
-                        await recordingUsecase.cancel()
-                        await dismiss()
-                    }
                 )
 
             case .closeAfterFailure:

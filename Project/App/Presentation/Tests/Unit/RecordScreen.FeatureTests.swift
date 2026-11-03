@@ -13,8 +13,8 @@ struct RecordScreenFeatureTests {}
 
 extension RecordScreenFeatureTests {
 
-    @Test("마이크 권한이 거부되면 권한 안내를 표시한다")
-    func deniedPermissionShowsAlert() async {
+    @Test("마이크 권한이 없으면 부모 화면에 진입 실패를 알린다")
+    func deniedPermissionDelegatesUnavailableAuthorization() async {
         // given
         let store: TestStoreOf<RecordScreen.Root.Feature> = .init(
             initialState: .init(),
@@ -27,9 +27,9 @@ extension RecordScreenFeatureTests {
         // when, then
         await store.send(.view(.task))
         await store.receive(\.response.audioSessionAuthorization) {
-            $0.phase = .idle
-            $0.alert = .permissionDenied
+            $0.phase = .finished
         }
+        await store.receive(\.delegate.authorizationUnavailable)
     }
 
     @Test("녹음 준비에 성공하면 대기 상태가 된다")
