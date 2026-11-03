@@ -38,7 +38,8 @@ extension ConversationDetailScreenPresentationTests {
             $0.conversation = conversation
         }
         await store.receive(\.notes.load)
-        await store.receive(\.playbackPanel.prepare)
+        await store.receive(\.playbackPanel.parent.conversationLoaded)
+        await store.receive(\.playbackPanel.response.audioSessionUpdates)
         await store.receive(\.notes.response.notesLoaded)
         await store.receive(\.playbackPanel.response.prepared)
         await store.receive(\.playbackPanel.delegate.failed) {
@@ -58,6 +59,42 @@ extension ConversationDetailScreenPresentationTests {
         await store.receive(\.notes.delegate.noteSelected) {
             $0.noteDetail = .init(noteID: note.id)
         }
+    }
+
+    @Test("재생 인터럽션 알림에서 닫기를 누르면 상세 화면을 닫는다")
+    func interruptionAlertClosePopsDetail() async {
+        // given
+        let navigation = NavigationSpy()
+        let store = makeStore(
+            pop: { await navigation.pop() }
+        )
+
+        // when, then
+        await store.send(.playbackPanel(.delegate(.interrupted))) {
+            $0.alert = .playbackInterrupted
+        }
+        await store.send(.alert(.presented(.close))) {
+            $0.alert = nil
+        }
+        #expect(await navigation.popCallCount == 1)
+    }
+
+    @Test("재생 인터럽션 알림에서 확인을 누르면 화면을 유지한다")
+    func interruptionAlertConfirmationKeepsDetail() async {
+        // given
+        let navigation = NavigationSpy()
+        let store = makeStore(
+            pop: { await navigation.pop() }
+        )
+        await store.send(.playbackPanel(.delegate(.interrupted))) {
+            $0.alert = .playbackInterrupted
+        }
+
+        // when, then
+        await store.send(.alert(.dismiss)) {
+            $0.alert = nil
+        }
+        #expect(await navigation.popCallCount == 0)
     }
 
     @Test("노트 상세 화면을 닫으면 노트 목록을 다시 불러온다")
@@ -109,7 +146,7 @@ extension ConversationDetailScreenPresentationTests {
             $0.isPersistingConversation = true
         }
         await store.receive(\.notes.cancel)
-        await store.receive(\.playbackPanel.finish)
+        await store.receive(\.playbackPanel.parent.conversationDetailDisappeared)
         await store.receive(\.response.conversationPersisted) {
             $0.persistedConversationRevision = 1
             $0.isPersistingConversation = false
@@ -181,7 +218,8 @@ private extension ConversationDetailScreenPresentationTests {
         state: ConversationDetailScreen.Root.Feature.State? = nil,
         notes: [Note] = [],
         clock: TestClock<Duration>? = nil,
-        update: @escaping @Sendable (Conversation) async throws -> Void = { _ in }
+        update: @escaping @Sendable (Conversation) async throws -> Void = { _ in },
+        pop: @escaping @Sendable () async -> Void = {}
     ) -> TestStoreOf<ConversationDetailScreen.Root.Feature> {
         .init(
             initialState: state ?? .init(conversationID: conversation.id),
@@ -189,6 +227,10 @@ private extension ConversationDetailScreenPresentationTests {
             withDependencies: {
                 if let clock {
                     $0.continuousClock = clock
+                }
+                $0.audioSession.activate = {}
+                $0.audioSession.events = {
+                    AsyncStream { $0.finish() }
                 }
                 $0.managingConversationUsecase = .init(
                     conversations: { .success([]) },
@@ -203,6 +245,7 @@ private extension ConversationDetailScreenPresentationTests {
                     throw TestError.failed
                 }
                 $0.playingRecordUsecase.finish = {}
+                $0.navigator.pop = pop
             }
         )
     }
@@ -220,6 +263,14 @@ private extension ConversationDetailScreenPresentationTests {
 
         func values() -> [Conversation] {
             conversations
+        }
+    }
+
+    actor NavigationSpy {
+        private(set) var popCallCount = 0
+
+        func pop() {
+            popCallCount += 1
         }
     }
 
