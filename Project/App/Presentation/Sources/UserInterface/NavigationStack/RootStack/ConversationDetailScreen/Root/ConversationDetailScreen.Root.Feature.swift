@@ -10,6 +10,7 @@ extension ConversationDetailScreen.Root {
     struct Feature {
         @Dependency(\.continuousClock) private var clock
         @Dependency(\.managingConversationUsecase) private var managingConversationUsecase
+        @Dependency(\.navigator) private var navigator
 
         var body: some ReducerOf<Self> {
             Scope(state: \.notes, action: \.notes) {
@@ -38,6 +39,13 @@ extension ConversationDetailScreen.Root {
                         }
                         state.alert = .playbackFailed(message: message)
                         return .none
+
+                    case .playbackPanel(.delegate(.interrupted)):
+                        state.alert = .playbackInterrupted
+                        return .none
+
+                    case .alert(.presented(.close)):
+                        return .run { _ in await navigator.pop() }
 
                     case .view(let action):
                         return reduce(into: &state, action: action)
@@ -123,7 +131,7 @@ extension ConversationDetailScreen.Root.Feature {
                     .merge(
                         persistence,
                         .send(.notes(.cancel)),
-                        .send(.playbackPanel(.finish))
+                        .send(.playbackPanel(.parent(.conversationDetailDisappeared)))
                     )
                 )
 
@@ -180,10 +188,10 @@ extension ConversationDetailScreen.Root.Feature {
                 }
                 return .merge(
                     .send(.notes(.load)),
-                    .send(.playbackPanel(.prepare(
+                    .send(.playbackPanel(.parent(.conversationLoaded(
                         fileName: conversation.recordFileName,
                         pins: conversation.pins
-                    )))
+                    ))))
                 )
 
             case .conversationLoaded(.failure):
@@ -305,7 +313,9 @@ extension ConversationDetailScreen.Root.Feature {
             )
         }
 
-        enum Alert: Equatable {}
+        enum Alert: Equatable {
+            case close
+        }
     }
 
 }
