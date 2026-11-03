@@ -7,6 +7,10 @@ let packages: [Package] = [
         url: "https://github.com/pointfreeco/swift-composable-architecture",
         requirement: .exact("1.26.1")
     ),
+    .remote(
+        url: "https://github.com/pointfreeco/swift-issue-reporting",
+        requirement: .exact("2.1.2")
+    ),
 ]
 
 let domain = Target.module(
