@@ -1,5 +1,5 @@
 {
-  "originHash" : "3b3352b094350f0e0626dd417bccf139fd9f71851a37c996ba9752388a7faf0c",
+  "originHash" : "62fc928283b4cb952013d1cd360bc524ffd31c728b739217e48c3707d59dd14a",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -8,15 +8,6 @@
       "state" : {
         "revision" : "114354e8c1667a2edc4993700fb9fa4f90157b56",
         "version" : "1.2.2"
-      }
-    },
-    {
-      "identity" : "marcorable-mvvm",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Marcorable/marcorable-mvvm.git",
-      "state" : {
-        "revision" : "2a38ad2f23dfe0d5972cf539fe13914c271a3a92",
-        "version" : "0.2.0"
       }
     },
     {
@@ -89,6 +80,15 @@
       "state" : {
         "revision" : "322d9ffeeba85c9f7c4984b39422ec7cc3c56597",
         "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-issue-reporting",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-issue-reporting",
+      "state" : {
+        "revision" : "b23bb4493c439d3e05152bc167014235ba3d47fc",
+        "version" : "2.1.2"
       }
     },
     {
