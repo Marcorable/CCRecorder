@@ -101,9 +101,18 @@ let app = Target.target(
             ],
         ]
     ),
+    resources: [
+        "App/Resources/**",
+    ],
     buildableFolders: [
         "App/Sources",
-        "App/Resources",
+    ],
+    scripts: [
+        .pre(
+            path: .relativeToRoot("Scripts/generate_licenses.sh"),
+            name: "Generate Open Source Licenses",
+            basedOnDependencyAnalysis: false
+        ),
     ],
     dependencies: [
         .target(name: "Presentation"),

@@ -1,4 +1,5 @@
 
+import UIKit
 import SwiftUI
 
 extension SettingScreen {
@@ -9,6 +10,15 @@ extension SettingScreen {
         var body: some View {
             Section("앱 정보") {
                 LabeledContent("버전", value: appVersion)
+                Link(
+                    destination: URL(string: UIApplication.openSettingsURLString)!,
+                    label: {
+                        Label(
+                            "오픈소스 라이선스",
+                            systemImage: "arrow.up.forward"
+                        )
+                    }
+                )
                 Link(
                     destination: URL(string: "https://www.instagram.com/casualconversation_ccrecorder/")!,
                     label: {
