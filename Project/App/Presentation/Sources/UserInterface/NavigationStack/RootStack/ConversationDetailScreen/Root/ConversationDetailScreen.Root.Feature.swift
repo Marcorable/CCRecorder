@@ -13,8 +13,8 @@ extension ConversationDetailScreen.Root {
         @Dependency(\.navigator) private var navigator
 
         var body: some ReducerOf<Self> {
-            Scope(state: \.notes, action: \.notes) {
-                ConversationDetailScreen.Notes.Feature()
+            Scope(state: \.editor, action: \.editor) {
+                ConversationDetailScreen.Editor.Feature()
             }
             Scope(state: \.playbackPanel, action: \.playbackPanel) {
                 ConversationDetailScreen.PlaybackPanel.Feature()
@@ -22,15 +22,46 @@ extension ConversationDetailScreen.Root {
             Reduce { state, action in
                 switch action {
                     case .noteDetail(.dismiss):
-                        return .send(.notes(.load))
+                        return .send(.editor(.parent(.noteDetailDismissed)))
 
-                    case .notes(.delegate(.noteSelected(let id))):
+                    case .editor(.delegate(.noteSelected(let id))):
                         state.noteDetail = .init(noteID: id)
                         return .none
 
-                    case .notes(.delegate(.conversationUpdated(let conversation))):
-                        state.conversation?.noteIds = conversation.noteIds
+                    case .editor(.delegate(.noteIDsUpdated(let ids))):
+                        state.conversation?.noteIds = ids
                         return .none
+
+                    case .editor(.delegate(.titleChanged(let title))):
+                        guard var conversation = state.conversation else {
+                            return .none
+                        }
+                        conversation.title = title
+                        return .send(.conversationUpdateRequested(conversation))
+
+                    case .editor(.delegate(.topicChanged(let topic))):
+                        guard var conversation = state.conversation else {
+                            return .none
+                        }
+                        conversation.topic = topic
+                        return .send(.conversationUpdateRequested(conversation))
+
+                    case .editor(.delegate(.partyAdded(let id, let name))):
+                        guard var conversation = state.conversation else {
+                            return .none
+                        }
+                        conversation.parties.append(.init(
+                            id: id,
+                            name: name
+                        ))
+                        return .send(.conversationUpdateRequested(conversation))
+
+                    case .editor(.delegate(.partyRemoved(let id))):
+                        guard var conversation = state.conversation else {
+                            return .none
+                        }
+                        conversation.parties.removeAll(where: { $0.id == id })
+                        return .send(.conversationUpdateRequested(conversation))
 
                     case .playbackPanel(.delegate(.failed(let failure))):
                         let message = switch failure {
@@ -82,7 +113,7 @@ extension ConversationDetailScreen.Root {
                             conversation: conversation
                         )
 
-                    case .notes, .playbackPanel, .noteDetail, .alert:
+                    case .editor, .playbackPanel, .noteDetail, .alert:
                         return .none
                 }
             }
@@ -130,48 +161,10 @@ extension ConversationDetailScreen.Root.Feature {
                     .cancel(id: CancelID.update),
                     .merge(
                         persistence,
-                        .send(.notes(.cancel)),
+                        .send(.editor(.parent(.conversationDetailDisappeared))),
                         .send(.playbackPanel(.parent(.conversationDetailDisappeared)))
                     )
                 )
-
-            case .titleChanged(let title):
-                guard var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.title = title
-                return .send(.conversationUpdateRequested(updatingItem))
-
-            case .topicChanged(let topic):
-                guard var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.topic = topic
-                return .send(.conversationUpdateRequested(updatingItem))
-
-            case .editingToggled:
-                state.isEditing.toggle()
-                return .none
-
-            case .partyInputChanged(let party):
-                state.partyInput = party
-                return .none
-
-            case .partyAdded:
-                guard !state.partyInput.isEmpty, var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.parties.append(.init(name: state.partyInput))
-                state.partyInput = ""
-                return .send(.conversationUpdateRequested(updatingItem))
-
-            case .partyRemoved(let id):
-                guard var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.parties.removeAll(where: { $0.id == id })
-                return .send(.conversationUpdateRequested(updatingItem))
-
         }
     }
 
@@ -187,7 +180,17 @@ extension ConversationDetailScreen.Root.Feature {
                     return .none
                 }
                 return .merge(
-                    .send(.notes(.load)),
+                    .send(.editor(.parent(.conversationLoaded(
+                        createdDate: conversation.createdDate,
+                        title: conversation.title,
+                        topic: conversation.topic,
+                        parties: conversation.parties.map({ party in
+                            .init(
+                                id: party.id,
+                                name: party.name
+                            )
+                        })
+                    )))),
                     .send(.playbackPanel(.parent(.conversationLoaded(
                         fileName: conversation.recordFileName,
                         pins: conversation.pins
@@ -260,21 +263,19 @@ extension ConversationDetailScreen.Root.Feature {
     @ObservableState
     struct State: Equatable {
         let conversationID: Conversation.ID
-        var conversation: Conversation?
+        fileprivate var conversation: Conversation?
         var conversationLoadFailed = false
         var conversationUpdateRevision = 0
         var persistedConversationRevision = 0
         var isPersistingConversation = false
-        var partyInput = ""
-        var isEditing = false
-        var notes: ConversationDetailScreen.Notes.Feature.State
+        var editor: ConversationDetailScreen.Editor.Feature.State
         var playbackPanel: ConversationDetailScreen.PlaybackPanel.Feature.State = .init()
         @Presents var alert: AlertState<Action.Alert>?
         @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
 
         init(conversationID: Conversation.ID) {
             self.conversationID = conversationID
-            self.notes = .init(conversationID: conversationID)
+            self.editor = .init(conversationID: conversationID)
         }
     }
 
@@ -287,7 +288,7 @@ extension ConversationDetailScreen.Root.Feature {
             revision: Int,
             conversation: Conversation
         )
-        case notes(ConversationDetailScreen.Notes.Feature.Action)
+        case editor(ConversationDetailScreen.Editor.Feature.Action)
         case playbackPanel(ConversationDetailScreen.PlaybackPanel.Feature.Action)
         case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
         case alert(PresentationAction<Alert>)
@@ -296,12 +297,6 @@ extension ConversationDetailScreen.Root.Feature {
         enum View {
             case appeared
             case disappeared
-            case titleChanged(String)
-            case topicChanged(String)
-            case editingToggled
-            case partyInputChanged(String)
-            case partyAdded
-            case partyRemoved(Party.ID)
         }
 
         @CasePathable

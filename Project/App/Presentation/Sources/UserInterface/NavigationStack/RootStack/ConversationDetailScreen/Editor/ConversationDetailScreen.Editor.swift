@@ -6,8 +6,7 @@ import ComposableArchitecture
 extension ConversationDetailScreen {
 
     struct Editor: View {
-        let store: StoreOf<Root.Feature>
-        let notesStore: StoreOf<Notes.Feature>
+        let store: StoreOf<Feature>
 
         @FocusState private var focusedField: Field?
 
@@ -21,10 +20,15 @@ extension ConversationDetailScreen {
                     .transition(.opacity)
                 }
                 InputBox(
-                    store: notesStore,
+                    store: store,
                     focusedField: $focusedField
                 )
                 .animation(.easeOut, value: focusedField)
+                NoteBoard(
+                    rows: store.rows,
+                    onTap: { store.send(.view(.noteSelected($0))) },
+                    onDelete: { store.send(.view(.notesDeleted($0))) }
+                )
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -32,21 +36,16 @@ extension ConversationDetailScreen {
                         TextField(
                             "Title",
                             text: Binding(
-                                get: { store.conversation?.title ?? "" },
+                                get: { store.title },
                                 set: { store.send(.view(.titleChanged($0))) }
                             ),
-                            prompt: Text(
-                                store.conversation?.createdDate.formatted(
-                                    date: .abbreviated,
-                                    time: .omitted
-                                ) ?? ""
-                            )
+                            prompt: Text(store.createdDateText)
                         )
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
                         .focused($focusedField, equals: .infoTitle)
                     } else {
-                        Text(store.conversation?.title ?? "")
+                        Text(store.title)
                             .font(.headline)
                     }
                 }

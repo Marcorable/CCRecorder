@@ -1,0 +1,174 @@
+
+import Testing
+import Foundation
+
+import Domain
+import ComposableArchitecture
+
+@testable import Presentation
+
+@Suite("대화 상세 Editor")
+@MainActor
+struct ConversationDetailScreenEditorTests {
+    private let conversationID = UUID()
+    private let note: Note = .init(
+        id: .init(),
+        createdDate: .init(timeIntervalSince1970: 0),
+        original: "Hello",
+        translation: "안녕하세요",
+        category: .vocabulary
+    )
+}
+
+extension ConversationDetailScreenEditorTests {
+
+    @Test("Conversation 로드 사건을 받으면 표시 상태를 갱신하고 노트를 불러온다")
+    func loadedConversationUpdatesViewStateAndLoadsNotes() async {
+        // given
+        let createdDate = Date(timeIntervalSince1970: 0)
+        let party: ConversationDetailScreen.Editor.Feature.State.Party = .init(
+            id: .init(),
+            name: "Marco"
+        )
+        let store = makeStore(notes: [note])
+
+        // when, then
+        await store.send(.parent(.conversationLoaded(
+            createdDate: createdDate,
+            title: "영어 회화",
+            topic: "인사",
+            parties: [party]
+        ))) {
+            $0.isLoaded = true
+            $0.createdDate = createdDate
+            $0.title = "영어 회화"
+            $0.topic = "인사"
+            $0.parties = [party]
+        }
+        await store.receive(\.response.notesLoaded) {
+            $0.rows = [self.row]
+        }
+    }
+
+    @Test("제목을 변경하면 Editor 상태를 갱신하고 부모에 변경을 알린다")
+    func titleChangeUpdatesStateAndDelegates() async {
+        // given
+        var state = ConversationDetailScreen.Editor.Feature.State(
+            conversationID: conversationID
+        )
+        state.title = "이전 제목"
+        let store = makeStore(state: state)
+
+        // when, then
+        await store.send(.view(.titleChanged("새 제목"))) {
+            $0.title = "새 제목"
+        }
+        await store.receive(\.delegate.titleChanged)
+    }
+
+    @Test("노트를 추가하면 입력을 비우고 변경된 노트 ID와 표시 rows를 갱신한다")
+    func noteAdditionUpdatesNoteIDsAndRows() async {
+        // given
+        let addition = NoteAdditionSpy()
+        let conversation = Conversation(
+            createdDate: .init(timeIntervalSince1970: 0),
+            pins: [],
+            title: "영어 회화",
+            topic: "인사",
+            noteIds: [note.id],
+            parties: []
+        )
+        var state = ConversationDetailScreen.Editor.Feature.State(
+            conversationID: conversationID
+        )
+        state.noteInput = "Hello"
+        let store = makeStore(
+            state: state,
+            notes: [note],
+            addNote: { input, _ in
+                await addition.append(input)
+                return conversation
+            }
+        )
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        // when, then
+        await store.send(.view(.noteAdded)) {
+            $0.noteInput = ""
+        }
+        await store.receive(\.performNextMutation)
+        await store.receive(\.response.noteAdded)
+        await store.receive(\.delegate.noteIDsUpdated)
+        await store.receive(\.response.notesLoaded) {
+            $0.rows = [self.row]
+        }
+        #expect(await addition.values() == ["Hello"])
+    }
+
+}
+
+private extension ConversationDetailScreenEditorTests {
+
+    var row: NoteBoard.Row.ViewModel {
+        .init(
+            id: note.id,
+            original: note.original,
+            translation: note.translation,
+            isVocabulary: true
+        )
+    }
+
+    func makeStore(
+        state: ConversationDetailScreen.Editor.Feature.State? = nil,
+        notes: [Note] = [],
+        addNote: @escaping @Sendable (
+            String,
+            Conversation.ID
+        ) async throws -> Conversation = { _, _ in
+            .init(
+                createdDate: .init(timeIntervalSince1970: 0),
+                pins: [],
+                title: "",
+                topic: "",
+                parties: []
+            )
+        }
+    ) -> TestStoreOf<ConversationDetailScreen.Editor.Feature> {
+        .init(
+            initialState: state ?? .init(conversationID: conversationID),
+            reducer: { ConversationDetailScreen.Editor.Feature() },
+            withDependencies: {
+                $0.managingConversationUsecase = .init(
+                    conversations: { .success([]) },
+                    conversation: { _ in .success(nil) },
+                    notes: { _ in .success(notes) },
+                    update: { _ in },
+                    deleteConversations: { _ in .success(()) },
+                    addNote: addNote,
+                    deleteNotes: { _, _ in
+                        .init(
+                            createdDate: .init(timeIntervalSince1970: 0),
+                            pins: [],
+                            title: "",
+                            topic: "",
+                            parties: []
+                        )
+                    }
+                )
+            }
+        )
+    }
+
+    actor NoteAdditionSpy {
+        private var inputs: [String] = []
+
+        func append(_ input: String) {
+            inputs.append(input)
+        }
+
+        func values() -> [String] {
+            inputs
+        }
+    }
+
+}

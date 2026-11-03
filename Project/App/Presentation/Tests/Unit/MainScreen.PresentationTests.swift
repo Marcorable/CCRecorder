@@ -212,6 +212,7 @@ extension MainScreenPresentationTests {
                 $0.managingNoteUsecase.loadNotes = { .success([note]) }
             }
         )
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.noteDetail(.dismiss)) {
@@ -222,8 +223,8 @@ extension MainScreenPresentationTests {
         }
         await store.receive(\.noteList.response.notesLoaded) {
             $0.noteList.isLoading = false
-            $0.noteList.notes = [note]
         }
+        #expect(store.state.noteList.rows?.map(\.id) == [note.id])
     }
 
     @Test("녹음 화면을 닫으면 선택한 노트 목록만 다시 불러온다")
@@ -244,6 +245,7 @@ extension MainScreenPresentationTests {
                 }
             }
         )
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.record(.dismiss)) {
@@ -254,8 +256,8 @@ extension MainScreenPresentationTests {
         }
         await store.receive(\.noteList.response.notesLoaded) {
             $0.noteList.isLoading = false
-            $0.noteList.notes = []
         }
+        #expect(store.state.noteList.rows == [])
         #expect(await spy.callCount == 1)
     }
 

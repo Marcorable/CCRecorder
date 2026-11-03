@@ -6,7 +6,7 @@ import ComposableArchitecture
 extension ConversationDetailScreen.Editor {
 
     struct InformationBox: View {
-        let store: StoreOf<ConversationDetailScreen.Root.Feature>
+        let store: StoreOf<Feature>
         let focusedField: FocusState<Field?>.Binding
 
         var body: some View {
@@ -40,7 +40,7 @@ extension ConversationDetailScreen.Editor {
                             TextField(
                                 "Topic",
                                 text: Binding(
-                                    get: { store.conversation?.topic ?? "" },
+                                    get: { store.topic },
                                     set: { store.send(.view(.topicChanged($0))) }
                                 ),
                                 prompt: Text("주제를 입력하세요")
@@ -71,14 +71,14 @@ extension ConversationDetailScreen.Editor {
                             )
                         }
                         .focused(focusedField, equals: .infoParty)
-                        if let parties = store.conversation?.parties, !parties.isEmpty {
+                        if !store.parties.isEmpty {
                             ScrollView(.horizontal, showsIndicators: true) {
                                 HStack(alignment: .center) {
-                                    Text("\(parties.count)명")
+                                    Text("\(store.parties.count)명")
                                         .font(.body)
                                         .fontWeight(.bold)
                                     LazyHGrid(rows: [.init(.flexible())]) {
-                                        ForEach(parties) { party in
+                                        ForEach(store.parties) { party in
                                             HStack(spacing: 6) {
                                                 Text(party.name)
                                                 Button(

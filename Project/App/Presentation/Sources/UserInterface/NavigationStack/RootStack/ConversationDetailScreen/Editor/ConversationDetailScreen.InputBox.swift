@@ -7,7 +7,7 @@ import ComposableArchitecture
 extension ConversationDetailScreen.Editor {
 
     struct InputBox: View {
-        let store: StoreOf<ConversationDetailScreen.Notes.Feature>
+        let store: StoreOf<Feature>
         let focusedField: FocusState<Field?>.Binding
 
         var body: some View {

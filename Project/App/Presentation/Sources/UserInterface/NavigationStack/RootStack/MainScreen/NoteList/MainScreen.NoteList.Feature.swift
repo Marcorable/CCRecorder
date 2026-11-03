@@ -53,14 +53,8 @@ extension MainScreen.NoteList.Feature {
                 }
                 return .send(.delegate(.noteSelected(id)))
 
-            case .deleteRequested(let offsets):
-                guard let rows = state.rows else {
-                    return .none
-                }
-                let ids = offsets.compactMap({ index in
-                    rows.indices.contains(index) ? rows[index].id : nil
-                })
-                guard !ids.isEmpty else {
+            case .deleteRequested(let ids):
+                guard state.rows != nil, !ids.isEmpty else {
                     return .none
                 }
                 return .run { send in
@@ -120,16 +114,25 @@ extension MainScreen.NoteList.Feature {
 
     @ObservableState
     struct State: Equatable {
-        var notes: [Note]?
+        fileprivate var notes: [Note]?
         var isLoading = false
 
-        var rows: [MainScreen.NoteList.Row.ViewModel]? {
-            notes?.sortedForList.map({ note in
+        var rows: [NoteBoard.Row.ViewModel]? {
+            notes?.sorted(
+                by: { lhs, rhs in
+                    if lhs.isDone == rhs.isDone {
+                        lhs.createdDate < rhs.createdDate
+                    } else {
+                        !lhs.isDone
+                    }
+                }
+            )
+            .map({
                 .init(
-                    id: note.id,
-                    original: note.original,
-                    translation: note.translation,
-                    isVocabulary: note.category == .vocabulary
+                    id: $0.id,
+                    original: $0.original,
+                    translation: $0.translation,
+                    isVocabulary: $0.category == .vocabulary
                 )
             })
         }
@@ -146,8 +149,8 @@ extension MainScreen.NoteList.Feature {
         enum View {
             case task
             case reload
-            case noteTapped(Note.ID)
-            case deleteRequested(IndexSet)
+            case noteTapped(UUID)
+            case deleteRequested([UUID])
         }
 
         @CasePathable
@@ -169,20 +172,6 @@ extension MainScreen.NoteList.Feature {
 
     private enum CancelID {
         case loadNotes
-    }
-
-}
-
-private extension Array where Element == Note {
-
-    var sortedForList: Self {
-        sorted(by: { lhs, rhs in
-            if lhs.isDone == rhs.isDone {
-                lhs.createdDate < rhs.createdDate
-            } else {
-                !lhs.isDone
-            }
-        })
     }
 
 }

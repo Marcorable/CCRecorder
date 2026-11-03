@@ -1,6 +1,6 @@
 
-import Foundation
 import Testing
+import Foundation
 
 import Domain
 import ComposableArchitecture
@@ -27,21 +27,24 @@ struct ConversationDetailScreenPresentationTests {
 
 extension ConversationDetailScreenPresentationTests {
 
-    @Test("화면이 나타나면 ID로 Conversation을 불러온다")
+    @Test("화면이 나타나면 Conversation을 한 번 불러와 Editor와 재생 패널에 필요한 값만 전달한다")
     func appearedLoadsConversationByID() async {
         // given
-        let store = makeStore()
+        let store = makeStore(notes: [note])
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.view(.appeared))
-        await store.receive(\.response.conversationLoaded) {
-            $0.conversation = conversation
+        await store.receive(\.response.conversationLoaded)
+        await store.receive(\.editor.parent.conversationLoaded) {
+            $0.editor.isLoaded = true
+            $0.editor.createdDate = self.conversation.createdDate
+            $0.editor.title = self.conversation.title
+            $0.editor.topic = self.conversation.topic
         }
-        await store.receive(\.notes.load)
-        await store.receive(\.playbackPanel.parent.conversationLoaded)
-        await store.receive(\.playbackPanel.response.audioSessionUpdates)
-        await store.receive(\.notes.response.notesLoaded)
-        await store.receive(\.playbackPanel.response.prepared)
+        await store.receive(\.editor.response.notesLoaded) {
+            $0.editor.rows = [self.row]
+        }
         await store.receive(\.playbackPanel.delegate.failed) {
             $0.alert = .playbackFailed(
                 message: "녹음 파일을 준비하지 못했습니다"
@@ -49,15 +52,14 @@ extension ConversationDetailScreenPresentationTests {
         }
     }
 
-    @Test("노트를 선택하면 노트 상세 화면 상태를 생성한다")
+    @Test("Editor가 노트 선택을 알리면 노트 상세 화면 상태를 생성한다")
     func noteSelectionCreatesNoteDetailState() async {
         // given
         let store = makeStore()
 
         // when, then
-        await store.send(.notes(.view(.noteSelected(note.id))))
-        await store.receive(\.notes.delegate.noteSelected) {
-            $0.noteDetail = .init(noteID: note.id)
+        await store.send(.editor(.delegate(.noteSelected(note.id)))) {
+            $0.noteDetail = .init(noteID: self.note.id)
         }
     }
 
@@ -97,13 +99,12 @@ extension ConversationDetailScreenPresentationTests {
         #expect(await navigation.popCallCount == 0)
     }
 
-    @Test("노트 상세 화면을 닫으면 노트 목록을 다시 불러온다")
+    @Test("노트 상세 화면을 닫으면 Editor가 노트 목록을 다시 불러온다")
     func noteDetailDismissReloadsNotes() async {
         // given
         var state: ConversationDetailScreen.Root.Feature.State = .init(
             conversationID: conversation.id
         )
-        state.conversation = conversation
         state.noteDetail = .init(noteID: note.id)
         let store = makeStore(
             state: state,
@@ -114,9 +115,9 @@ extension ConversationDetailScreenPresentationTests {
         await store.send(.noteDetail(.dismiss)) {
             $0.noteDetail = nil
         }
-        await store.receive(\.notes.load)
-        await store.receive(\.notes.response.notesLoaded) {
-            $0.notes.notes = [note]
+        await store.receive(\.editor.parent.noteDetailDismissed)
+        await store.receive(\.editor.response.notesLoaded) {
+            $0.editor.rows = [self.row]
         }
     }
 
@@ -125,28 +126,24 @@ extension ConversationDetailScreenPresentationTests {
         // given
         let updates = ConversationUpdates()
         let clock = TestClock<Duration>()
-        var state: ConversationDetailScreen.Root.Feature.State = .init(
-            conversationID: conversation.id
-        )
-        state.conversation = conversation
         let store = makeStore(
-            state: state,
             clock: clock,
             update: { await updates.append($0) }
         )
+        await loadConversation(into: store)
 
         // when, then
-        await store.send(.view(.titleChanged("수정된 제목")))
+        await store.send(.editor(.view(.titleChanged("수정된 제목")))) {
+            $0.editor.title = "수정된 제목"
+        }
+        await store.receive(\.editor.delegate.titleChanged)
         await store.receive(\.conversationUpdateRequested) {
-            $0.conversation?.title = "수정된 제목"
             $0.conversationUpdateRevision = 1
         }
         await store.send(.view(.disappeared))
         await store.receive(\.conversationPersistenceRequested) {
             $0.isPersistingConversation = true
         }
-        await store.receive(\.notes.cancel)
-        await store.receive(\.playbackPanel.parent.conversationDetailDisappeared)
         await store.receive(\.response.conversationPersisted) {
             $0.persistedConversationRevision = 1
             $0.isPersistingConversation = false
@@ -159,20 +156,18 @@ extension ConversationDetailScreenPresentationTests {
         // given
         let updates = SuspendedConversationUpdates()
         let clock = TestClock<Duration>()
-        var state: ConversationDetailScreen.Root.Feature.State = .init(
-            conversationID: conversation.id
-        )
-        state.conversation = conversation
         let store = makeStore(
-            state: state,
             clock: clock,
             update: { await updates.append($0) }
         )
+        await loadConversation(into: store)
 
         // when, then
-        await store.send(.view(.titleChanged("첫 번째 제목")))
+        await store.send(.editor(.view(.titleChanged("첫 번째 제목")))) {
+            $0.editor.title = "첫 번째 제목"
+        }
+        await store.receive(\.editor.delegate.titleChanged)
         await store.receive(\.conversationUpdateRequested) {
-            $0.conversation?.title = "첫 번째 제목"
             $0.conversationUpdateRevision = 1
         }
         await clock.advance(by: .seconds(1))
@@ -181,9 +176,11 @@ extension ConversationDetailScreenPresentationTests {
         }
         await updates.waitUntilFirstUpdateStarts()
 
-        await store.send(.view(.titleChanged("두 번째 제목")))
+        await store.send(.editor(.view(.titleChanged("두 번째 제목")))) {
+            $0.editor.title = "두 번째 제목"
+        }
+        await store.receive(\.editor.delegate.titleChanged)
         await store.receive(\.conversationUpdateRequested) {
-            $0.conversation?.title = "두 번째 제목"
             $0.conversationUpdateRevision = 2
         }
         await clock.advance(by: .seconds(1))
@@ -210,9 +207,49 @@ extension ConversationDetailScreenPresentationTests {
         )
     }
 
+    @Test("노트 변경 결과를 원본에 병합한 뒤에도 메타데이터 저장이 최신 노트 ID를 유지한다")
+    func noteIDsRemainLatestWhenMetadataIsSaved() async {
+        // given
+        let updates = ConversationUpdates()
+        let clock = TestClock<Duration>()
+        let store = makeStore(
+            clock: clock,
+            update: { await updates.append($0) }
+        )
+        await loadConversation(into: store)
+
+        // when, then
+        await store.send(.editor(.delegate(.noteIDsUpdated([note.id]))))
+        await store.send(.editor(.view(.titleChanged("수정된 제목")))) {
+            $0.editor.title = "수정된 제목"
+        }
+        await store.receive(\.editor.delegate.titleChanged)
+        await store.receive(\.conversationUpdateRequested) {
+            $0.conversationUpdateRevision = 1
+        }
+        await clock.advance(by: .seconds(1))
+        await store.receive(\.conversationPersistenceRequested) {
+            $0.isPersistingConversation = true
+        }
+        await store.receive(\.response.conversationPersisted) {
+            $0.persistedConversationRevision = 1
+            $0.isPersistingConversation = false
+        }
+        #expect(await updates.values().first?.noteIds == [note.id])
+    }
+
 }
 
 private extension ConversationDetailScreenPresentationTests {
+
+    var row: NoteBoard.Row.ViewModel {
+        .init(
+            id: note.id,
+            original: note.original,
+            translation: note.translation,
+            isVocabulary: true
+        )
+    }
 
     func makeStore(
         state: ConversationDetailScreen.Root.Feature.State? = nil,
@@ -221,7 +258,7 @@ private extension ConversationDetailScreenPresentationTests {
         update: @escaping @Sendable (Conversation) async throws -> Void = { _ in },
         pop: @escaping @Sendable () async -> Void = {}
     ) -> TestStoreOf<ConversationDetailScreen.Root.Feature> {
-        .init(
+        let store: TestStoreOf<ConversationDetailScreen.Root.Feature> = .init(
             initialState: state ?? .init(conversationID: conversation.id),
             reducer: { ConversationDetailScreen.Root.Feature() },
             withDependencies: {
@@ -248,6 +285,20 @@ private extension ConversationDetailScreenPresentationTests {
                 $0.navigator.pop = pop
             }
         )
+        return store
+    }
+
+    func loadConversation(
+        into store: TestStoreOf<ConversationDetailScreen.Root.Feature>
+    ) async {
+        store.exhaustivity = .off(showSkippedAssertions: false)
+        await store.send(.response(.conversationLoaded(.success(conversation))))
+        await store.receive(\.editor.parent.conversationLoaded) {
+            $0.editor.isLoaded = true
+            $0.editor.createdDate = self.conversation.createdDate
+            $0.editor.title = self.conversation.title
+            $0.editor.topic = self.conversation.topic
+        }
     }
 
     enum TestError: Error {

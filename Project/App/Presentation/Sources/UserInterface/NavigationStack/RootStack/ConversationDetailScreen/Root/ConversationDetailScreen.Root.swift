@@ -1,7 +1,6 @@
 
 import SwiftUI
 
-import Domain
 import ComposableArchitecture
 
 enum ConversationDetailScreen {
@@ -11,19 +10,12 @@ enum ConversationDetailScreen {
 
         var body: some View {
             Group {
-                if store.conversation != nil {
+                if store.editor.isLoaded {
                     VStack {
                         Editor(
-                            store: store,
-                            notesStore: store.scope(
-                                state: \.notes,
-                                action: \.notes
-                            )
-                        )
-                        NoteList(
                             store: store.scope(
-                                state: \.notes,
-                                action: \.notes
+                                state: \.editor,
+                                action: \.editor
                             )
                         )
                         PlaybackPanel(
