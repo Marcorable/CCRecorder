@@ -250,6 +250,90 @@ extension LegacyStoreMigratorTests {
         #expect(FileManager.default.fileExists(atPath: migratedFileURLs[1].path))
     }
 
+    @Test("같은 이름의 고아 녹음이 있으면 v1 녹음을 새 파일로 복사해 연결한다")
+    func orphanRecordingNameCollisionCopiesLegacyRecording() throws {
+        defer { cleanUp() }
+
+        // given
+        let conversationID = UUID()
+        try makeV1Fixture(
+            conversations: [
+                .init(
+                    id: conversationID,
+                    title: "이름 충돌",
+                    members: [],
+                    pins: [],
+                    recordedDate: .now,
+                    fileName: "collision.m4a"
+                )
+            ],
+            notes: []
+        )
+        let legacyFileURL = legacyRecordDirectoryURL.appendingPathComponent(
+            "collision.m4a"
+        )
+        let orphanFileURL = currentRecordDirectoryURL.appendingPathComponent(
+            "collision.m4a"
+        )
+        let legacyRecording = Data("legacy-recording".utf8)
+        let orphanRecording = Data("orphan-recording".utf8)
+        try legacyRecording.write(to: legacyFileURL)
+        try orphanRecording.write(to: orphanFileURL)
+
+        // when
+        let report = makeSUT().migrate(into: destinationContainer)
+
+        // then
+        #expect(report.status == .completed)
+        let conversation = try #require(
+            try destinationContainer.mainContext.fetch(
+                FetchDescriptor<Domain.Conversation.Record>()
+            ).first
+        )
+        #expect(conversation.recordFileName != "collision.m4a")
+        let migratedFileURL = currentRecordDirectoryURL.appendingPathComponent(
+            conversation.recordFileName
+        )
+        #expect(try Data(contentsOf: migratedFileURL) == legacyRecording)
+        #expect(try Data(contentsOf: orphanFileURL) == orphanRecording)
+        #expect(try Data(contentsOf: legacyFileURL) == legacyRecording)
+    }
+
+    @Test("성공한 v2는 완료 처리해 v1 실패 재시도에서 삭제한 대화를 복원하지 않는다")
+    func completedV2SourceDoesNotRestoreDeletedConversation() throws {
+        defer { cleanUp() }
+
+        // given
+        try makeV2Fixture(
+            conversationID: UUID(),
+            noteID: UUID(),
+            partyID: UUID(),
+            createdDate: .now
+        )
+        try Data("not-a-store".utf8).write(to: v1StoreURL)
+
+        // when
+        let firstReport = makeSUT().migrate(into: destinationContainer)
+
+        // then
+        #expect(firstReport.status == .partial)
+        let context = destinationContainer.mainContext
+        let conversation = try #require(
+            try context.fetch(FetchDescriptor<Domain.Conversation.Record>()).first
+        )
+        #expect(try context.fetchCount(FetchDescriptor<LegacyStoreMigrationRecord>()) == 1)
+
+        // when
+        context.delete(conversation)
+        try context.save()
+        let secondReport = makeSUT().migrate(into: destinationContainer)
+
+        // then
+        #expect(secondReport.status == .partial)
+        #expect(try context.fetchCount(FetchDescriptor<Domain.Conversation.Record>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<LegacyStoreMigrationRecord>()) == 1)
+    }
+
     @Test("빈 저장소는 완료 처리하고 재실행해도 데이터를 만들지 않는다")
     func emptyStoreCompletesOnlyOnce() throws {
         defer { cleanUp() }
@@ -474,7 +558,7 @@ private extension LegacyStoreMigratorTests {
 
         for fixture in conversations {
             let object = NSEntityDescription.insertNewObject(
-                forEntityName: "ConversationEntity",
+                forEntityName: "ConversationData",
                 into: context
             )
             object.setValue(fixture.id, forKey: "id")
@@ -490,7 +574,7 @@ private extension LegacyStoreMigratorTests {
         }
         for fixture in notes {
             let object = NSEntityDescription.insertNewObject(
-                forEntityName: "NoteEntity",
+                forEntityName: "NoteData",
                 into: context
             )
             object.setValue(fixture.id, forKey: "id")

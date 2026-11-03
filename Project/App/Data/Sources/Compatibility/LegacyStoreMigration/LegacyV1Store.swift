@@ -47,10 +47,10 @@ extension LegacyV1Store {
         context.persistentStoreCoordinator = coordinator
 
         let legacyConversations = try context.fetch(
-            NSFetchRequest<NSManagedObject>(entityName: "ConversationEntity")
+            NSFetchRequest<NSManagedObject>(entityName: "ConversationData")
         )
         let legacyNotes = try context.fetch(
-            NSFetchRequest<NSManagedObject>(entityName: "NoteEntity")
+            NSFetchRequest<NSManagedObject>(entityName: "NoteData")
         )
         let notes = legacyNotes.map(note(from:))
         var noteIdsByConversation: [UUID: [UUID]] = [:]

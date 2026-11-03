@@ -42,6 +42,8 @@ extension LegacyStoreMigrationReport {
 @MainActor
 struct LegacyStoreMigrator {
     private static let migrationID: String = "v1-v2-to-record-v1"
+    private static let v1MigrationID: String = "v1-v2-to-record-v1:v1"
+    private static let v2MigrationID: String = "v1-v2-to-record-v1:v2"
 
     private let dependency: Dependency
 
@@ -104,7 +106,12 @@ extension LegacyStoreMigrator {
 
     func migrate(into modelContainer: ModelContainer) -> LegacyStoreMigrationReport {
         let context = modelContainer.mainContext
-        if isCompleted(in: context) {
+        let completedMigrationIDs = completedMigrationIDs(in: context)
+        let availableMigrationIDs = availableMigrationIDs()
+        if isCompleted(
+            completedMigrationIDs: completedMigrationIDs,
+            availableMigrationIDs: availableMigrationIDs
+        ) {
             return .init(
                 status: .alreadyMigrated,
                 conversationCount: 0,
@@ -117,21 +124,26 @@ extension LegacyStoreMigrator {
         var issues: [String] = []
         let sources = loadSources(
             currentSchema: modelContainer.schema,
+            completedMigrationIDs: completedMigrationIDs,
             issues: &issues
         )
         var createdFileURLs: [URL] = []
-        let counts: MigrationCounts
+        let result: InsertionResult
         do {
-            counts = try insert(
+            result = try insert(
                 sources,
                 into: context,
                 issues: &issues,
                 createdFileURLs: &createdFileURLs
             )
-            if issues.isEmpty {
+            var completedIDs = result.completedMigrationIDs
+            if availableMigrationIDs.isEmpty, issues.isEmpty {
+                completedIDs.append(Self.migrationID)
+            }
+            for id in completedIDs where !completedMigrationIDs.contains(id) {
                 context.insert(
                     LegacyStoreMigrationRecord(
-                        id: Self.migrationID,
+                        id: id,
                         completedDate: dependency.now()
                     )
                 )
@@ -152,9 +164,9 @@ extension LegacyStoreMigrator {
 
         return .init(
             status: issues.isEmpty ? .completed : .partial,
-            conversationCount: counts.conversations,
-            noteCount: counts.notes,
-            partyCount: counts.parties,
+            conversationCount: result.counts.conversations,
+            noteCount: result.counts.notes,
+            partyCount: result.counts.parties,
             issues: issues
         )
     }
@@ -163,10 +175,20 @@ extension LegacyStoreMigrator {
 
 private extension LegacyStoreMigrator {
 
+    struct MigrationSource {
+        let id: String
+        let data: LegacyStoreMigrationData
+    }
+
     struct MigrationCounts {
         var conversations: Int = 0
         var notes: Int = 0
         var parties: Int = 0
+    }
+
+    struct InsertionResult {
+        var counts: MigrationCounts = .init()
+        var completedMigrationIDs: [String] = []
     }
 
     enum SourceStoreError: Error {
@@ -174,29 +196,60 @@ private extension LegacyStoreMigrator {
         case legacyModelNotFound
     }
 
-    func isCompleted(in context: ModelContext) -> Bool {
-        let migrationID = Self.migrationID
-        let descriptor = FetchDescriptor<LegacyStoreMigrationRecord>(
-            predicate: #Predicate { $0.id == migrationID }
-        )
-        return ((try? context.fetchCount(descriptor)) ?? 0) > 0
+    func completedMigrationIDs(in context: ModelContext) -> Set<String> {
+        let records = (try? context.fetch(
+            FetchDescriptor<LegacyStoreMigrationRecord>()
+        )) ?? []
+        return Set(records.map({ $0.id }))
+    }
+
+    func availableMigrationIDs() -> Set<String> {
+        var ids: Set<String> = []
+        if fileExists(at: dependency.legacySwiftDataStoreURL) {
+            ids.insert(Self.v2MigrationID)
+        }
+        if fileExists(at: dependency.legacyCoreDataStoreURL) {
+            ids.insert(Self.v1MigrationID)
+        }
+        return ids
+    }
+
+    func isCompleted(
+        completedMigrationIDs: Set<String>,
+        availableMigrationIDs: Set<String>
+    ) -> Bool {
+        if completedMigrationIDs.contains(Self.migrationID) {
+            return true
+        }
+        return !availableMigrationIDs.isEmpty
+            && availableMigrationIDs.isSubset(of: completedMigrationIDs)
     }
 
     func loadSources(
         currentSchema: Schema,
+        completedMigrationIDs: Set<String>,
         issues: inout [String]
-    ) -> [LegacyStoreMigrationData] {
-        var sources: [LegacyStoreMigrationData] = []
-        if fileExists(at: dependency.legacySwiftDataStoreURL) {
+    ) -> [MigrationSource] {
+        var sources: [MigrationSource] = []
+        if
+            fileExists(at: dependency.legacySwiftDataStoreURL),
+            !completedMigrationIDs.contains(Self.v2MigrationID)
+        {
             do {
                 sources.append(
-                    try loadSwiftDataSource(currentSchema: currentSchema)
+                    .init(
+                        id: Self.v2MigrationID,
+                        data: try loadSwiftDataSource(currentSchema: currentSchema)
+                    )
                 )
             } catch {
                 issues.append("v2 저장소 읽기 실패: \(error)")
             }
         }
-        if fileExists(at: dependency.legacyCoreDataStoreURL) {
+        if
+            fileExists(at: dependency.legacyCoreDataStoreURL),
+            !completedMigrationIDs.contains(Self.v1MigrationID)
+        {
             do {
                 guard let modelURL = dependency.legacyCoreDataModelURL else {
                     throw SourceStoreError.legacyModelNotFound
@@ -211,7 +264,12 @@ private extension LegacyStoreMigrator {
                         )
                     }
                 )
-                sources.append(source)
+                sources.append(
+                    .init(
+                        id: Self.v1MigrationID,
+                        data: source
+                    )
+                )
             } catch {
                 issues.append("v1 저장소 읽기 실패: \(error)")
             }
@@ -285,11 +343,11 @@ private extension LegacyStoreMigrator {
     }
 
     func insert(
-        _ sources: [LegacyStoreMigrationData],
+        _ sources: [MigrationSource],
         into context: ModelContext,
         issues: inout [String],
         createdFileURLs: inout [URL]
-    ) throws -> MigrationCounts {
+    ) throws -> InsertionResult {
         let existingConversations = try context.fetch(
             FetchDescriptor<Domain.Conversation.Record>()
         )
@@ -308,16 +366,18 @@ private extension LegacyStoreMigrator {
         for conversation in existingConversations where !conversation.recordFileName.isEmpty {
             claimedFileNames[conversation.recordFileName] = conversation.id
         }
-        var counts = MigrationCounts()
+        var result = InsertionResult()
 
         for source in sources {
+            let issueCount = issues.count
+            let data = source.data
             let sourceParties: [LegacyStoreMigrationData.Party]
-            switch source.recordSource {
+            switch data.recordSource {
                 case .currentDirectory:
-                    sourceParties = source.parties
+                    sourceParties = data.parties
 
                 case .legacyDirectory:
-                    sourceParties = source.conversations
+                    sourceParties = data.conversations
                         .filter({ conversationsByID[$0.id] == nil })
                         .flatMap({ $0.parties })
             }
@@ -332,9 +392,9 @@ private extension LegacyStoreMigrator {
                     )
                 )
                 partyIDs.insert(party.id)
-                counts.parties += 1
+                result.counts.parties += 1
             }
-            for note in source.notes where !noteIDs.contains(note.id) {
+            for note in data.notes where !noteIDs.contains(note.id) {
                 context.insert(
                     Domain.Note.Record(
                         .init(
@@ -349,13 +409,13 @@ private extension LegacyStoreMigrator {
                     )
                 )
                 noteIDs.insert(note.id)
-                counts.notes += 1
+                result.counts.notes += 1
             }
-            for conversation in source.conversations {
+            for conversation in data.conversations {
                 let existingRecord = conversationsByID[conversation.id]
                 let recordFileName = migratedRecordFileName(
                     of: conversation,
-                    source: source.recordSource,
+                    source: data.recordSource,
                     existingRecord: existingRecord,
                     claimedFileNames: &claimedFileNames,
                     issues: &issues,
@@ -383,10 +443,13 @@ private extension LegacyStoreMigrator {
                 let record = Domain.Conversation.Record(domainConversation)
                 context.insert(record)
                 conversationsByID[conversation.id] = record
-                counts.conversations += 1
+                result.counts.conversations += 1
+            }
+            if issues.count == issueCount {
+                result.completedMigrationIDs.append(source.id)
             }
         }
-        return counts
+        return result
     }
 
 }
@@ -415,10 +478,20 @@ private extension LegacyStoreMigrator {
             conversation.recordFileName,
             isDirectory: false
         )
+        let originalTargetFileURL = dependency.currentRecordDirectoryURL.appendingPathComponent(
+            conversation.recordFileName,
+            isDirectory: false
+        )
+        let sourceFileExists = fileExists(at: sourceFileURL)
+        let originalTargetFileNeedsUniqueName = sourceFileExists
+            && fileExists(at: originalTargetFileURL)
         let targetFileName: String
         if let existingRecord, isValidFileName(existingRecord.recordFileName) {
             targetFileName = existingRecord.recordFileName
-        } else if let ownerID = claimedFileNames[conversation.recordFileName], ownerID != conversation.id {
+        } else if
+            claimedFileNames[conversation.recordFileName] != nil
+                || originalTargetFileNeedsUniqueName
+        {
             targetFileName = uniqueFileName(
                 for: conversation.recordFileName,
                 conversationID: conversation.id,
@@ -438,7 +511,7 @@ private extension LegacyStoreMigrator {
         }
 
         let copySourceURL: URL
-        if fileExists(at: sourceFileURL) {
+        if sourceFileExists {
             copySourceURL = sourceFileURL
         } else {
             let sharedFileURL = dependency.currentRecordDirectoryURL.appendingPathComponent(
