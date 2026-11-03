@@ -262,12 +262,15 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 return .none
 
             case .audioSessionEvent(.interruptionBegan):
+                let notification: Effect<Action> = state.isPlaying
+                    ? .send(.delegate(.interrupted))
+                    : .none
                 state.isPlaying = false
                 return .merge(
                     .cancel(id: CancelID.playbackStart),
                     .cancel(id: CancelID.ticker),
                     .run { _ in await playingRecordUsecase.pause() },
-                    .send(.delegate(.interrupted))
+                    notification
                 )
 
             case .playbackStarted(.success):

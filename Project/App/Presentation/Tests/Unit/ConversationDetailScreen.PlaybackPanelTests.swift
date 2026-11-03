@@ -176,6 +176,30 @@ extension ConversationDetailScreenPlaybackPanelTests {
         #expect(await playback.readRate() == 1.5)
     }
 
+    @Test("일시 정지 중 인터럽션은 알럿을 요청하지 않는다")
+    func pausedInterruptionDoesNotNotify() async {
+        // given
+        let playback = PlaybackSpy()
+        var state = ConversationDetailScreen.PlaybackPanel.Feature.State()
+        state.isPrepared = true
+        let store = TestStore(
+            initialState: state,
+            reducer: {
+                ConversationDetailScreen.PlaybackPanel.Feature()
+            },
+            withDependencies: {
+                $0.playingRecordUsecase.pause = { await playback.pause() }
+            }
+        )
+
+        // when
+        await store.send(.response(.audioSessionEvent(.interruptionBegan)))
+        await playback.waitUntilPaused()
+
+        // then
+        await store.finish()
+    }
+
     @Test("AVAudioSession 알림을 인터럽션 이벤트로 변환한다")
     func convertsAudioSessionNotificationsToEvents() {
         let began = Notification(
