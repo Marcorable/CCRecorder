@@ -9,6 +9,7 @@ extension MainScreen {
         let selectedTab: Tab
         let select: (Tab) -> Void
         let record: () -> Void
+        let isAbleToRequestRecording: Bool
 
         var body: some View {
             HStack {
@@ -34,6 +35,7 @@ extension MainScreen {
                             )
                     }
                 )
+                .disabled(!isAbleToRequestRecording)
                 Item(
                     tab: .noteList,
                     selectedTab: selectedTab,

@@ -3,6 +3,25 @@ import ComposableArchitecture
 
 extension AlertState where Action == MainScreen.Root.Feature.Action.Alert {
 
+    static var permissionDenied: Self {
+        .init(
+            title: {
+                TextState("마이크 권한 필요")
+            },
+            actions: {
+                ButtonState(action: .openSettingsTapped) {
+                    TextState("설정으로 이동")
+                }
+                ButtonState(role: .cancel) {
+                    TextState("닫기")
+                }
+            },
+            message: {
+                TextState("설정 > Casual Conversation > 마이크를 허용해 주세요")
+            }
+        )
+    }
+
     static var conversationLoadFailed: Self {
         retryAlert(
             title: "대화 목록 불러오기 실패",

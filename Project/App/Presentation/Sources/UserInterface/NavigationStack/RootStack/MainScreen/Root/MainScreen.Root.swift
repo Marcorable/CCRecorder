@@ -44,7 +44,8 @@ enum MainScreen {
                 MainScreen.TabBar(
                     selectedTab: store.selectedTab,
                     select: { store.send(.view(.tabSelected($0))) },
-                    record: { store.send(.view(.recordButtonTapped)) }
+                    record: { store.send(.view(.recordButtonTapped)) },
+                    isAbleToRequestRecording: store.isAbleToRequestRecording
                 )
             }
             .background(Color(asset: Asset.Surface.Background.primary))
