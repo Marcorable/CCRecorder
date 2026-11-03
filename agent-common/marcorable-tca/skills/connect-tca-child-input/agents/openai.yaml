@@ -1,0 +1,4 @@
+interface:
+  display_name: "TCA Child 입력 연결"
+  short_description: "부모 소유 값을 Child 초기 상태와 Parent 사건으로 연결합니다"
+  default_prompt: "$connect-tca-child-input을 사용해 부모 상태를 기존 Child Feature 입력으로 연결해줘."

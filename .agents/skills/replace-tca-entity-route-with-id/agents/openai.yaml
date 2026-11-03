@@ -1,0 +1,4 @@
+interface:
+  display_name: "TCA Detail ID 경로 전환"
+  short_description: "Entity 기반 Detail 진입을 ID 조회 경계로 전환"
+  default_prompt: "$replace-tca-entity-route-with-id를 사용해 이 Detail 진입값을 Entity에서 ID로 전환해줘."

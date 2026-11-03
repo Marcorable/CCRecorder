@@ -5,21 +5,20 @@ paths:
 
 # TCA Preview
 
+이 규칙은 SwiftUI Preview에만 적용한다. UIKit 화면의 fixture와 미리보기는 프로젝트 관습을 유지한다.
+
 Preview는 확인하려는 State를 `Store`의 `initialState`로 만들고 Mock 또는 preview Dependency를 주입한다.
 Store 생성 문법은 `store-initialization.md`를 따른다.
 
 ```swift
 #Preview {
-    RecordScreen.Root(
+    SearchScreen.Root(
         store: .init(
             initialState: .init(),
-            reducer: { RecordScreen.Root.Feature() },
+            reducer: { SearchScreen.Root.Feature() },
             withDependencies: {
-                $0.recordUsecase = .live(service: MockRecorderService())
-                $0.saveConversationUsecase = .live(
-                    repository: ConversationRepositoryConcrete(modelContext: .mock),
-                    fileStore: RecordFileStore()
-                )
+                $0.searchClient = .previewValue
+                $0.recentSearchRepository = .mock
             }
         )
     )

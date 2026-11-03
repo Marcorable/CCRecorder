@@ -22,11 +22,17 @@ TCA API와 직접 연결되는 Action은 해당 API의 형태를 유지한다.
 
 TCA API가 정하지 않은 내부 역할은 다음 이름을 기본값으로 사용한다. 필요한 종류만 만들고 빈 분류를 미리 만들지 않는다.
 
-- `response`: API, 저장소, 타이머 같은 외부 작업의 응답
+- `parent`: 부모 Feature에서 Child로 전달한 입력 사건 (`parent-child-event.md`)
+- `response`: 외부 작업의 결과와 재사용을 위해 명시적으로 라우팅한 Effect 시작 사건
 - `delegate`: 부모 Feature에 알릴 의미 있는 사건
 
 ```swift
 enum Action: ViewAction {
+    enum Parent {
+        case containerLoaded(Configuration)
+        case containerDisappeared
+    }
+
     enum View {
         case appeared
         case queryChanged(String)
@@ -34,6 +40,7 @@ enum Action: ViewAction {
     }
 
     enum Response {
+        case rowsLoading
         case rowsLoaded(TaskResult<[Row]>)
     }
 
@@ -41,6 +48,7 @@ enum Action: ViewAction {
         case rowSelected(Row.ID)
     }
 
+    case parent(Parent)
     case view(View)
     case response(Response)
     case child(ChildFeature.Action)
@@ -48,13 +56,21 @@ enum Action: ViewAction {
 }
 ```
 
-`view`, `binding`, `destination`, `child`는 TCA 조합 방식에 맞추고, `response`, `delegate`는 marcorable-tca가 선택한 역할 분류로 사용한다.
+`view`, `binding`, `destination`, `child`는 TCA 조합 방식에 맞추고, `parent`, `response`, `delegate`는 marcorable-tca가 선택한 역할 분류로 사용한다.
+
+방향은 다음처럼 읽는다.
+
+- `view`: View → Feature
+- `parent`: Parent → Child
+- `response`: Effect → Feature
+- `delegate`: Child → Parent
 
 ## 분류 기준
 
 - Action의 이름은 구현 방법이 아니라 발생한 사건을 표현한다
 - 모든 Action을 억지로 중첩하지 않는다. 한두 개뿐이고 역할이 명확하면 최상위에 둔다
-- 어느 분류에도 자연스럽게 들어가지 않는 Action을 억지로 `response`에 넣지 않고 의미가 드러나는 최상위 case로 둔다
+- 외부 작업의 결과는 `response`에 넣고, Effect 시작을 `response`로 분리할지는 `effect-routing.md`를 따른다
+- 어느 분류에도 자연스럽게 들어가지 않는 Action은 의미가 드러나는 최상위 case로 둔다
 - TCA 연결 Action은 조합 API가 요구하는 형태를 유지한다
 - 분류를 추가할 때는 기존 분류와 역할이 겹치지 않는지 먼저 확인한다
 

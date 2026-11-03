@@ -1,4 +1,9 @@
 apply-tca-screen-pattern
+connect-tca-child-input
+connect-tca-child-output
+connect-tca-child-state
 connect-tca-presentation
+extract-tca-child-feature
 migrate-tca-screen
+replace-tca-entity-route-with-id
 marcorable-tca-rules

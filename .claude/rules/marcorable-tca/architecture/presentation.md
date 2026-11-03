@@ -5,7 +5,7 @@ paths:
 
 # TCA Presentation
 
-특정 화면에 속한 sheet, fullScreenCover와 alert는 그 화면 Feature가 상태와 생명주기를 소유한다.
+특정 화면에 속한 modal과 alert는 그 화면 Feature가 상태와 생명주기를 소유한다. 아래 State와 reducer 구성은 UIKit·SwiftUI가 공유한다. 예시는 SwiftUI의 `Root.Feature` 이름을 사용하며 UIKit은 프로젝트의 Feature 이름으로 바꾼다.
 
 ```swift
 @ObservableState
@@ -39,20 +39,8 @@ var body: some ReducerOf<Self> {
 }
 ```
 
-View는 scoped Store를 시스템 presentation API에 연결한다.
+UI 계층은 presentation 상태를 현재 프레임워크의 전환 API에 연결한다. SwiftUI는 `swiftui-presentation.md`를 따르고, UIKit은 ViewController가 상태를 관찰해 현재 Coordinator·present 흐름에 연결한다. Feature는 구체적인 ViewController 생성과 전환 API를 알지 않는다.
 
-```swift
-.sheet(
-    item: $store.scope(
-        state: \.detail,
-        action: \.detail
-    )
-) { store in
-    DetailScreen.Root(store: store)
-}
-```
-
-- Entity Optional이나 Bool을 별도로 두고 수동 Binding으로 dismiss를 흉내 내지 않는다
 - 자식은 `@Dependency(\.dismiss)`로 닫고 부모는 `.child(.dismiss)`에서 reload와 영속 상태 변경 같은 후처리를 한다
 - 여러 탭이 같은 presentation을 띄우면 dismiss 후 현재 탭을 기준으로 필요한 목록만 갱신한다
 - 화면 밖에서도 떠야 하는 전역 presentation만 앱 또는 navigation 컨테이너가 소유한다
@@ -64,7 +52,7 @@ View는 scoped Store를 시스템 presentation API에 연결한다.
 
 - 사용자 Action이 `@Presents` 상태를 생성한다
 - dismiss가 상태를 제거한다
-- dismiss 후 reload, AppStorage 갱신 같은 부모 후처리가 실행된다
+- dismiss 후 reload, 설정 갱신 같은 부모 후처리가 실행된다
 - 자식이 사용하는 Dependency가 부모 Store 생성 지점에 빠짐없이 등록된다
 
 비동기 응답 Action이 `Equatable`이 아니면 `TestStore.receive`에 case key path를 전달한다.

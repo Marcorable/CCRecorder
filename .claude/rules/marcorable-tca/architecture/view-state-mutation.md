@@ -5,7 +5,7 @@ paths:
 
 # TCA View의 상태 변경
 
-View는 Store의 상태를 읽지만 명령형으로 직접 변경하지 않는다. 버튼, gesture, lifecycle처럼 사용자의 의도를 나타내는 변경은 Action을 보내고 Reducer가 State를 변경한다.
+SwiftUI View와 UIKit ViewController는 Store의 상태를 읽지만 명령형으로 직접 변경하지 않는다. 버튼, gesture, lifecycle처럼 사용자의 의도를 나타내는 변경은 Action을 보내고 Reducer가 State를 변경한다.
 
 ```swift
 // ❌ View가 Store의 상태를 직접 변경
@@ -64,4 +64,4 @@ var body: some ReducerOf<Self> {
 - 부모 상태를 표시하고 부모의 Action 한두 개만 보내면 부모 Store를 전달한다
 - 하위 View가 상태와 행동을 소유하기 시작하면 `feature-composition.md`의 기준에 따라 Child Feature 분리를 판단한다
 
-`ConversationInfoBox`처럼 제목·주제·참여자·편집 상태와 이를 변경하는 Action을 함께 소유하는 View는 Child Feature가 적합하다. `Scope` 조합 방식과 일반적인 분리 기준은 `feature-composition.md`를 따른다.
+`ProfileEditor`처럼 입력 값·검증 상태와 이를 변경하는 Action을 함께 소유하는 View는 Child Feature가 적합하다. `Scope` 조합 방식과 일반적인 분리 기준은 `feature-composition.md`를 따른다.
