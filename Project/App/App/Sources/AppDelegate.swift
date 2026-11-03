@@ -1,12 +1,11 @@
 
+import SwiftUI
+
 import Data
 import Domain
 import Presentation
 
-import SwiftUI
-import SwiftData
-
-class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func application(
         _ application: UIApplication,
@@ -21,15 +20,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                     fatalError("Failed to initialize \(serviceType)")
                 }
             }
-            let schema = DataFactory.setup()
             DomainFactory.setup()
-            let modelContainer = try ModelContainer(
-                for: schema,
-                configurations: .init(
-                    schema: schema,
-                    isStoredInMemoryOnly: false
-                )
-            )
+            let persistence = try DataFactory.preparePersistence()
+            let modelContainer = persistence.modelContainer
+            for diagnostic in persistence.diagnostics {
+                print("Persistence: \(diagnostic)")
+            }
             PresentationFactory.setup(
                 .init(
                     managingConversationUsecase: {

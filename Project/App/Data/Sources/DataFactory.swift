@@ -16,7 +16,8 @@ extension DataFactory {
             [
                 Note.Record.self,
                 Conversation.Record.self,
-                Party.Record.self
+                Party.Record.self,
+                LegacyStoreMigrationRecord.self
             ]
         )
     }
