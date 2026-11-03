@@ -167,13 +167,32 @@ extension ConversationDetailScreenPlaybackPanelTests {
         }
         await store.receive(\.response.seekStarted)
         await store.receive(\.response.seekCompleted)
-        await store.send(.view(.rateChanged(1.5))) {
-            $0.rate = 1.5
+        await store.send(.view(.speedChanged(.oneAndHalf))) {
+            $0.speed = .oneAndHalf
         }
         await store.receive(\.response.rateChangeStarted)
         await store.receive(\.response.rateChangeCompleted)
         #expect(await playback.soughtTimes == [8, 13])
         #expect(await playback.readRate() == 1.5)
+    }
+
+    @Test("플레이어 배속 응답을 지원하는 Speed로 변환한다")
+    func playerRateResponseUpdatesSpeed() async {
+        // given
+        let store = TestStore(
+            initialState: ConversationDetailScreen.PlaybackPanel.Feature.State(),
+            reducer: {
+                ConversationDetailScreen.PlaybackPanel.Feature()
+            }
+        )
+
+        // when, then
+        await store.send(.response(.rateChangeCompleted(1.25))) {
+            $0.speed = .oneAndOneQuarter
+        }
+        await store.send(.response(.rateChangeCompleted(1.1))) {
+            $0.speed = .default
+        }
     }
 
     @Test("일시 정지 중 인터럽션은 알럿을 요청하지 않는다")

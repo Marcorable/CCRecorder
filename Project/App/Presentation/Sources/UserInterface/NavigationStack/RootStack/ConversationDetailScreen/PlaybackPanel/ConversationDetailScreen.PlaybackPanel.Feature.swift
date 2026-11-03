@@ -35,6 +35,8 @@ extension ConversationDetailScreen.PlaybackPanel {
 
 extension ConversationDetailScreen.PlaybackPanel.Feature {
 
+    typealias Speed = ConversationDetailScreen.PlaybackPanel.Speed
+
     @ObservableState
     struct State: Equatable {
         @Shared(.appStorage(.skipInterval)) var skipInterval: SkipInterval = .five
@@ -43,7 +45,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
         var isPlaying = false
         var currentTime: TimeInterval = .zero
         var duration: TimeInterval = .zero
-        var rate: Float = 1
+        var speed: Speed = .default
         var pins: [TimeInterval] = []
     }
 
@@ -71,7 +73,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
             case skipBackwardTapped
             case skipForwardTapped
             case nextPinTapped
-            case rateChanged(Float)
+            case speedChanged(Speed)
         }
 
         @CasePathable
@@ -83,7 +85,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
             case audioSessionEvent(AudioSessionClient.Event)
             case seekStarted(TimeInterval)
             case seekCompleted(TimeInterval)
-            case rateChangeStarted(Float)
+            case rateChangeStarted(Speed)
             case rateChangeCompleted(Float)
             case updated(
                 isPrepared: Bool,
@@ -220,9 +222,9 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 state.currentTime = pin
                 return .send(.response(.seekStarted(pin)))
 
-            case .rateChanged(let rate):
-                state.rate = rate
-                return .send(.response(.rateChangeStarted(rate)))
+            case .speedChanged(let speed):
+                state.speed = speed
+                return .send(.response(.rateChangeStarted(speed)))
         }
     }
 
@@ -258,7 +260,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 state.isPlaying = isPlaying
                 state.currentTime = currentTime
                 state.duration = duration
-                state.rate = rate
+                state.speed = .init(rawValue: rate) ?? .default
                 return .none
 
             case .audioSessionEvent(.interruptionBegan):
@@ -299,9 +301,9 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 state.currentTime = currentTime
                 return .none
 
-            case .rateChangeStarted(let rate):
+            case .rateChangeStarted(let speed):
                 return .run { send in
-                    await playingRecordUsecase.changeRate(rate)
+                    await playingRecordUsecase.changeRate(speed.rawValue)
                     guard !Task.isCancelled else {
                         return
                     }
@@ -315,7 +317,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 )
 
             case .rateChangeCompleted(let rate):
-                state.rate = rate
+                state.speed = .init(rawValue: rate) ?? .default
                 return .none
 
             case .playbackUpdates:

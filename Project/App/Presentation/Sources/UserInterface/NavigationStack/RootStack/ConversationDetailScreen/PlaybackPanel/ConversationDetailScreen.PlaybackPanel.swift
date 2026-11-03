@@ -36,8 +36,8 @@ extension ConversationDetailScreen {
                 }
                 HStack(alignment: .center) {
                     SpeedMenu(
-                        speed: Speed(rawValue: store.rate) ?? .default,
-                        select: { store.send(.view(.rateChanged($0.rawValue))) }
+                        speed: store.speed,
+                        select: { store.send(.view(.speedChanged($0))) }
                     )
                     PlayTool(
                         isPlaying: store.isPlaying,
