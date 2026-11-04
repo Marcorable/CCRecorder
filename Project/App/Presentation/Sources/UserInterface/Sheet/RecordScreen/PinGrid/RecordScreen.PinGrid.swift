@@ -24,7 +24,7 @@ extension RecordScreen {
                                     : Asset.Logo.Muted.red
                                 )
                             )
-                            .opacity(store.isRecording ? Int(store.currentTime) % 2 == 0 ? 1.0 : 0.0 : 1.0)
+                            .opacity(store.isRecordingIndicatorVisible ? 1 : 0)
                         Text(store.currentTime, format: .playbackTime)
                             .foregroundStyle(store.isRecording ? .white : .gray)
                             .font(.largeTitle)

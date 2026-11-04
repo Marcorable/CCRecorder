@@ -13,6 +13,19 @@ struct RecordScreenFeatureTests {}
 
 extension RecordScreenFeatureTests {
 
+    @Test("녹음 중 현재 초에 따라 녹음 표시를 깜빡인다")
+    func recordingIndicatorBlinksWithCurrentTime() {
+        var state: RecordScreen.Root.Feature.State = .init()
+        #expect(state.isRecordingIndicatorVisible)
+
+        state.phase = .recording
+        state.currentTime = 2
+        #expect(state.isRecordingIndicatorVisible)
+
+        state.currentTime = 3
+        #expect(!state.isRecordingIndicatorVisible)
+    }
+
     @Test("마이크 권한이 없으면 부모 화면에 진입 실패를 알린다")
     func deniedPermissionDelegatesUnavailableAuthorization() async {
         // given

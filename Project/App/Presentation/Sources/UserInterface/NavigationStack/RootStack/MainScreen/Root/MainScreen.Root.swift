@@ -83,9 +83,6 @@ enum MainScreen {
                 )
             ) { store in
                 NoteDetailScreen.Root(store: store)
-                    .presentationDetents(
-                        store.note?.category.presentationDetents ?? [.large]
-                    )
             }
             .alert($store.scope(state: \.alert, action: \.alert))
             .onChange(of: conversationReloadID) {

@@ -47,6 +47,8 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
         var duration: TimeInterval = .zero
         var speed: Speed = .default
         var pins: [TimeInterval] = []
+
+        var isPlaybackDisabled: Bool { !isPrepared }
     }
 
     @CasePathable

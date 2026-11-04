@@ -25,7 +25,11 @@ extension MainScreen {
                             .font(.system(size: 44))
                             .foregroundStyle(.white)
                             .padding()
-                            .background(recordButtonColor)
+                            .background(
+                                colorScheme == .dark
+                                    ? Color(asset: Asset.Logo.Muted.blue)
+                                    : Color(asset: Asset.Logo.Prominent.blue)
+                            )
                             .clipShape(.circle)
                             .shadow(
                                 color: .black,
@@ -44,12 +48,6 @@ extension MainScreen {
             }
             .padding(.vertical)
             .background(Color(asset: Asset.Surface.Background.grouped))
-        }
-
-        private var recordButtonColor: Color {
-            colorScheme == .dark
-                ? Color(asset: Asset.Logo.Muted.blue)
-                : Color(asset: Asset.Logo.Prominent.blue)
         }
     }
 
@@ -75,8 +73,6 @@ extension MainScreen.TabBar {
             .accessibilityIdentifier(accessibilityIdentifier)
         }
 
-        private var isSelected: Bool { tab == selectedTab }
-
         private var tabItemImageName: String {
             switch tab {
                 case .conversationList:     "rectangle.stack.badge.play.fill"
@@ -94,12 +90,12 @@ extension MainScreen.TabBar {
         private var currentTintColor: Color {
             switch tab {
                 case .conversationList:
-                    isSelected
+                    tab == selectedTab
                         ? Color(asset: Asset.Logo.Prominent.green)
                         : Color(asset: Asset.Logo.Muted.green)
 
                 case .noteList:
-                    isSelected
+                    tab == selectedTab
                         ? Color(asset: Asset.Logo.Prominent.red)
                         : Color(asset: Asset.Logo.Muted.red)
             }

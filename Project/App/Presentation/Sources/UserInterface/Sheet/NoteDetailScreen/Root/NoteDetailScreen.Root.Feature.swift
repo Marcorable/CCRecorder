@@ -26,25 +26,30 @@ extension NoteDetailScreen.Root {
                         }
 
                     case .view(.saveButtonTapped):
-                        guard state.isAbleToSave, let note = state.noteForSaving else {
+                        guard state.isAbleToSave, var note = state.note else {
                             return .none
                         }
+                        note.original = state.original
+                        note.translation = state.translation
+                        let originalParticleCount = state.original.components(separatedBy: " ").count
+                        let translationParticleCount = state.translation.components(separatedBy: " ").count
+                        note.category = originalParticleCount > 2 || translationParticleCount > 2
+                            ? .sentence
+                            : .vocabulary
+                        let updatedNote = note
                         state.isSaving = true
                         return .run { send in
                             await send(
                                 .response(
                                     .noteUpdated(
-                                        await managingNoteUsecase.updateNote(note)
+                                        await managingNoteUsecase.updateNote(updatedNote)
                                     )
                                 )
                             )
                         }
 
                     case .response(.noteLoaded(.success(let note))):
-                        state.note = note
-                        state.noteLoadFailed = note == nil
-                        state.original = note?.original ?? ""
-                        state.translation = note?.translation ?? ""
+                        state.setLoaded(note)
                         return .none
 
                     case .response(.noteLoaded(.failure)):
@@ -78,11 +83,19 @@ extension NoteDetailScreen.Root.Feature {
         @Presents var alert: AlertState<Action.Alert>?
 
         let noteID: Note.ID
-        var note: Note?
+        fileprivate var note: Note?
         var noteLoadFailed = false
         var original: String = ""
         var translation: String = ""
         var isSaving: Bool = false
+
+        init(noteID: Note.ID) {
+            self.noteID = noteID
+        }
+
+        var isVocabulary: Bool? {
+            note.map({ $0.category == .vocabulary })
+        }
 
         var isAbleToSave: Bool {
             guard let note else {
@@ -93,22 +106,11 @@ extension NoteDetailScreen.Root.Feature {
             return isEdited && !isEmpty && !isSaving
         }
 
-        var noteForSaving: Note? {
-            guard var note else {
-                return nil
-            }
-            note.original = original
-            note.translation = translation
-            note.category = category
-            return note
-        }
-
-        private var category: Note.Category {
-            let originalParticleCount = original.components(separatedBy: " ").count
-            let translationParticleCount = translation.components(separatedBy: " ").count
-            return originalParticleCount > 2 || translationParticleCount > 2
-                ? .sentence
-                : .vocabulary
+        mutating func setLoaded(_ note: Note?) {
+            self.note = note
+            noteLoadFailed = note == nil
+            original = note?.original ?? ""
+            translation = note?.translation ?? ""
         }
     }
 

@@ -28,9 +28,7 @@ extension NoteDetailScreenPresentationTests {
         // when, then
         await store.send(.view(.appeared))
         await store.receive(\.response.noteLoaded) {
-            $0.note = note
-            $0.original = note.original
-            $0.translation = note.translation
+            $0.setLoaded(note)
         }
     }
 
@@ -43,6 +41,36 @@ extension NoteDetailScreenPresentationTests {
         await store.send(.view(.appeared))
         await store.receive(\.response.noteLoaded) {
             $0.noteLoadFailed = true
+        }
+    }
+
+    @Test("수정한 노트는 Action에서 저장 값과 카테고리를 확정한다")
+    func saveBuildsUpdatedNoteInAction() async {
+        // given
+        var state = NoteDetailScreen.Root.Feature.State(noteID: note.id)
+        state.setLoaded(note)
+        state.original = "This is updated"
+        let translation = note.translation
+        let store = TestStore(
+            initialState: state,
+            reducer: { NoteDetailScreen.Root.Feature() },
+            withDependencies: {
+                $0.managingNoteUsecase.updateNote = { updatedNote in
+                    #expect(updatedNote.original == "This is updated")
+                    #expect(updatedNote.translation == translation)
+                    #expect(updatedNote.category == .sentence)
+                    return .failure(.data(TestError()))
+                }
+            }
+        )
+
+        // when, then
+        await store.send(.view(.saveButtonTapped)) {
+            $0.isSaving = true
+        }
+        await store.receive(\.response.noteUpdated) {
+            $0.isSaving = false
+            $0.alert = .saveFailed
         }
     }
 
@@ -63,3 +91,5 @@ private extension NoteDetailScreenPresentationTests {
     }
 
 }
+
+private struct TestError: Error {}

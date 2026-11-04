@@ -12,14 +12,37 @@ extension ConversationDetailScreen {
         @State private var isEditing = false
 
         var body: some View {
+            let displayedTime = isEditing
+                ? editingTime
+                : store.currentTime
+            let nextPin = store.isPlaybackDisabled
+                ? nil
+                : store.pins.sorted().first(where: { $0 > displayedTime })
+
             VStack(alignment: .center) {
                 Slider(
-                    value: sliderTime,
+                    value: .init(
+                        get: { displayedTime },
+                        set: {
+                            if isEditing {
+                                editingTime = $0
+                            } else {
+                                store.send(.view(.seekChanged($0)))
+                            }
+                        }
+                    ),
                     in: .zero...max(store.duration, 0.01),
-                    onEditingChanged: onEditingChanged
+                    onEditingChanged: { isEditing in
+                        if isEditing {
+                            editingTime = store.currentTime
+                        } else {
+                            store.send(.view(.seekChanged(editingTime)))
+                        }
+                        self.isEditing = isEditing
+                    }
                 )
                 .padding(.horizontal)
-                .disabled(isPlaybackDisabled)
+                .disabled(store.isPlaybackDisabled)
                 HStack(alignment: .top) {
                     Text(displayedTime, format: .playbackTime)
                     Spacer()
@@ -29,7 +52,7 @@ extension ConversationDetailScreen {
                 .foregroundStyle(.gray)
                 .font(.caption)
                 .overlay {
-                    if isPlaybackDisabled {
+                    if store.isPlaybackDisabled {
                         Text("재생할 수 없음")
                             .font(.headline)
                     }
@@ -41,7 +64,7 @@ extension ConversationDetailScreen {
                     )
                     PlayTool(
                         isPlaying: store.isPlaying,
-                        isDisabled: isPlaybackDisabled,
+                        isDisabled: store.isPlaybackDisabled,
                         skipInterval: store.skipInterval.timeInterval,
                         play: { store.send(.view(.playButtonTapped)) },
                         pause: { store.send(.view(.pauseButtonTapped)) },
@@ -63,42 +86,6 @@ extension ConversationDetailScreen {
             }
             .background(Color(asset: Asset.Surface.Background.primary))
         }
-    }
-
-}
-
-private extension ConversationDetailScreen.PlaybackPanel {
-
-    var isPlaybackDisabled: Bool { !store.isPrepared }
-    var displayedTime: TimeInterval {
-        isEditing ? editingTime : store.currentTime
-    }
-    var nextPin: TimeInterval? {
-        guard !isPlaybackDisabled else {
-            return nil
-        }
-        return store.pins.sorted().first(where: { $0 > displayedTime })
-    }
-    var sliderTime: Binding<TimeInterval> {
-        .init(
-            get: { displayedTime },
-            set: {
-                if isEditing {
-                    editingTime = $0
-                } else {
-                    store.send(.view(.seekChanged($0)))
-                }
-            }
-        )
-    }
-
-    func onEditingChanged(_ isEditing: Bool) {
-        if isEditing {
-            editingTime = store.currentTime
-        } else {
-            store.send(.view(.seekChanged(editingTime)))
-        }
-        self.isEditing = isEditing
     }
 
 }

@@ -82,6 +82,9 @@ extension RecordScreen.Root.Feature {
         var isAbleToSave: Bool {
             currentTime > 0 && phase != .saving && phase != .finished
         }
+        var isRecordingIndicatorVisible: Bool {
+            !isRecording || Int(currentTime).isMultiple(of: 2)
+        }
 
         enum Phase: Equatable {
             case preparing
