@@ -6,7 +6,7 @@ import ComposableArchitecture
 extension RecordScreen {
 
     struct RecordingPanel: View {
-        let store: StoreOf<Root.Feature>
+        let store: StoreOf<Feature>
 
         var body: some View {
             HStack(alignment: .center) {
@@ -156,7 +156,7 @@ extension RecordScreen.RecordingPanel {
                     currentTime: 3
                 ),
                 reducer: {
-                    RecordScreen.Root.Feature()
+                    RecordScreen.RecordingPanel.Feature()
                 }
             )
         )

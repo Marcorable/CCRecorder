@@ -6,7 +6,7 @@ import ComposableArchitecture
 extension RecordScreen {
 
     struct PinGrid: View {
-        let store: StoreOf<Root.Feature>
+        let store: StoreOf<RecordingPanel.Feature>
 
         var body: some View {
             ScrollView(
@@ -75,7 +75,7 @@ extension RecordScreen {
                 pins: [3.0, 2.1]
             ),
             reducer: {
-                RecordScreen.Root.Feature()
+                RecordScreen.RecordingPanel.Feature()
             }
         )
     )
