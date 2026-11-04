@@ -24,12 +24,17 @@ extension NoteDetailScreenPresentationTests {
     func appearedLoadsNoteByID() async {
         // given
         let store = makeStore(note: note)
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.view(.appeared))
+        await store.receive(\.response.noteLoading)
         await store.receive(\.response.noteLoaded) {
-            $0.setLoaded(note)
+            $0.isLoading = false
+            $0.original = self.note.original
+            $0.translation = self.note.translation
         }
+        #expect(store.state.isVocabulary == true)
     }
 
     @Test("ID에 해당하는 Note가 없으면 불러오기 실패 상태가 된다")
@@ -39,37 +44,45 @@ extension NoteDetailScreenPresentationTests {
 
         // when, then
         await store.send(.view(.appeared))
+        await store.receive(\.response.noteLoading)
         await store.receive(\.response.noteLoaded) {
-            $0.noteLoadFailed = true
+            $0.isLoading = false
         }
+        #expect(store.state.isVocabulary == nil)
     }
 
     @Test("수정한 노트는 Action에서 저장 값과 카테고리를 확정한다")
     func saveBuildsUpdatedNoteInAction() async {
         // given
-        var state = NoteDetailScreen.Root.Feature.State(noteID: note.id)
-        state.setLoaded(note)
-        state.original = "This is updated"
         let translation = note.translation
-        let store = TestStore(
-            initialState: state,
-            reducer: { NoteDetailScreen.Root.Feature() },
-            withDependencies: {
-                $0.managingNoteUsecase.updateNote = { updatedNote in
-                    #expect(updatedNote.original == "This is updated")
-                    #expect(updatedNote.translation == translation)
-                    #expect(updatedNote.category == .sentence)
-                    return .failure(.data(TestError()))
-                }
+        let store = makeStore(
+            note: note,
+            updateNote: { updatedNote in
+                #expect(updatedNote.original == "This is updated")
+                #expect(updatedNote.translation == translation)
+                #expect(updatedNote.category == .sentence)
+                return .failure(.data(TestError()))
             }
         )
+        store.exhaustivity = .off(showSkippedAssertions: false)
+        await store.send(.view(.appeared))
+        await store.receive(\.response.noteLoading)
+        await store.receive(\.response.noteLoaded) {
+            $0.isLoading = false
+            $0.original = self.note.original
+            $0.translation = self.note.translation
+        }
+        await store.send(.binding(.set(\.original, "This is updated"))) {
+            $0.original = "This is updated"
+        }
 
         // when, then
         await store.send(.view(.saveButtonTapped)) {
-            $0.isSaving = true
+            $0.isLoading = true
         }
+        await store.receive(\.response.noteUpdating)
         await store.receive(\.response.noteUpdated) {
-            $0.isSaving = false
+            $0.isLoading = false
             $0.alert = .saveFailed
         }
     }
@@ -79,13 +92,17 @@ extension NoteDetailScreenPresentationTests {
 private extension NoteDetailScreenPresentationTests {
 
     func makeStore(
-        note: Note?
+        note: Note?,
+        updateNote: @escaping @Sendable (Note) async -> Result<Void, DomainError> = { _ in
+            .success(())
+        }
     ) -> TestStoreOf<NoteDetailScreen.Root.Feature> {
         .init(
             initialState: .init(noteID: self.note.id),
             reducer: { NoteDetailScreen.Root.Feature() },
             withDependencies: {
                 $0.managingNoteUsecase.note = { _ in .success(note) }
+                $0.managingNoteUsecase.updateNote = updateNote
             }
         )
     }

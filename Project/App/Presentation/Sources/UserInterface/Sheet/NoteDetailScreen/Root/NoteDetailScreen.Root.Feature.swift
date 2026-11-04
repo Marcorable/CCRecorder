@@ -1,3 +1,4 @@
+
 import Foundation
 
 import Domain
@@ -17,54 +18,11 @@ extension NoteDetailScreen.Root {
                     case .binding:
                         return .none
 
-                    case .view(.appeared):
-                        let id = state.noteID
-                        return .run { send in
-                            await send(.response(.noteLoaded(
-                                await managingNoteUsecase.note(id)
-                            )))
-                        }
+                    case .view(let action):
+                        return reduce(into: &state, action: action)
 
-                    case .view(.saveButtonTapped):
-                        guard state.isAbleToSave, var note = state.note else {
-                            return .none
-                        }
-                        note.original = state.original
-                        note.translation = state.translation
-                        let originalParticleCount = state.original.components(separatedBy: " ").count
-                        let translationParticleCount = state.translation.components(separatedBy: " ").count
-                        note.category = originalParticleCount > 2 || translationParticleCount > 2
-                            ? .sentence
-                            : .vocabulary
-                        let updatedNote = note
-                        state.isSaving = true
-                        return .run { send in
-                            await send(
-                                .response(
-                                    .noteUpdated(
-                                        await managingNoteUsecase.updateNote(updatedNote)
-                                    )
-                                )
-                            )
-                        }
-
-                    case .response(.noteLoaded(.success(let note))):
-                        state.setLoaded(note)
-                        return .none
-
-                    case .response(.noteLoaded(.failure)):
-                        state.noteLoadFailed = true
-                        return .none
-
-                    case .response(.noteUpdated(.success)):
-                        return .run { _ in
-                            await dismiss()
-                        }
-
-                    case .response(.noteUpdated(.failure)):
-                        state.isSaving = false
-                        state.alert = .saveFailed
-                        return .none
+                    case .response(let action):
+                        return reduce(into: &state, action: action)
 
                     case .alert:
                         return .none
@@ -80,18 +38,18 @@ extension NoteDetailScreen.Root.Feature {
 
     @ObservableState
     struct State: Equatable {
-        @Presents var alert: AlertState<Action.Alert>?
-
         let noteID: Note.ID
-        fileprivate var note: Note?
-        var noteLoadFailed = false
-        var original: String = ""
-        var translation: String = ""
-        var isSaving: Bool = false
+        var original = ""
+        var translation = ""
+        var isLoading = true
 
         init(noteID: Note.ID) {
             self.noteID = noteID
         }
+
+        @Presents var alert: AlertState<Action.Alert>?
+
+        fileprivate var note: Note?
 
         var isVocabulary: Bool? {
             note.map({ $0.category == .vocabulary })
@@ -103,14 +61,7 @@ extension NoteDetailScreen.Root.Feature {
             }
             let isEdited = original != note.original || translation != note.translation
             let isEmpty = original.isEmpty && translation.isEmpty
-            return isEdited && !isEmpty && !isSaving
-        }
-
-        mutating func setLoaded(_ note: Note?) {
-            self.note = note
-            noteLoadFailed = note == nil
-            original = note?.original ?? ""
-            translation = note?.translation ?? ""
+            return isEdited && !isEmpty && !isLoading
         }
     }
 
@@ -129,12 +80,87 @@ extension NoteDetailScreen.Root.Feature {
 
         @CasePathable
         enum Response {
+            case noteLoading
             case noteLoaded(Result<Note?, DomainError>)
+            case noteUpdating(Note)
             case noteUpdated(Result<Void, DomainError>)
         }
 
         @CasePathable
         enum Alert: Equatable {}
+    }
+
+}
+
+extension NoteDetailScreen.Root.Feature {
+
+    private func reduce(
+        into state: inout State,
+        action: Action.View
+    ) -> Effect<Action> {
+        switch action {
+            case .appeared:
+                state.isLoading = true
+                return .send(.response(.noteLoading))
+
+            case .saveButtonTapped:
+                guard state.isAbleToSave, var note = state.note else {
+                    return .none
+                }
+                note.original = state.original
+                note.translation = state.translation
+                let isSentence = [state.original, state.translation]
+                    .contains(where: { $0.components(separatedBy: " ").count > 2 })
+                note.category = isSentence
+                    ? .sentence
+                    : .vocabulary
+                state.isLoading = true
+                return .send(.response(.noteUpdating(note)))
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: Action.Response
+    ) -> Effect<Action> {
+        switch action {
+            case .noteLoading:
+                let id = state.noteID
+                return .run { send in
+                    await send(.response(.noteLoaded(
+                        await managingNoteUsecase.note(id)
+                    )))
+                }
+
+            case .noteLoaded(.success(let note)):
+                state.isLoading = false
+                state.note = note
+                state.original = note?.original ?? ""
+                state.translation = note?.translation ?? ""
+                return .none
+
+            case .noteLoaded(.failure):
+                state.isLoading = false
+                return .none
+
+            case .noteUpdating(let note):
+                return .run { send in
+                    await send(.response(.noteUpdated(
+                        await managingNoteUsecase.updateNote(note)
+                    )))
+                }
+
+            case .noteUpdated(.success):
+                state.isLoading = false
+                return .run { _ in
+                    await dismiss()
+                }
+
+            case .noteUpdated(.failure):
+                state.isLoading = false
+                state.alert = .saveFailed
+                return .none
+        }
     }
 
 }

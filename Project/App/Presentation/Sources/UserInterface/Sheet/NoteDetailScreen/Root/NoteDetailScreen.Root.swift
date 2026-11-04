@@ -1,3 +1,4 @@
+
 import SwiftUI
 
 import ComposableArchitecture
@@ -8,12 +9,6 @@ enum NoteDetailScreen {
         @State var store: StoreOf<Feature>
 
         var body: some View {
-            let presentationDetents: Set<PresentationDetent> = switch store.isVocabulary {
-                case true:     [.medium]
-                case false:    [.medium, .large]
-                case nil:      [.large]
-            }
-
             NavigationStack {
                 Group {
                     if let isVocabulary = store.isVocabulary {
@@ -31,6 +26,7 @@ enum NoteDetailScreen {
                             }
                         }
                         .padding(.horizontal)
+                        .disabled(store.isLoading)
                         .toolbar {
                             Toolbar(
                                 isAbleToSave: store.isAbleToSave,
@@ -38,17 +34,25 @@ enum NoteDetailScreen {
                                 saveAction: { store.send(.view(.saveButtonTapped)) }
                             )
                         }
-                    } else if store.noteLoadFailed {
+                    } else if store.isLoading {
+                        ProgressView()
+                    } else {
                         ContentUnavailableView(
                             "노트를 불러올 수 없습니다",
                             systemImage: "exclamationmark.triangle"
                         )
-                    } else {
-                        ProgressView()
                     }
                 }
             }
-            .presentationDetents(presentationDetents)
+            .presentationDetents(
+                {
+                    switch store.isVocabulary {
+                        case true:     [.medium]
+                        case false:    [.medium, .large]
+                        case nil:      [.large]
+                    }
+                }()
+            )
             .task { await store.send(.view(.appeared)).finish() }
             .alert($store.scope(state: \.$alert, action: \.alert))
         }
