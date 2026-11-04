@@ -18,7 +18,7 @@ extension SettingScreen {
                     )
                 ) {
                     ForEach(DisplayMode.allCases, id: \.self) {
-                        Text(title($0))
+                        Text($0.title)
                             .tag($0)
                     }
                 }
@@ -54,10 +54,10 @@ extension SettingScreen {
 
 }
 
-extension SettingScreen.GeneralSection {
+fileprivate extension DisplayMode {
 
-    private func title(_ displayMode: DisplayMode) -> String {
-        switch displayMode {
+    var title: String {
+        switch self {
             case .system:
                 "기기 설정에 따름"
 

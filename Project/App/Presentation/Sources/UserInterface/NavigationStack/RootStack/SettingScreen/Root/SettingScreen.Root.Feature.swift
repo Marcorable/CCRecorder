@@ -10,21 +10,8 @@ extension SettingScreen.Root {
         var body: some ReducerOf<Self> {
             Reduce { state, action in
                 switch action {
-                    case .view(.displayModeChanged(let displayMode)):
-                        state.$displayMode.withLock { $0 = displayMode }
-                        return .none
-
-                    case .view(.skipIntervalChanged(let skipInterval)):
-                        state.$skipInterval.withLock { $0 = skipInterval }
-                        return .none
-
-                    case .view(.idleTimerDisabledChanged(let isDisabled)):
-                        state.$isIdleTimerDisabled.withLock { $0 = isDisabled }
-                        return .none
-
-                    case .view(.tutorialButtonTapped):
-                        state.tutorial = .init()
-                        return .none
+                    case .view(let action):
+                        return reduce(into: &state, action: action)
 
                     case .tutorial:
                         return .none
@@ -67,6 +54,33 @@ extension SettingScreen.Root.Feature {
             case skipIntervalChanged(SkipInterval)
             case idleTimerDisabledChanged(Bool)
             case tutorialButtonTapped
+        }
+    }
+
+}
+
+extension SettingScreen.Root.Feature {
+
+    private func reduce(
+        into state: inout State,
+        action: Action.View
+    ) -> Effect<Action> {
+        switch action {
+            case .displayModeChanged(let displayMode):
+                state.$displayMode.withLock { $0 = displayMode }
+                return .none
+
+            case .skipIntervalChanged(let skipInterval):
+                state.$skipInterval.withLock { $0 = skipInterval }
+                return .none
+
+            case .idleTimerDisabledChanged(let isDisabled):
+                state.$isIdleTimerDisabled.withLock { $0 = isDisabled }
+                return .none
+
+            case .tutorialButtonTapped:
+                state.tutorial = .init()
+                return .none
         }
     }
 
