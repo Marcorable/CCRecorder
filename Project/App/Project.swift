@@ -46,7 +46,6 @@ let dataTests = Target.tests(
 
 let presentation = Target.module(
     name: "Presentation",
-    product: .staticFramework,
     buildableFolders: [
         "Presentation/Sources",
     ],
@@ -75,7 +74,6 @@ let presentationTests = Target.tests(
     dependencies: [
         .target(name: "Presentation"),
         .target(name: "Domain"),
-        .package(product: "ComposableArchitecture"),
     ]
 )
 
