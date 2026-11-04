@@ -8,33 +8,34 @@ extension NoteBoard {
         let viewModel: ViewModel
 
         var body: some View {
-            HStack {
-                Image(systemName: viewModel.categoryImageName)
-                    .foregroundStyle(Color(asset: Asset.Logo.Prominent.red))
-                    .frame(
-                        width: 36,
-                        alignment: .center
-                    )
-                VStack(alignment: .leading) {
-                    if viewModel.isDone {
-                        Text(viewModel.original)
-                        Text(viewModel.translation)
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: viewModel.isVocabulary ? "textformat.abc" : "text.bubble.fill")
+                        .foregroundStyle(Color(asset: Asset.Logo.Prominent.red))
+                        .frame(width: 36, alignment: .center)
+                    VStack(alignment: .leading) {
+                        Text(viewModel.title)
+                        Text(viewModel.subTitle)
                             .font(.caption)
-                            .foregroundStyle(.gray)
-                    } else {
-                        Text(viewModel.noteContentLabel)
-                        Text(viewModel.suggestLabel)
-                            .font(.caption)
-                            .foregroundStyle(Color(asset: Asset.Icon.accent))
+                            .foregroundStyle(viewModel.subTitleColor)
                     }
+                    Spacer()
+                    Image(systemName: viewModel.noteContentImageName)
+                        .foregroundStyle(viewModel.noteContentColor)
                 }
-                Spacer()
-                Image(systemName: viewModel.noteContentImageName)
-                    .foregroundStyle(viewModel.noteContentColor)
+                .font(.body)
+                Divider()
             }
-            .font(.body)
-            .listRowBackground(Color.clear)
             .contentShape(.rect)
+            .listRowSeparator(.hidden)
+            .listRowInsets(
+                .init(
+                    top: 12,
+                    leading: 12,
+                    bottom: .zero,
+                    trailing: 12
+                )
+            )
         }
     }
 
@@ -48,48 +49,37 @@ extension NoteBoard.Row {
         let translation: String
         let isVocabulary: Bool
 
-        var isDone: Bool {
+        private var isDone: Bool {
             !original.isEmpty && !translation.isEmpty
         }
 
-        var categoryImageName: String {
-            isVocabulary
-                ? "textformat.abc"
-                : "text.bubble.fill"
+        var title: String {
+            original.isEmpty ? translation : original
         }
 
-        var noteContentLabel: String {
-            original.isEmpty
-                ? translation
-                : original
+        var subTitle: String {
+            switch isDone {
+                case true:
+                    translation
+                case false:
+                    if isVocabulary {
+                        original.isEmpty ? "단어를 알맞게 번역해보세요!" : "단어의 뜻을 찾아보세요!"
+                    } else {
+                        original.isEmpty ? "문장을 번역해보세요!" : "문장을 해석해보세요!"
+                    }
+            }
+        }
+
+        var subTitleColor: Color {
+            isDone ? .gray : .init(asset: Asset.Icon.accent)
         }
 
         var noteContentImageName: String {
-            if isDone {
-                "checkmark.circle.fill"
-            } else {
-                original.isEmpty
-                    ? "k.circle"
-                    : "e.circle"
-            }
+            isDone ? "checkmark.circle.fill" : "\(original.isEmpty ? "k" : "e").circle"
         }
 
         var noteContentColor: Color {
-            isDone
-                ? Color(asset: Asset.Logo.Prominent.blue)
-                : Color(asset: Asset.Logo.Muted.blue)
-        }
-
-        var suggestLabel: String {
-            if isVocabulary {
-                original.isEmpty
-                    ? "단어를 알맞게 번역해보세요!"
-                    : "단어의 뜻을 찾아보세요!"
-            } else {
-                original.isEmpty
-                    ? "문장을 번역해보세요!"
-                    : "문장을 해석해보세요!"
-            }
+            .init(asset: isDone ? Asset.Logo.Prominent.blue : Asset.Logo.Muted.blue)
         }
     }
 
@@ -107,4 +97,5 @@ extension NoteBoard.Row {
         )
     }
     .listStyle(.plain)
+    .environment(\.defaultMinListRowHeight, .zero)
 }

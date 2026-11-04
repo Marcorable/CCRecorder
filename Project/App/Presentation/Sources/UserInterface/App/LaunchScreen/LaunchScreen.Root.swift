@@ -10,11 +10,9 @@ enum LaunchScreen {
                 .resizable()
                 .scaledToFill()
                 .background {
-                    Image(asset: Asset.Launch.background)
-                        .resizable()
+                    Color(asset: Asset.Surface.Background.secondary)
                         .ignoresSafeArea()
                 }
-
         }
     }
 

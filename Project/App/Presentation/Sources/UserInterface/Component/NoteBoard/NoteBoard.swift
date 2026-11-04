@@ -34,6 +34,7 @@ struct NoteBoard: View {
                         }
                     }
                     .listStyle(.plain)
+                    .environment(\.defaultMinListRowHeight, .zero)
                 }
             } else {
                 ProgressView()
@@ -69,8 +70,14 @@ struct NoteBoard: View {
             ),
             .init(
                 id: .init(),
+                original: "Apple",
+                translation: "",
+                isVocabulary: true
+            ),
+            .init(
+                id: .init(),
                 original: "",
-                translation: "사과",
+                translation: "무슨 말을 해야할지 모르겠어",
                 isVocabulary: true
             )
         ],
