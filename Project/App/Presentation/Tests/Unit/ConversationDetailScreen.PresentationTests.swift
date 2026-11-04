@@ -35,9 +35,9 @@ extension ConversationDetailScreenPresentationTests {
 
         // when, then
         await store.send(.view(.appeared))
+        await store.receive(\.response.conversationLoading)
         await store.receive(\.response.conversationLoaded)
         await store.receive(\.editor.parent.conversationLoaded) {
-            $0.editor.isLoaded = true
             $0.editor.createdDate = self.conversation.createdDate
             $0.editor.title = self.conversation.title
             $0.editor.topic = self.conversation.topic
@@ -115,8 +115,12 @@ extension ConversationDetailScreenPresentationTests {
         await store.send(.noteDetail(.dismiss)) {
             $0.noteDetail = nil
         }
-        await store.receive(\.editor.parent.noteDetailDismissed)
+        await store.receive(\.editor.parent.noteDetailDismissed) {
+            $0.editor.isLoading = true
+        }
+        await store.receive(\.editor.response.notesLoading)
         await store.receive(\.editor.response.notesLoaded) {
+            $0.editor.isLoading = false
             $0.editor.rows = [self.row]
         }
     }
@@ -137,11 +141,11 @@ extension ConversationDetailScreenPresentationTests {
             $0.editor.title = "수정된 제목"
         }
         await store.receive(\.editor.delegate.titleChanged)
-        await store.receive(\.conversationUpdateRequested) {
+        await store.receive(\.response.conversationUpdating) {
             $0.conversationUpdateRevision = 1
         }
         await store.send(.view(.disappeared))
-        await store.receive(\.conversationPersistenceRequested) {
+        await store.receive(\.response.conversationPersisting) {
             $0.isPersistingConversation = true
         }
         await store.receive(\.response.conversationPersisted) {
@@ -167,11 +171,11 @@ extension ConversationDetailScreenPresentationTests {
             $0.editor.title = "첫 번째 제목"
         }
         await store.receive(\.editor.delegate.titleChanged)
-        await store.receive(\.conversationUpdateRequested) {
+        await store.receive(\.response.conversationUpdating) {
             $0.conversationUpdateRevision = 1
         }
         await clock.advance(by: .seconds(1))
-        await store.receive(\.conversationPersistenceRequested) {
+        await store.receive(\.response.conversationPersisting) {
             $0.isPersistingConversation = true
         }
         await updates.waitUntilFirstUpdateStarts()
@@ -180,11 +184,11 @@ extension ConversationDetailScreenPresentationTests {
             $0.editor.title = "두 번째 제목"
         }
         await store.receive(\.editor.delegate.titleChanged)
-        await store.receive(\.conversationUpdateRequested) {
+        await store.receive(\.response.conversationUpdating) {
             $0.conversationUpdateRevision = 2
         }
         await clock.advance(by: .seconds(1))
-        await store.receive(\.conversationPersistenceRequested)
+        await store.receive(\.response.conversationPersisting)
         #expect(await updates.values().map(\.title) == ["첫 번째 제목"])
 
         await updates.finishFirstUpdate()
@@ -192,7 +196,7 @@ extension ConversationDetailScreenPresentationTests {
             $0.persistedConversationRevision = 1
             $0.isPersistingConversation = false
         }
-        await store.receive(\.conversationPersistenceRequested) {
+        await store.receive(\.response.conversationPersisting) {
             $0.isPersistingConversation = true
         }
         await store.receive(\.response.conversationPersisted) {
@@ -224,11 +228,11 @@ extension ConversationDetailScreenPresentationTests {
             $0.editor.title = "수정된 제목"
         }
         await store.receive(\.editor.delegate.titleChanged)
-        await store.receive(\.conversationUpdateRequested) {
+        await store.receive(\.response.conversationUpdating) {
             $0.conversationUpdateRevision = 1
         }
         await clock.advance(by: .seconds(1))
-        await store.receive(\.conversationPersistenceRequested) {
+        await store.receive(\.response.conversationPersisting) {
             $0.isPersistingConversation = true
         }
         await store.receive(\.response.conversationPersisted) {
@@ -294,7 +298,6 @@ private extension ConversationDetailScreenPresentationTests {
         store.exhaustivity = .off(showSkippedAssertions: false)
         await store.send(.response(.conversationLoaded(.success(conversation))))
         await store.receive(\.editor.parent.conversationLoaded) {
-            $0.editor.isLoaded = true
             $0.editor.createdDate = self.conversation.createdDate
             $0.editor.title = self.conversation.title
             $0.editor.topic = self.conversation.topic

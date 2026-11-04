@@ -64,8 +64,8 @@ extension ConversationDetailScreen {
                     )
                     PlayTool(
                         isPlaying: store.isPlaying,
-                        isDisabled: store.isPlaybackDisabled,
-                        skipInterval: store.skipInterval.timeInterval,
+                        disabled: store.isPlaybackDisabled,
+                        skipTime: store.skipInterval.rawValue,
                         play: { store.send(.view(.playButtonTapped)) },
                         pause: { store.send(.view(.pauseButtonTapped)) },
                         skip: {
@@ -79,8 +79,8 @@ extension ConversationDetailScreen {
                         }
                     )
                     PinButton(
-                        isDisabled: nextPin == nil,
-                        jump: { store.send(.view(.nextPinTapped)) }
+                        disabled: nextPin == nil,
+                        action: { store.send(.view(.nextPinTapped)) }
                     )
                 }
             }
@@ -88,4 +88,81 @@ extension ConversationDetailScreen {
         }
     }
 
+}
+
+extension ConversationDetailScreen.PlaybackPanel {
+
+    struct PinButton: View {
+        let disabled: Bool
+        let action: () -> Void
+
+        var body: some View {
+            Button(
+                action: action,
+                label: {
+                    Spacer()
+                    Image(systemName: "forward.end.alt.fill")
+                        .font(.system(size: 16))
+                    Spacer()
+                }
+            )
+            .foregroundStyle(Color(asset: Asset.Logo.Muted.blue))
+            .disabled(disabled)
+            .opacity(disabled ? 0.3 : 1)
+        }
+    }
+
+}
+
+#Preview("Playing") {
+    VStack {
+        Spacer()
+        ConversationDetailScreen.PlaybackPanel(
+            store: .init(
+                initialState: .init(
+                    isPrepared: true,
+                    isPlaying: true,
+                    currentTime: 82,
+                    duration: 245,
+                    speed: .oneAndOneQuarter,
+                    pins: [30, 95, 180]
+                ),
+                reducer: { ConversationDetailScreen.PlaybackPanel.Feature() },
+                withDependencies: {
+                    $0.audioSession = .preview
+                    $0.playingRecordUsecase = .preview
+                }
+            )
+        )
+    }
+}
+
+#Preview("Unavailable") {
+    VStack {
+        Spacer()
+        ConversationDetailScreen.PlaybackPanel(
+            store: .init(
+                initialState: .init(),
+                reducer: { ConversationDetailScreen.PlaybackPanel.Feature() },
+                withDependencies: {
+                    $0.audioSession = .preview
+                    $0.playingRecordUsecase = .preview
+                }
+            )
+        )
+    }
+}
+
+#Preview("Pin Button") {
+    HStack {
+        ConversationDetailScreen.PlaybackPanel.PinButton(
+            disabled: false,
+            action: {}
+        )
+        ConversationDetailScreen.PlaybackPanel.PinButton(
+            disabled: true,
+            action: {}
+        )
+    }
+    .padding()
 }

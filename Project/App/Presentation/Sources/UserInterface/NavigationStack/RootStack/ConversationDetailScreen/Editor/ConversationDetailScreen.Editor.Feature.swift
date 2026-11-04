@@ -23,20 +23,6 @@ extension ConversationDetailScreen.Editor {
                     case .response(let action):
                         return reduce(into: &state, action: action)
 
-                    case .performNextMutation:
-                        guard
-                            !state.isMutating,
-                            let mutation = state.pendingMutations.first
-                        else {
-                            return .none
-                        }
-                        state.isMutating = true
-                        state.pendingMutations.removeFirst()
-                        return mutate(
-                            mutation,
-                            conversationID: state.conversationID
-                        )
-
                     case .delegate:
                         return .none
                 }
@@ -51,7 +37,6 @@ extension ConversationDetailScreen.Editor.Feature {
     @ObservableState
     struct State: Equatable {
         let conversationID: UUID
-        var isLoaded = false
         var title = ""
         var createdDate: Date?
         var topic = ""
@@ -60,24 +45,11 @@ extension ConversationDetailScreen.Editor.Feature {
         var isEditing = false
         var noteInput = ""
         var rows: [NoteBoard.Row.ViewModel]?
-        fileprivate var pendingMutations: [Mutation] = []
-        fileprivate var isMutating = false
-
-        var createdDateText: String {
-            createdDate?.formatted(
-                date: .abbreviated,
-                time: .omitted
-            ) ?? ""
-        }
+        var isLoading = false
 
         struct Party: Equatable, Identifiable {
             let id: UUID
             let name: String
-        }
-
-        fileprivate enum Mutation: Equatable {
-            case addition(String)
-            case deletion([UUID])
         }
     }
 
@@ -86,7 +58,6 @@ extension ConversationDetailScreen.Editor.Feature {
         case parent(Parent)
         case view(View)
         case response(Response)
-        case performNextMutation
         case delegate(Delegate)
 
         @CasePathable
@@ -117,8 +88,11 @@ extension ConversationDetailScreen.Editor.Feature {
 
         @CasePathable
         enum Response {
+            case notesLoading
             case notesLoaded(Result<[Note], DomainError>)
+            case noteAdding(String)
             case noteAdded(TaskResult<[UUID]>)
+            case notesDeleting([UUID])
             case notesDeleted(TaskResult<[UUID]>)
         }
 
@@ -155,16 +129,17 @@ extension ConversationDetailScreen.Editor.Feature {
                 let topic,
                 let parties
             ):
-                state.isLoaded = true
                 state.createdDate = createdDate
                 state.title = title
                 state.topic = topic
                 state.parties = parties
                 state.rows = nil
-                return loadNotes(conversationID: state.conversationID)
+                state.isLoading = true
+                return .send(.response(.notesLoading))
 
             case .noteDetailDismissed:
-                return loadNotes(conversationID: state.conversationID)
+                state.isLoading = true
+                return .send(.response(.notesLoading))
 
             case .conversationDetailDisappeared:
                 return .cancel(id: CancelID.loadNotes)
@@ -216,27 +191,39 @@ extension ConversationDetailScreen.Editor.Feature {
                 return .send(.delegate(.partyRemoved(id)))
 
             case .noteInputChanged(let input):
+                guard !state.isLoading else {
+                    return .none
+                }
                 state.noteInput = input
                 return .none
 
             case .noteAdded:
-                guard !state.noteInput.isEmpty else {
+                guard
+                    !state.isLoading,
+                    !state.noteInput.isEmpty
+                else {
                     return .none
                 }
                 let input = state.noteInput
                 state.noteInput = ""
-                state.pendingMutations.append(.addition(input))
-                return .send(.performNextMutation)
+                state.isLoading = true
+                return .send(.response(.noteAdding(input)))
 
             case .notesDeleted(let ids):
-                guard !ids.isEmpty else {
+                guard
+                    !state.isLoading,
+                    !ids.isEmpty
+                else {
                     return .none
                 }
-                state.pendingMutations.append(.deletion(ids))
-                return .send(.performNextMutation)
+                state.isLoading = true
+                return .send(.response(.notesDeleting(ids)))
 
             case .noteSelected(let id):
-                guard state.rows?.contains(where: { $0.id == id }) == true else {
+                guard
+                    !state.isLoading,
+                    state.rows?.contains(where: { $0.id == id }) == true
+                else {
                     return .none
                 }
                 return .send(.delegate(.noteSelected(id)))
@@ -248,7 +235,20 @@ extension ConversationDetailScreen.Editor.Feature {
         action: Action.Response
     ) -> Effect<Action> {
         switch action {
+            case .notesLoading:
+                let conversationID = state.conversationID
+                return .run { send in
+                    await send(.response(.notesLoaded(
+                        await managingConversationUsecase.notes(conversationID)
+                    )))
+                }
+                .cancellable(
+                    id: CancelID.loadNotes,
+                    cancelInFlight: true
+                )
+
             case .notesLoaded(.success(let notes)):
+                state.isLoading = false
                 state.rows = notes.map({ note in
                     .init(
                         id: note.id,
@@ -260,48 +260,15 @@ extension ConversationDetailScreen.Editor.Feature {
                 return .none
 
             case .notesLoaded(.failure):
+                state.isLoading = false
                 if state.rows == nil {
                     state.rows = []
                 }
                 return .none
 
-            case .noteAdded(.success(let ids)),
-                 .notesDeleted(.success(let ids)):
-                state.isMutating = false
-                return .merge(
-                    .send(.delegate(.noteIDsUpdated(ids))),
-                    loadNotes(conversationID: state.conversationID),
-                    .send(.performNextMutation)
-                )
-
-            case .noteAdded(.failure),
-                 .notesDeleted(.failure):
-                state.isMutating = false
-                return .send(.performNextMutation)
-        }
-    }
-
-    private func loadNotes(
-        conversationID: Conversation.ID
-    ) -> Effect<Action> {
-        .run { send in
-            await send(.response(.notesLoaded(
-                await managingConversationUsecase.notes(conversationID)
-            )))
-        }
-        .cancellable(
-            id: CancelID.loadNotes,
-            cancelInFlight: true
-        )
-    }
-
-    private func mutate(
-        _ mutation: State.Mutation,
-        conversationID: Conversation.ID
-    ) -> Effect<Action> {
-        .run { send in
-            switch mutation {
-                case .addition(let input):
+            case .noteAdding(let input):
+                let conversationID = state.conversationID
+                return .run { send in
                     await send(.response(.noteAdded(
                         TaskResult {
                             try await managingConversationUsecase.addNote(
@@ -311,8 +278,11 @@ extension ConversationDetailScreen.Editor.Feature {
                             .noteIds
                         }
                     )))
+                }
 
-                case .deletion(let ids):
+            case .notesDeleting(let ids):
+                let conversationID = state.conversationID
+                return .run { send in
                     await send(.response(.notesDeleted(
                         TaskResult {
                             try await managingConversationUsecase.deleteNotes(
@@ -322,7 +292,19 @@ extension ConversationDetailScreen.Editor.Feature {
                             .noteIds
                         }
                     )))
-            }
+                }
+
+            case .noteAdded(.success(let ids)),
+                 .notesDeleted(.success(let ids)):
+                return .merge(
+                    .send(.delegate(.noteIDsUpdated(ids))),
+                    .send(.response(.notesLoading))
+                )
+
+            case .noteAdded(.failure),
+                 .notesDeleted(.failure):
+                state.isLoading = false
+                return .none
         }
     }
 

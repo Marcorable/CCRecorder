@@ -113,3 +113,35 @@ extension ConversationDetailScreen.Editor {
     }
 
 }
+
+#Preview("Editing") {
+    @Previewable @FocusState var focusedField: ConversationDetailScreen.Editor.Field?
+
+    ConversationDetailScreen.Editor.InformationBox(
+        store: .init(
+            initialState: .init(
+                conversationID: .init(),
+                title: "영어 회화",
+                createdDate: .init(timeIntervalSince1970: 1_735_689_600),
+                topic: "여행 계획",
+                parties: [
+                    ConversationDetailScreen.Editor.Feature.State.Party(
+                        id: .init(),
+                        name: "Marco"
+                    ),
+                    ConversationDetailScreen.Editor.Feature.State.Party(
+                        id: .init(),
+                        name: "John"
+                    )
+                ],
+                isEditing: true,
+                rows: [NoteBoard.Row.ViewModel]()
+            ),
+            reducer: { ConversationDetailScreen.Editor.Feature() },
+            withDependencies: {
+                $0.managingConversationUsecase = .preview
+            }
+        ),
+        focusedField: $focusedField
+    )
+}

@@ -39,13 +39,15 @@ extension ConversationDetailScreenEditorTests {
             topic: "인사",
             parties: [party]
         ))) {
-            $0.isLoaded = true
             $0.createdDate = createdDate
             $0.title = "영어 회화"
             $0.topic = "인사"
             $0.parties = [party]
+            $0.isLoading = true
         }
+        await store.receive(\.response.notesLoading)
         await store.receive(\.response.notesLoaded) {
+            $0.isLoading = false
             $0.rows = [self.row]
         }
     }
@@ -95,14 +97,30 @@ extension ConversationDetailScreenEditorTests {
         // when, then
         await store.send(.view(.noteAdded)) {
             $0.noteInput = ""
+            $0.isLoading = true
         }
-        await store.receive(\.performNextMutation)
+        await store.receive(\.response.noteAdding)
         await store.receive(\.response.noteAdded)
         await store.receive(\.delegate.noteIDsUpdated)
         await store.receive(\.response.notesLoaded) {
+            $0.isLoading = false
             $0.rows = [self.row]
         }
         #expect(await addition.values() == ["Hello"])
+    }
+
+    @Test("노트 저장 중에는 추가 요청을 다시 실행하지 않는다")
+    func noteAdditionIsIgnoredWhileLoading() async {
+        // given
+        var state = ConversationDetailScreen.Editor.Feature.State(
+            conversationID: conversationID
+        )
+        state.noteInput = "Hello"
+        state.isLoading = true
+        let store = makeStore(state: state)
+
+        // when, then
+        await store.send(.view(.noteAdded))
     }
 
 }

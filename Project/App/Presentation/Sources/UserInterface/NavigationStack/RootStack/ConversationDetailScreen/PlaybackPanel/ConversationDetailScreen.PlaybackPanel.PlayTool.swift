@@ -4,9 +4,15 @@ import SwiftUI
 extension ConversationDetailScreen.PlaybackPanel {
 
     struct PlayTool: View {
+
+        enum Direction {
+            case back
+            case forward
+        }
+
         let isPlaying: Bool
-        let isDisabled: Bool
-        let skipInterval: TimeInterval
+        let disabled: Bool
+        let skipTime: Int
         let play: () -> Void
         let pause: () -> Void
         let skip: (Direction) -> Void
@@ -17,7 +23,7 @@ extension ConversationDetailScreen.PlaybackPanel {
                     action: { skip(.back) },
                     label: {
                         Spacer()
-                        Image(systemName: "gobackward." + skipTime)
+                        Image(systemName: "gobackward.\(skipTime)")
                             .font(.system(size: 22))
                         Spacer()
                     }
@@ -35,38 +41,56 @@ extension ConversationDetailScreen.PlaybackPanel {
                     action: { skip(.forward) },
                     label: {
                         Spacer()
-                        Image(systemName: "goforward." + skipTime)
+                        Image(systemName: "goforward.\(skipTime)")
                             .font(.system(size: 22))
                         Spacer()
                     }
                 )
             }
             .foregroundStyle(Color(asset: Asset.Logo.Prominent.blue))
-            .disabled(isDisabled)
-            .opacity(isDisabled ? 0.3 : 1)
+            .disabled(disabled)
+            .opacity(disabled ? 0.3 : 1)
         }
-    }
-
-}
-
-extension ConversationDetailScreen.PlaybackPanel.PlayTool {
-
-    enum Direction {
-        case back
-        case forward
     }
 
 }
 
 private extension ConversationDetailScreen.PlaybackPanel.PlayTool {
 
-    var skipTime: String { "\(Int(skipInterval))" }
     var playButtonImageName: String {
-        if isDisabled {
+        if disabled {
             "speaker.slash.circle.fill"
         } else {
             isPlaying ? "pause.circle.fill" : "play.circle.fill"
         }
     }
 
+}
+
+#Preview("Playing") {
+    HStack {
+        ConversationDetailScreen.PlaybackPanel.PlayTool(
+            isPlaying: true,
+            disabled: false,
+            skipTime: 5,
+            play: {},
+            pause: {},
+            skip: { _ in }
+        )
+    }
+    .padding()
+}
+
+#Preview("Disabled") {
+    HStack {
+        ConversationDetailScreen.PlaybackPanel.PlayTool(
+            isPlaying: false,
+            disabled: true,
+            skipTime: 5,
+            play: {},
+            pause: {},
+            skip: { _ in }
+        )
+    }
+    .padding()
 }

@@ -61,3 +61,11 @@ fileprivate extension ConversationDetailScreen.PlaybackPanel.Speed {
     }
 
 }
+
+#Preview {
+    ConversationDetailScreen.PlaybackPanel.SpeedMenu(
+        speed: .oneAndOneQuarter,
+        select: { _ in }
+    )
+    .padding()
+}

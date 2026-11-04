@@ -68,3 +68,25 @@ extension ConversationDetailScreen.Editor {
     }
 
 }
+
+#Preview("Input") {
+    @Previewable @FocusState var focusedField: ConversationDetailScreen.Editor.Field?
+
+    ConversationDetailScreen.Editor.InputBox(
+        store: .init(
+            initialState: .init(
+                conversationID: .init(),
+                title: "영어 회화",
+                createdDate: .init(timeIntervalSince1970: 1_735_689_600),
+                topic: "여행 계획",
+                noteInput: "Where should we meet?",
+                rows: [NoteBoard.Row.ViewModel]()
+            ),
+            reducer: { ConversationDetailScreen.Editor.Feature() },
+            withDependencies: {
+                $0.managingConversationUsecase = .preview
+            }
+        ),
+        focusedField: $focusedField
+    )
+}
