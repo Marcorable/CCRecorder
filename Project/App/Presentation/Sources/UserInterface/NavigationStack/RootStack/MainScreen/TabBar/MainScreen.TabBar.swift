@@ -103,3 +103,12 @@ extension MainScreen.TabBar {
     }
 
 }
+
+#Preview {
+    MainScreen.TabBar(
+        selectedTab: .conversationList,
+        select: { _ in },
+        record: {},
+        isAbleToRequestRecording: true
+    )
+}

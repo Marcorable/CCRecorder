@@ -32,13 +32,13 @@ extension MainScreen.Root {
                     case .view(let action):
                         return reduce(into: &state, action: action)
 
+                    case .response(let action):
+                        return reduce(into: &state, action: action)
+
                     case .conversationList(.delegate(let action)):
                         return reduce(into: &state, action: action)
 
                     case .noteList(.delegate(let action)):
-                        return reduce(into: &state, action: action)
-
-                    case .response(let action):
                         return reduce(into: &state, action: action)
 
                     case .record(.presented(.delegate(let action))):
@@ -67,7 +67,7 @@ extension MainScreen.Root {
                         return .none
 
                     case .noteDetail(.dismiss):
-                        return .send(.noteList(.noteDetailDismissed))
+                        return .send(.noteList(.parent(.noteDetailDismissed)))
 
                     case .alert(.presented(let action)):
                         return reduce(into: &state, action: action)
@@ -87,6 +87,79 @@ extension MainScreen.Root {
             }
             .ifLet(\.$alert, action: \.alert)
         }
+    }
+
+}
+
+extension MainScreen.Root.Feature {
+
+    typealias ConversationListDelegate = MainScreen.ConversationList.Feature.Action.Delegate
+    typealias NoteListDelegate = MainScreen.NoteList.Feature.Action.Delegate
+    typealias RecordDelegate = RecordScreen.Root.Feature.Action.Delegate
+
+    @ObservableState
+    struct State: Equatable {
+        @Shared(.appStorage(.isFirstLaunched)) var isFirstLaunched: Bool = true
+        var selectedTab: MainScreen.Tab = .conversationList
+        var recordingEntryPhase: RecordingEntryPhase = .idle
+
+        var conversationList: MainScreen.ConversationList.Feature.State = .init()
+        var noteList: MainScreen.NoteList.Feature.State = .init()
+
+        init() {
+            if isFirstLaunched {
+                onboard = .init()
+            }
+        }
+
+        @Presents var onboard: OnboardScreen.Root.Feature.State?
+        @Presents var record: RecordScreen.Root.Feature.State?
+        @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
+        @Presents var alert: AlertState<Action.Alert>?
+
+        var isAbleToRequestRecording: Bool {
+            recordingEntryPhase == .idle
+        }
+
+        enum RecordingEntryPhase: Equatable {
+            case idle
+            case requestingAuthorization
+        }
+    }
+
+    @CasePathable
+    enum Action: ViewAction {
+        case view(View)
+        case response(Response)
+        case conversationList(MainScreen.ConversationList.Feature.Action)
+        case noteList(MainScreen.NoteList.Feature.Action)
+        case onboard(PresentationAction<OnboardScreen.Root.Feature.Action>)
+        case record(PresentationAction<RecordScreen.Root.Feature.Action>)
+        case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
+        case alert(PresentationAction<Alert>)
+
+        @CasePathable
+        enum View {
+            case tabSelected(MainScreen.Tab)
+            case recordButtonTapped
+            case settingButtonTapped
+        }
+
+        @CasePathable
+        enum Response {
+            case recordAuthorization(AudioSessionClient.Status)
+        }
+
+        @CasePathable
+        enum Alert: Equatable {
+            case openSettingsTapped
+            case retryConversationLoad
+            case retryNoteLoad
+        }
+    }
+
+    private enum CancelID {
+        case recordAuthorization
     }
 
 }
@@ -155,7 +228,7 @@ extension MainScreen.Root.Feature {
 
     private func reduce(
         into state: inout State,
-        action: RecordScreen.Root.Feature.Action.Delegate
+        action: RecordDelegate
     ) -> Effect<Action> {
         switch action {
             case .authorizationUnavailable:
@@ -170,7 +243,7 @@ extension MainScreen.Root.Feature {
 
     private func reduce(
         into state: inout State,
-        action: MainScreen.ConversationList.Feature.Action.Delegate
+        action: ConversationListDelegate
     ) -> Effect<Action> {
         switch action {
             case .conversationSelected(let id):
@@ -190,7 +263,7 @@ extension MainScreen.Root.Feature {
 
     private func reduce(
         into state: inout State,
-        action: MainScreen.NoteList.Feature.Action.Delegate
+        action: NoteListDelegate
     ) -> Effect<Action> {
         switch action {
             case .noteSelected(let id):
@@ -227,76 +300,6 @@ extension MainScreen.Root.Feature {
             case .retryNoteLoad:
                 return .send(.noteList(.view(.reload)))
         }
-    }
-
-}
-
-extension MainScreen.Root.Feature {
-
-    @ObservableState
-    struct State: Equatable {
-        @Shared(.appStorage(.isFirstLaunched)) var isFirstLaunched: Bool = true
-
-        @Presents var onboard: OnboardScreen.Root.Feature.State?
-        @Presents var record: RecordScreen.Root.Feature.State?
-        @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
-        @Presents var alert: AlertState<Action.Alert>?
-
-        var conversationList: MainScreen.ConversationList.Feature.State = .init()
-        var noteList: MainScreen.NoteList.Feature.State = .init()
-        var selectedTab: MainScreen.Tab = .conversationList
-        var recordingEntryPhase: RecordingEntryPhase = .idle
-
-        var isAbleToRequestRecording: Bool {
-            recordingEntryPhase == .idle
-        }
-
-        init() {
-            if isFirstLaunched {
-                onboard = .init()
-            }
-        }
-
-        enum RecordingEntryPhase: Equatable {
-            case idle
-            case requestingAuthorization
-        }
-    }
-
-    @CasePathable
-    enum Action: ViewAction {
-        case view(View)
-        case conversationList(MainScreen.ConversationList.Feature.Action)
-        case noteList(MainScreen.NoteList.Feature.Action)
-        case response(Response)
-        case onboard(PresentationAction<OnboardScreen.Root.Feature.Action>)
-        case record(PresentationAction<RecordScreen.Root.Feature.Action>)
-        case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
-        case alert(PresentationAction<Alert>)
-
-        @CasePathable
-        enum View {
-            case tabSelected(MainScreen.Tab)
-            case recordButtonTapped
-            case settingButtonTapped
-        }
-
-        @CasePathable
-        enum Response {
-            case recordAuthorization(AudioSessionClient.Status)
-        }
-
-        @CasePathable
-        enum Alert: Equatable {
-            case openSettingsTapped
-            case retryConversationLoad
-            case retryNoteLoad
-        }
-
-    }
-
-    private enum CancelID {
-        case recordAuthorization
     }
 
 }

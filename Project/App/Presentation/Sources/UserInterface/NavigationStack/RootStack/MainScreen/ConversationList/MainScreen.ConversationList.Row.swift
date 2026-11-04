@@ -67,3 +67,17 @@ extension MainScreen.ConversationList.Row {
     }
 
 }
+
+#Preview {
+    MainScreen.ConversationList.Row(
+        viewModel: .init(
+            id: .init(),
+            title: "Daily Conversation",
+            topic: "Weekend plans",
+            attendeeCount: 2,
+            createdDate: .init(),
+            isChecked: true
+        )
+    )
+    .padding(.horizontal)
+}

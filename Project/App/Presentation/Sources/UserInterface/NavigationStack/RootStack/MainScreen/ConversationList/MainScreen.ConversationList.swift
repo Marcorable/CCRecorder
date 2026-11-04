@@ -10,26 +10,28 @@ extension MainScreen {
 
         var body: some View {
             Group {
-                if store.isLoading, store.conversations == nil {
-                    ProgressView()
-                } else if let rows = store.rows, !rows.isEmpty {
-                    List {
-                        ForEach(rows) { row in
-                            Row(viewModel: row)
-                                .onTapGesture {
-                                    store.send(.view(.conversationTapped(row.id)))
-                                }
-                                .listRowBackground(Color.clear)
+                if let rows = store.rows {
+                    if rows.isEmpty {
+                        ContentUnavailableView(
+                            "No Conversations",
+                            systemImage: "waveform",
+                            description: Text("Record a conversation to see it here.")
+                        )
+                    } else {
+                        List {
+                            ForEach(rows) { row in
+                                Row(viewModel: row)
+                                    .onTapGesture {
+                                        store.send(.view(.conversationTapped(row.id)))
+                                    }
+                                    .listRowBackground(Color.clear)
+                            }
+                            .onDelete { store.send(.view(.deleteRequested($0))) }
                         }
-                        .onDelete { store.send(.view(.deleteRequested($0))) }
+                        .listStyle(.plain)
                     }
-                    .listStyle(.plain)
                 } else {
-                    ContentUnavailableView(
-                        "No Conversations",
-                        systemImage: "waveform",
-                        description: Text("Record a conversation to see it here.")
-                    )
+                    ProgressView()
                 }
             }
             .navigationTitle("Conversation")
@@ -39,4 +41,31 @@ extension MainScreen {
         }
     }
 
+}
+
+#Preview {
+    NavigationStack {
+        MainScreen.ConversationList(
+            store: .init(
+                initialState: .init(),
+                reducer: { MainScreen.ConversationList.Feature() },
+                withDependencies: {
+                    $0.managingConversationUsecase.conversations = {
+                        .success([
+                            .init(
+                                createdDate: .init(),
+                                pins: [],
+                                title: "Daily Conversation",
+                                topic: "Weekend plans",
+                                parties: [
+                                    .init(name: "Marco"),
+                                    .init(name: "Coda"),
+                                ]
+                            ),
+                        ])
+                    }
+                }
+            )
+        )
+    }
 }

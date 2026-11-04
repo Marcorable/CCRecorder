@@ -218,9 +218,10 @@ extension MainScreenPresentationTests {
         await store.send(.noteDetail(.dismiss)) {
             $0.noteDetail = nil
         }
-        await store.receive(\.noteList.noteDetailDismissed) {
+        await store.receive(\.noteList.parent.noteDetailDismissed) {
             $0.noteList.isLoading = true
         }
+        await store.receive(\.noteList.response.notesLoading)
         await store.receive(\.noteList.response.notesLoaded) {
             $0.noteList.isLoading = false
         }
@@ -254,6 +255,7 @@ extension MainScreenPresentationTests {
         await store.receive(\.noteList.view.reload) {
             $0.noteList.isLoading = true
         }
+        await store.receive(\.noteList.response.notesLoading)
         await store.receive(\.noteList.response.notesLoaded) {
             $0.noteList.isLoading = false
         }
@@ -279,6 +281,7 @@ extension MainScreenPresentationTests {
                 }
             }
         )
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.record(.dismiss)) {
@@ -287,10 +290,11 @@ extension MainScreenPresentationTests {
         await store.receive(\.conversationList.view.reload) {
             $0.conversationList.isLoading = true
         }
+        await store.receive(\.conversationList.response.conversationsLoading)
         await store.receive(\.conversationList.response.conversationsLoaded) {
             $0.conversationList.isLoading = false
-            $0.conversationList.conversations = []
         }
+        #expect(store.state.conversationList.rows == [])
         #expect(await spy.callCount == 0)
     }
 

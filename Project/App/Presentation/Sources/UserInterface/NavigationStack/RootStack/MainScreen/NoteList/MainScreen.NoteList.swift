@@ -23,3 +23,32 @@ extension MainScreen {
     }
 
 }
+
+#Preview {
+    NavigationStack {
+        MainScreen.NoteList(
+            store: .init(
+                initialState: .init(),
+                reducer: { MainScreen.NoteList.Feature() },
+                withDependencies: {
+                    $0.managingNoteUsecase.loadNotes = {
+                        .success([
+                            .init(
+                                createdDate: .init(),
+                                original: "conversation",
+                                translation: "대화",
+                                category: .vocabulary
+                            ),
+                            .init(
+                                createdDate: .init(),
+                                original: "How have you been?",
+                                translation: "어떻게 지냈어요?",
+                                category: .sentence
+                            ),
+                        ])
+                    }
+                }
+            )
+        )
+    }
+}
