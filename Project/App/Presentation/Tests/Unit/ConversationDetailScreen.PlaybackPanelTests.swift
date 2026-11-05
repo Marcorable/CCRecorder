@@ -90,7 +90,10 @@ extension ConversationDetailScreenPlaybackPanelTests {
             $0.isPlaying = false
             $0.currentTime = .zero
             $0.duration = .zero
+            $0.isTerminated = true
         }
+        await store.finish()
+        #expect(await playback.finishCallCount == 1)
     }
 
     @Test("재생 세션 활성화에 실패하면 일시 정지하고 인터럽션을 다시 알린다")
@@ -219,6 +222,46 @@ extension ConversationDetailScreenPlaybackPanelTests {
         await store.finish()
     }
 
+    @Test("상세 화면이 종료된 뒤 도착한 재생 응답은 상태를 되살리지 않는다")
+    func latePlaybackResponseIsIgnoredAfterDisappearance() async {
+        // given
+        let playback = PlaybackSpy()
+        var state = ConversationDetailScreen.PlaybackPanel.Feature.State()
+        state.isPrepared = true
+        state.isPlaying = true
+        state.currentTime = 3
+        state.duration = 10
+        let store = TestStore(
+            initialState: state,
+            reducer: {
+                ConversationDetailScreen.PlaybackPanel.Feature()
+            },
+            withDependencies: {
+                $0.playingRecordUsecase.finish = { await playback.finish() }
+            }
+        )
+
+        await store.send(.parent(.conversationDetailDisappeared)) {
+            $0.isPrepared = false
+            $0.isPlaying = false
+            $0.currentTime = .zero
+            $0.duration = .zero
+            $0.isTerminated = true
+        }
+        await store.finish()
+
+        // when, then
+        await store.send(.response(.prepared(.success(()))))
+        await store.send(.response(.updated(
+            isPrepared: true,
+            isPlaying: true,
+            currentTime: 5,
+            duration: 10,
+            rate: 1.5
+        )))
+        #expect(await playback.finishCallCount == 1)
+    }
+
     @Test("AVAudioSession 알림을 인터럽션 이벤트로 변환한다")
     func convertsAudioSessionNotificationsToEvents() {
         let began = Notification(
@@ -298,6 +341,7 @@ private extension ConversationDetailScreenPlaybackPanelTests {
         private(set) var isPlaying = true
         private(set) var isPlayingReadCount = 0
         private(set) var playCallCount = 0
+        private(set) var finishCallCount = 0
         private(set) var soughtTimes: [TimeInterval] = []
         private var pauseContinuations: [CheckedContinuation<Void, Never>] = []
         private var pauseCallCount = 0
@@ -339,6 +383,7 @@ private extension ConversationDetailScreenPlaybackPanelTests {
         }
 
         func finish() {
+            finishCallCount += 1
             isPlaying = false
         }
 

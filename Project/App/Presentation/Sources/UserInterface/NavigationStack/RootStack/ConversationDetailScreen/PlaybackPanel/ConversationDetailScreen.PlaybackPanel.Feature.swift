@@ -47,6 +47,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
         var duration: TimeInterval = .zero
         var speed: Speed = .default
         var pins: [TimeInterval] = []
+        var isTerminated = false
 
         var isPlaybackDisabled: Bool { !isPrepared }
     }
@@ -125,6 +126,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
         switch action {
             case .conversationLoaded(let fileName, let pins):
                 state.pins = pins
+                state.isTerminated = false
                 return .concatenate(
                     .merge(
                         .cancel(id: CancelID.prepare),
@@ -154,6 +156,7 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 state.isPlaying = false
                 state.currentTime = .zero
                 state.duration = .zero
+                state.isTerminated = true
                 return .merge(
                     .cancel(id: CancelID.prepare),
                     .cancel(id: CancelID.playbackStart),
@@ -234,6 +237,9 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
         into state: inout State,
         action: Action.Response
     ) -> Effect<Action> {
+        guard !state.isTerminated else {
+            return .none
+        }
         switch action {
             case .prepared(.success):
                 return .send(.response(.playbackUpdates))

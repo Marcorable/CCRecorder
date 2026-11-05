@@ -123,6 +123,44 @@ extension ConversationDetailScreenEditorTests {
         await store.send(.view(.noteAdded))
     }
 
+    @Test("노트를 삭제하면 변경된 노트 ID와 표시 rows를 갱신한다")
+    func noteDeletionUpdatesNoteIDsAndRows() async {
+        // given
+        let deletion = NoteDeletionSpy()
+        var state = ConversationDetailScreen.Editor.Feature.State(
+            conversationID: conversationID
+        )
+        state.rows = [row]
+        let store = makeStore(
+            state: state,
+            deleteNotes: { ids, _ in
+                await deletion.append(ids)
+                return .init(
+                    createdDate: .init(timeIntervalSince1970: 0),
+                    pins: [],
+                    title: "영어 회화",
+                    topic: "인사",
+                    noteIds: [],
+                    parties: []
+                )
+            }
+        )
+
+        // when, then
+        await store.send(.view(.notesDeleted([note.id]))) {
+            $0.isLoading = true
+        }
+        await store.receive(\.response.notesDeleting)
+        await store.receive(\.response.notesDeleted)
+        await store.receive(\.delegate.noteIDsUpdated)
+        await store.receive(\.response.notesLoading)
+        await store.receive(\.response.notesLoaded) {
+            $0.isLoading = false
+            $0.rows = []
+        }
+        #expect(await deletion.values() == [[note.id]])
+    }
+
 }
 
 private extension ConversationDetailScreenEditorTests {
@@ -150,6 +188,18 @@ private extension ConversationDetailScreenEditorTests {
                 topic: "",
                 parties: []
             )
+        },
+        deleteNotes: @escaping @Sendable (
+            [Note.ID],
+            Conversation.ID
+        ) async throws -> Conversation = { _, _ in
+            .init(
+                createdDate: .init(timeIntervalSince1970: 0),
+                pins: [],
+                title: "",
+                topic: "",
+                parties: []
+            )
         }
     ) -> TestStoreOf<ConversationDetailScreen.Editor.Feature> {
         .init(
@@ -163,15 +213,7 @@ private extension ConversationDetailScreenEditorTests {
                     update: { _ in },
                     deleteConversations: { _ in .success(()) },
                     addNote: addNote,
-                    deleteNotes: { _, _ in
-                        .init(
-                            createdDate: .init(timeIntervalSince1970: 0),
-                            pins: [],
-                            title: "",
-                            topic: "",
-                            parties: []
-                        )
-                    }
+                    deleteNotes: deleteNotes
                 )
             }
         )
@@ -186,6 +228,18 @@ private extension ConversationDetailScreenEditorTests {
 
         func values() -> [String] {
             inputs
+        }
+    }
+
+    actor NoteDeletionSpy {
+        private var ids: [[Note.ID]] = []
+
+        func append(_ ids: [Note.ID]) {
+            self.ids.append(ids)
+        }
+
+        func values() -> [[Note.ID]] {
+            ids
         }
     }
 

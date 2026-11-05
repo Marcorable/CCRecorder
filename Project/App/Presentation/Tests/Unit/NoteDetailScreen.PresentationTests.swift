@@ -87,12 +87,47 @@ extension NoteDetailScreenPresentationTests {
         }
     }
 
+    @Test("수정한 노트 저장에 성공하면 화면을 닫는다")
+    func successfulSaveDismissesScreen() async {
+        // given
+        let dismissal = NoteDetailDismissSpy()
+        let store = makeStore(
+            note: note,
+            dismiss: DismissEffect {
+                dismissal.call()
+            }
+        )
+        store.exhaustivity = .off(showSkippedAssertions: false)
+        await store.send(.view(.appeared))
+        await store.receive(\.response.noteLoading)
+        await store.receive(\.response.noteLoaded) {
+            $0.isLoading = false
+            $0.original = self.note.original
+            $0.translation = self.note.translation
+        }
+        await store.send(.binding(.set(\.translation, "반갑습니다"))) {
+            $0.translation = "반갑습니다"
+        }
+
+        // when, then
+        await store.send(.view(.saveButtonTapped)) {
+            $0.isLoading = true
+        }
+        await store.receive(\.response.noteUpdating)
+        await store.receive(\.response.noteUpdated) {
+            $0.isLoading = false
+        }
+        await store.finish()
+        #expect(dismissal.callCount == 1)
+    }
+
 }
 
 private extension NoteDetailScreenPresentationTests {
 
     func makeStore(
         note: Note?,
+        dismiss: DismissEffect = .init {},
         updateNote: @escaping @Sendable (Note) async -> Result<Void, DomainError> = { _ in
             .success(())
         }
@@ -101,6 +136,7 @@ private extension NoteDetailScreenPresentationTests {
             initialState: .init(noteID: self.note.id),
             reducer: { NoteDetailScreen.Root.Feature() },
             withDependencies: {
+                $0.dismiss = dismiss
                 $0.managingNoteUsecase.note = { _ in .success(note) }
                 $0.managingNoteUsecase.updateNote = updateNote
             }
@@ -110,3 +146,12 @@ private extension NoteDetailScreenPresentationTests {
 }
 
 private struct TestError: Error {}
+
+@MainActor
+private final class NoteDetailDismissSpy {
+    private(set) var callCount = 0
+
+    func call() {
+        callCount += 1
+    }
+}

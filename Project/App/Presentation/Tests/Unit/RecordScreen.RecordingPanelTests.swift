@@ -49,6 +49,38 @@ extension RecordScreenRecordingPanelTests {
         #expect(!state.isAbleToSave)
     }
 
+    @Test("녹음 버튼을 누르면 녹음을 시작하고 다시 누르면 일시 정지한다")
+    func recordingButtonTogglesRecording() async {
+        // given
+        let clock = TestClock<Duration>()
+        let recorder = RecordingPanelControlSpy()
+        let store: TestStoreOf<RecordScreen.RecordingPanel.Feature> = .init(
+            initialState: .init(phase: .idle),
+            reducer: { RecordScreen.RecordingPanel.Feature() },
+            withDependencies: {
+                $0.continuousClock = clock
+                $0.recordingUsecase.isRecording = { await recorder.isRecording }
+                $0.recordingUsecase.currentTime = { await recorder.currentTime }
+                $0.recordingUsecase.start = { await recorder.start() }
+                $0.recordingUsecase.pause = { await recorder.pause() }
+            }
+        )
+
+        // when, then
+        await store.send(.view(.toggleRecordingButtonTapped))
+        await store.receive(\.response.recorderUpdated) {
+            $0.phase = .recording
+            $0.currentTime = 1
+        }
+        await store.send(.view(.toggleRecordingButtonTapped))
+        await store.receive(\.response.recorderUpdated) {
+            $0.phase = .paused
+        }
+        await store.finish()
+        #expect(await recorder.startCallCount == 1)
+        #expect(await recorder.pauseCallCount == 1)
+    }
+
     @Test("마이크 권한이 없으면 부모 화면에 진입 실패를 알린다")
     func deniedPermissionDelegatesUnavailableAuthorization() async {
         // given
@@ -191,6 +223,40 @@ extension RecordScreenRecordingPanelTests {
         #expect(await cancellation.callCount == 1)
     }
 
+    @Test("녹음 준비 중 취소하면 준비 작업과 녹음물을 함께 정리한다")
+    func cancellationWhilePreparingCleansRecording() async {
+        // given
+        let clock = TestClock<Duration>()
+        let cancellation = RecordingPanelCallSpy()
+        let store: TestStoreOf<RecordScreen.RecordingPanel.Feature> = .init(
+            initialState: .init(),
+            reducer: { RecordScreen.RecordingPanel.Feature() },
+            withDependencies: {
+                $0.continuousClock = clock
+                $0.audioSession.authorizationStatus = { .authorized }
+                $0.audioSession.activate = {}
+                $0.recordingUsecase.prepare = {
+                    try await clock.sleep(for: .seconds(10))
+                }
+                $0.recordingUsecase.cancel = {
+                    await cancellation.call()
+                }
+            }
+        )
+
+        await store.send(.parent(.screenAppeared))
+        await store.receive(\.response.recordingPreparing)
+
+        // when, then
+        await store.send(.parent(.discardConfirmed)) {
+            $0.phase = .finished
+        }
+        await store.receive(\.response.recordingDiscarding)
+        await store.receive(\.delegate.recordingDiscarded)
+        await store.finish()
+        #expect(await cancellation.callCount == 1)
+    }
+
     @Test("녹음 저장을 확정하면 대화를 저장한다")
     func confirmedSavePersistsConversation() async {
         // given
@@ -236,6 +302,24 @@ private actor RecordingPanelCallSpy {
 
     func call() {
         callCount += 1
+    }
+}
+
+private actor RecordingPanelControlSpy {
+    private(set) var isRecording = false
+    private(set) var currentTime: TimeInterval = .zero
+    private(set) var startCallCount = 0
+    private(set) var pauseCallCount = 0
+
+    func start() {
+        isRecording = true
+        currentTime = 1
+        startCallCount += 1
+    }
+
+    func pause() {
+        isRecording = false
+        pauseCallCount += 1
     }
 }
 
