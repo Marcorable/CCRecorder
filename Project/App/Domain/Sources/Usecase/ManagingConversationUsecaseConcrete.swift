@@ -3,6 +3,7 @@ import Foundation
 
 final class ManagingConversationUsecaseConcrete: Sendable {
     private let dependency: Dependency
+    private let mutationLock = ConversationMutationLock()
 
     init(dependency: Dependency) {
         self.dependency = dependency
@@ -79,22 +80,24 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
     }
 
     func update(_ conversation: Conversation) async throws {
-        do {
-            guard var updatingItem = try await dependency.conversationRepository.read(
-                id: conversation.id
-            ) else {
-                throw DomainError.managingConversationUsecase(.conversationNotFound)
+        try await mutationLock.withLock(for: conversation.id) {
+            do {
+                guard var updatingItem = try await dependency.conversationRepository.read(
+                    id: conversation.id
+                ) else {
+                    throw DomainError.managingConversationUsecase(.conversationNotFound)
+                }
+                updatingItem.title = conversation.title
+                updatingItem.topic = conversation.topic
+                updatingItem.parties = conversation.parties
+                try await dependency.conversationRepository.update(updatingItem)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch let error as DomainError {
+                throw error
+            } catch {
+                throw DomainError.data(error)
             }
-            updatingItem.title = conversation.title
-            updatingItem.topic = conversation.topic
-            updatingItem.parties = conversation.parties
-            try await dependency.conversationRepository.update(updatingItem)
-        } catch is CancellationError {
-            throw CancellationError()
-        } catch let error as DomainError {
-            throw error
-        } catch {
-            throw DomainError.data(error)
         }
     }
 
@@ -102,29 +105,31 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
         content: String,
         to conversationID: Conversation.ID
     ) async throws -> Conversation {
-        guard var updatingItem = try await dependency.conversationRepository.read(
-            id: conversationID
-        ) else {
-            throw DomainError.managingConversationUsecase(.conversationNotFound)
-        }
-        guard !content.isEmpty else {
-            return updatingItem
-        }
-
-        let note = note(content: content)
-        updatingItem.noteIds.append(note.id)
-        do {
-            try Task.checkCancellation()
-            try await dependency.noteRepository.create(note)
-            try Task.checkCancellation()
-            try await dependency.conversationRepository.update(updatingItem)
-            return updatingItem
-        } catch {
-            try? await dependency.noteRepository.delete(ids: [note.id])
-            if error is CancellationError {
-                throw CancellationError()
+        try await mutationLock.withLock(for: conversationID) {
+            guard var updatingItem = try await dependency.conversationRepository.read(
+                id: conversationID
+            ) else {
+                throw DomainError.managingConversationUsecase(.conversationNotFound)
             }
-            throw DomainError.data(error)
+            guard !content.isEmpty else {
+                return updatingItem
+            }
+
+            let note = note(content: content)
+            updatingItem.noteIds.append(note.id)
+            do {
+                try Task.checkCancellation()
+                try await dependency.noteRepository.create(note)
+                try Task.checkCancellation()
+                try await dependency.conversationRepository.update(updatingItem)
+                return updatingItem
+            } catch {
+                try? await dependency.noteRepository.delete(ids: [note.id])
+                if error is CancellationError {
+                    throw CancellationError()
+                }
+                throw DomainError.data(error)
+            }
         }
     }
 
@@ -132,33 +137,70 @@ extension ManagingConversationUsecaseConcrete: ManagingConversationUsecase {
         ids: [Note.ID],
         from conversationID: Conversation.ID
     ) async throws -> Conversation {
-        guard let conversation = try await dependency.conversationRepository.read(
-            id: conversationID
-        ) else {
-            throw DomainError.managingConversationUsecase(.conversationNotFound)
-        }
-        guard !ids.isEmpty else {
-            return conversation
-        }
-
-        let idSet = Set(ids)
-        var updatingItem = conversation
-        updatingItem.noteIds.removeAll(where: { idSet.contains($0) })
-        do {
-            try Task.checkCancellation()
-            try await dependency.conversationRepository.update(updatingItem)
-            try Task.checkCancellation()
-            try await dependency.noteRepository.delete(ids: ids)
-            return updatingItem
-        } catch {
-            try? await dependency.conversationRepository.update(conversation)
-            if error is CancellationError {
-                throw CancellationError()
+        try await mutationLock.withLock(for: conversationID) {
+            guard let conversation = try await dependency.conversationRepository.read(
+                id: conversationID
+            ) else {
+                throw DomainError.managingConversationUsecase(.conversationNotFound)
             }
-            throw DomainError.data(error)
+            guard !ids.isEmpty else {
+                return conversation
+            }
+
+            let idSet = Set(ids)
+            var updatingItem = conversation
+            updatingItem.noteIds.removeAll(where: { idSet.contains($0) })
+            do {
+                try Task.checkCancellation()
+                try await dependency.conversationRepository.update(updatingItem)
+                try Task.checkCancellation()
+                try await dependency.noteRepository.delete(ids: ids)
+                return updatingItem
+            } catch {
+                try? await dependency.conversationRepository.update(conversation)
+                if error is CancellationError {
+                    throw CancellationError()
+                }
+                throw DomainError.data(error)
+            }
         }
     }
 
+}
+
+private actor ConversationMutationLock {
+    private var lockedIDs: Set<Conversation.ID> = []
+    private var waiters: [Conversation.ID: [CheckedContinuation<Void, Never>]] = [:]
+
+    func withLock<Value: Sendable>(
+        for id: Conversation.ID,
+        operation: @Sendable () async throws -> Value
+    ) async rethrows -> Value {
+        await lock(id)
+        defer { unlock(id) }
+        return try await operation()
+    }
+
+    private func lock(_ id: Conversation.ID) async {
+        guard lockedIDs.contains(id) else {
+            lockedIDs.insert(id)
+            return
+        }
+        await withCheckedContinuation { continuation in
+            waiters[id, default: []].append(continuation)
+        }
+    }
+
+    private func unlock(_ id: Conversation.ID) {
+        guard var queuedWaiters = waiters[id], !queuedWaiters.isEmpty else {
+            lockedIDs.remove(id)
+            waiters[id] = nil
+            return
+        }
+        let continuation = queuedWaiters.removeFirst()
+        waiters[id] = queuedWaiters.isEmpty ? nil : queuedWaiters
+        continuation.resume()
+    }
 }
 
 private extension ManagingConversationUsecaseConcrete {
