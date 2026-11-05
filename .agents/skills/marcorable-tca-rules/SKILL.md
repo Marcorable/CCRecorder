@@ -19,6 +19,7 @@ description: "Marco의 TCA Feature 구성 규칙. TCA State·Action·Reducer·Bi
 - `references/architecture/effect-routing.md`
 - `references/architecture/feature-composition.md`
 - `references/architecture/feature-file-layout.md`
+- `references/architecture/feature-state-layout.md`
 - `references/architecture/feature-state-ownership.md`
 - `references/architecture/navigation-ownership.md`
 - `references/architecture/parent-child-event.md`

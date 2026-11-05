@@ -19,3 +19,5 @@ SearchFeature/
 ```
 
 다른 파일의 extension으로 옮긴 역할별 reducer는 기본 `internal` 접근 수준을 사용한다. 구체적인 분리 기준과 함수 형태는 `reducer-decomposition.md`, 취소 식별자의 접근 수준은 `cancellation-identity.md`를 따른다.
+
+`State` 내부의 역할별 프로퍼티와 `init` 선언 순서는 `feature-state-layout.md`를 따른다.

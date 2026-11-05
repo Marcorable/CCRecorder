@@ -1,0 +1,4 @@
+interface:
+  display_name: "TCA View 표현 정리"
+  short_description: "TCA 상태와 SwiftUI 표현 원자 스킬을 선택해 조합합니다"
+  default_prompt: "$refine-tca-view-expression을 사용해 기존 SwiftUI·TCA 표현 계층의 경계를 전반적으로 정리해줘."
