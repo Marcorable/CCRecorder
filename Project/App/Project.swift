@@ -1,0 +1,280 @@
+
+import ProjectDescription
+import ProjectDescriptionHelpers
+
+let packages: [Package] = [
+    .remote(
+        url: "https://github.com/firebase/firebase-ios-sdk",
+        requirement: .exact("13.1.1")
+    ),
+    .remote(
+        url: "https://github.com/pointfreeco/swift-composable-architecture",
+        requirement: .exact("1.26.1")
+    ),
+    .remote(
+        url: "https://github.com/pointfreeco/swift-issue-reporting",
+        requirement: .exact("2.1.2")
+    ),
+]
+
+let userDefaultsPrivacyManifest: PrivacyManifest = .privacyManifest(
+    tracking: false,
+    trackingDomains: [],
+    collectedDataTypes: [],
+    accessedApiTypes: [
+        [
+            "NSPrivacyAccessedAPIType": .string(
+                "NSPrivacyAccessedAPICategoryUserDefaults"
+            ),
+            "NSPrivacyAccessedAPITypeReasons": .array([
+                .string("CA92.1"),
+            ]),
+        ],
+    ]
+)
+
+let domain = Target.module(
+    name: "Domain",
+    buildableFolders: ["Domain/Sources"]
+)
+
+let domainTests = Target.tests(
+    name: "DomainTests",
+    buildableFolders: ["Domain/Tests"],
+    dependencies: [
+        .target(name: "Domain"),
+    ]
+)
+
+let data = Target.module(
+    name: "Data",
+    buildableFolders: ["Data/Sources"],
+    resources: ["Data/Resources/**"],
+    dependencies: [
+        .target(name: "Domain"),
+    ]
+)
+
+let dataTests = Target.tests(
+    name: "DataTests",
+    buildableFolders: ["Data/Tests"],
+    dependencies: [
+        .target(name: "Data"),
+        .target(name: "Domain"),
+    ]
+)
+
+let presentation = Target.module(
+    name: "Presentation",
+    buildableFolders: [
+        "Presentation/Sources",
+    ],
+    resources: .resources(
+        [
+            "Presentation/Resources/**",
+        ],
+        privacyManifest: userDefaultsPrivacyManifest
+    ),
+    dependencies: [
+        .target(name: "Domain"),
+        .package(product: "ComposableArchitecture"),
+        .package(product: "Dependencies"),
+        .package(product: "DependenciesMacros"),
+        .package(product: "IssueReporting"),
+    ]
+)
+
+let presentationTests = Target.tests(
+    name: "PresentationTests",
+    buildableFolders: [
+        .folder(
+            "Presentation/Tests",
+            exceptions: [
+                .exception(excluded: ["UI/**"]),
+            ]
+        ),
+    ],
+    dependencies: [
+        .target(name: "Presentation"),
+        .target(name: "Domain"),
+    ]
+)
+
+let app = Target.target(
+    name: "CCRecorder",
+    destinations: CCRecorderProject.destinations,
+    product: .app,
+    bundleId: "com.pseapplications.CasualConversation",
+    deploymentTargets: CCRecorderProject.deploymentTargets,
+    infoPlist: .extendingDefault(
+        with: [
+            "CFBundleDisplayName": "Casual Conversation",
+            "CFBundleShortVersionString": "1.2.1",
+            "CFBundleVersion": "1",
+            "FIREBASE_ANALYTICS_COLLECTION_ENABLED": false,
+            "FirebaseCrashlyticsCollectionEnabled": false,
+            "GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS": false,
+            "ITSAppUsesNonExemptEncryption": false,
+            "LSApplicationCategoryType": "public.app-category.productivity",
+            "NSMicrophoneUsageDescription": "대화를 녹음하기 위해 마이크 접근 권한이 필요합니다.",
+            "UIApplicationSceneManifest": [
+                "UIApplicationSupportsMultipleScenes": false,
+            ],
+            "UILaunchScreen": [:],
+            "UISupportedInterfaceOrientations": [
+                "UIInterfaceOrientationPortrait",
+            ],
+        ]
+    ),
+    resources: .resources(
+        [
+            "App/Resources/**",
+        ],
+        privacyManifest: userDefaultsPrivacyManifest
+    ),
+    buildableFolders: [
+        "App/Sources",
+    ],
+    scripts: [
+        .pre(
+            path: .relativeToRoot("Scripts/generate_licenses.sh"),
+            name: "Generate Open Source Licenses",
+            basedOnDependencyAnalysis: false
+        ),
+        .post(
+            script: #"""
+            "${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+            """#,
+            name: "Upload Crashlytics Symbols",
+            inputPaths: [
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+                "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+                "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+            ],
+            basedOnDependencyAnalysis: false
+        ),
+    ],
+    dependencies: [
+        .target(name: "Presentation"),
+        .target(name: "Domain"),
+        .target(name: "Data"),
+        .package(product: "FirebaseAnalyticsCore"),
+        .package(product: "FirebaseCrashlytics"),
+    ],
+    settings: .settings(
+        base: [
+            "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
+            "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
+            "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "",
+            "DEVELOPMENT_ASSET_PATHS": "\"App/Resources/Preview Content\"",
+            "DEVELOPMENT_TEAM": "9486RJPBM5",
+            "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
+            "ENABLE_PREVIEWS": "YES",
+            "OTHER_LDFLAGS": "$(inherited) -ObjC",
+            "SWIFT_EMIT_LOC_STRINGS": "YES",
+            "SWIFT_VERSION": "5.0",
+            "TARGETED_DEVICE_FAMILY": "1,2",
+        ]
+    )
+)
+
+let tests = Target.tests(
+    name: "CCRecorderTests",
+    buildableFolders: ["App/Tests"],
+    dependencies: [
+        .target(name: "CCRecorder"),
+    ]
+)
+
+let uiTests = Target.target(
+    name: "CCRecorderUITests",
+    destinations: CCRecorderProject.destinations,
+    product: .uiTests,
+    bundleId: "com.pseapplications.CasualConversation.UITests",
+    deploymentTargets: CCRecorderProject.deploymentTargets,
+    infoPlist: .default,
+    buildableFolders: [
+        .folder(
+            "Presentation/Tests",
+            exceptions: [
+                .exception(excluded: ["Unit/**"]),
+            ]
+        ),
+    ],
+    dependencies: [
+        .target(name: "CCRecorder"),
+    ],
+    settings: .ccRecorder
+)
+
+let project = Project(
+    name: "App",
+    organizationName: CCRecorderProject.organizationName,
+    options: .options(automaticSchemesOptions: .disabled),
+    packages: packages,
+    settings: .ccRecorder,
+    targets: [
+        domain,
+        domainTests,
+        data,
+        dataTests,
+        presentation,
+        presentationTests,
+        app,
+        tests,
+        uiTests,
+    ],
+    schemes: [
+        .scheme(
+            name: "Presentation",
+            shared: true,
+            buildAction: .buildAction(targets: ["Presentation"])
+        ),
+        .scheme(
+            name: "Domain",
+            shared: true,
+            buildAction: .buildAction(targets: ["Domain"]),
+            testAction: .targets(["DomainTests"])
+        ),
+        .scheme(
+            name: "Data",
+            shared: true,
+            buildAction: .buildAction(targets: ["Data"]),
+            testAction: .targets(["DataTests"])
+        ),
+        .scheme(
+            name: "App",
+            shared: true,
+            buildAction: .buildAction(targets: ["CCRecorder"]),
+            testAction: .testPlans(
+                [
+                    .relativeToManifest("Tests/Plans/App.xctestplan"),
+                    .relativeToManifest("Tests/Plans/CI-Unit.xctestplan"),
+                    .relativeToManifest("Tests/Plans/Local-UI.xctestplan"),
+                ],
+                configuration: .debug
+            ),
+            runAction: .runAction(
+                configuration: .debug,
+                executable: "CCRecorder",
+                arguments: .arguments(
+                    launchArguments: [
+                        .launchArgument(
+                            name: "-FIRDebugEnabled",
+                            isEnabled: false
+                        ),
+                        .launchArgument(
+                            name: "-FIRDebugDisabled",
+                            isEnabled: false
+                        ),
+                    ]
+                )
+            ),
+            archiveAction: .archiveAction(configuration: .release),
+            profileAction: .profileAction(configuration: .release, executable: "CCRecorder"),
+            analyzeAction: .analyzeAction(configuration: .debug)
+        ),
+    ]
+)

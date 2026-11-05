@@ -1,0 +1,4 @@
+interface:
+  display_name: "TCA Child Feature 추출"
+  short_description: "기존 TCA Feature에서 독립 업무 경계 분리"
+  default_prompt: "$extract-tca-child-feature를 사용해 이 Root의 독립 업무를 Child Feature로 분리해줘."

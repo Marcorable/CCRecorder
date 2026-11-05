@@ -1,0 +1,59 @@
+name: abseil-cpp-binary, nameSpecified: abseil, owner: google, version: 1.2025051202.0, source: https://github.com/google/abseil-cpp-binary
+
+name: app-check, nameSpecified: AppCheck, owner: google, version: 12.0.0, source: https://github.com/google/app-check
+
+name: combine-schedulers, nameSpecified: combine-schedulers, owner: pointfreeco, version: 1.2.2, source: https://github.com/pointfreeco/combine-schedulers
+
+name: firebase-ios-sdk, nameSpecified: Firebase, owner: firebase, version: 13.1.1, source: https://github.com/firebase/firebase-ios-sdk
+
+name: google-ads-on-device-conversion-ios-sdk, nameSpecified: GoogleAdsOnDeviceConversion, owner: googleads, version: 3.7.0, source: https://github.com/googleads/google-ads-on-device-conversion-ios-sdk
+
+name: GoogleAppMeasurement, nameSpecified: GoogleAppMeasurement, owner: google, version: 13.0.1, source: https://github.com/google/GoogleAppMeasurement
+
+name: GoogleDataTransport, nameSpecified: GoogleDataTransport, owner: google, version: 10.1.1, source: https://github.com/google/GoogleDataTransport
+
+name: GoogleUtilities, nameSpecified: GoogleUtilities, owner: google, version: 8.1.5, source: https://github.com/google/GoogleUtilities
+
+name: grpc-binary, nameSpecified: gRPC, owner: google, version: 1.83.1, source: https://github.com/google/grpc-binary
+
+name: gtm-session-fetcher, nameSpecified: gtm-session-fetcher, owner: google, version: 5.3.1, source: https://github.com/google/gtm-session-fetcher
+
+name: interop-ios-for-google-sdks, nameSpecified: InteropForGoogle, owner: google, version: 101.0.0, source: https://github.com/google/interop-ios-for-google-sdks
+
+name: leveldb, nameSpecified: leveldb, owner: firebase, version: 1.22.5, source: https://github.com/firebase/leveldb
+
+name: nanopb, nameSpecified: nanopb, owner: firebase, version: 2.30910.1, source: https://github.com/firebase/nanopb
+
+name: promises, nameSpecified: Promises, owner: google, version: 2.4.1, source: https://github.com/google/promises
+
+name: swift-case-paths, nameSpecified: swift-case-paths, owner: pointfreeco, version: 1.10.0, source: https://github.com/pointfreeco/swift-case-paths
+
+name: swift-clocks, nameSpecified: swift-clocks, owner: pointfreeco, version: 1.1.1, source: https://github.com/pointfreeco/swift-clocks
+
+name: swift-collections, nameSpecified: swift-collections, owner: apple, version: 1.7.4, source: https://github.com/apple/swift-collections
+
+name: swift-composable-architecture, nameSpecified: swift-composable-architecture, owner: pointfreeco, version: 1.26.1, source: https://github.com/pointfreeco/swift-composable-architecture
+
+name: swift-concurrency-extras, nameSpecified: swift-concurrency-extras, owner: pointfreeco, version: 1.4.3, source: https://github.com/pointfreeco/swift-concurrency-extras
+
+name: swift-custom-dump, nameSpecified: swift-custom-dump, owner: pointfreeco, version: 1.7.3, source: https://github.com/pointfreeco/swift-custom-dump
+
+name: swift-dependencies, nameSpecified: swift-dependencies, owner: pointfreeco, version: 1.17.1, source: https://github.com/pointfreeco/swift-dependencies
+
+name: swift-identified-collections, nameSpecified: swift-identified-collections, owner: pointfreeco, version: 1.1.1, source: https://github.com/pointfreeco/swift-identified-collections
+
+name: swift-issue-reporting, nameSpecified: swift-issue-reporting, owner: pointfreeco, version: 2.1.2, source: https://github.com/pointfreeco/swift-issue-reporting
+
+name: swift-navigation, nameSpecified: swift-navigation, owner: pointfreeco, version: 2.11.2, source: https://github.com/pointfreeco/swift-navigation
+
+name: swift-perception, nameSpecified: swift-perception, owner: pointfreeco, version: 2.0.12, source: https://github.com/pointfreeco/swift-perception
+
+name: swift-sharing, nameSpecified: swift-sharing, owner: pointfreeco, version: 2.10.1, source: https://github.com/pointfreeco/swift-sharing
+
+name: swift-syntax, nameSpecified: swift-syntax, owner: swiftlang, version: 604.0.0, source: https://github.com/swiftlang/swift-syntax
+
+name: xctest-dynamic-overlay, nameSpecified: xctest-dynamic-overlay, owner: pointfreeco, version: 1.13.1, source: https://github.com/pointfreeco/xctest-dynamic-overlay
+
+add-version-numbers: false
+
+LicensePlist Version: 3.28.3

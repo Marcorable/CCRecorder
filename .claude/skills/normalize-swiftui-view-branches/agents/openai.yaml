@@ -1,0 +1,4 @@
+interface:
+  display_name: "SwiftUI View 분기 정규화"
+  short_description: "중복된 View 분기를 하나의 구조와 표시 값으로 정규화합니다"
+  default_prompt: "$normalize-swiftui-view-branches를 사용해 반복되는 View 분기를 표시 값 중심으로 정리해줘."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "TCA Child 출력 연결"
+  short_description: "Child Delegate 출력을 부모 Source of Truth에 연결합니다"
+  default_prompt: "$connect-tca-child-output을 사용해 기존 Child Feature의 출력을 부모 상태에 연결해줘."

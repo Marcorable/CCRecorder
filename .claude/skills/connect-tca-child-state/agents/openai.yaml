@@ -1,0 +1,4 @@
+interface:
+  display_name: "TCA Child 상태 연결"
+  short_description: "Child의 양방향 상태 흐름을 입력·출력 스킬로 연결합니다"
+  default_prompt: "$connect-tca-child-state를 사용해 부모 소유 상태와 기존 Child Feature를 연결해줘."
