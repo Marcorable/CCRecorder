@@ -50,7 +50,7 @@
 
 # CCRecorder
 
-영어 회화를 녹음해 다시 들으며 모르는 단어와 문장을 기록하는 iOS 앱. v2 는 `CCRecorder/` (SwiftUI + SwiftData), `CasualConversation/` 은 v1 레거시다.
+영어 회화를 녹음해 다시 들으며 모르는 단어와 문장을 기록하는 iOS 앱. 현재 앱은 `Project/App/`의 SwiftUI + SwiftData 구조이며, v1 데이터 호환 코드는 Data 레이어에서 관리한다.
 
 코드 규칙은 `.claude/rules/marcorable-swift/`, `.claude/rules/marcorable-swiftui/`, `.claude/rules/marcorable-tca/`에 있다.
 
@@ -58,4 +58,4 @@
 
 - 리뷰는 한국어로 쓴다
 - 녹음·재생 상태 전환(`AudioRecorder`, 화면 Feature)에서 녹음물이 지워지지 않거나 의도치 않게 남는 경로를 우선해서 본다
-- 새 화면이 SwiftUI Screen 구조(`.claude/rules/marcorable-swiftui/swiftui/screen-structure.md`)와 TCA Feature 구성(`.claude/rules/marcorable-tca/architecture/feature-composition.md`)을 따르는지 본다. 변경하지 않은 레거시 코드의 규칙 위반은 지적하지 않는다
+- 새 화면이 SwiftUI Screen 구조(`.claude/rules/marcorable-swiftui/swiftui/screen-structure.md`)와 TCA Feature 구성(`.claude/rules/marcorable-tca/architecture/feature-composition.md`)을 따르는지 본다
