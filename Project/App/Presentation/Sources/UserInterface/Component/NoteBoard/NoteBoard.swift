@@ -19,6 +19,16 @@ struct NoteBoard: View {
                     List {
                         ForEach(rows) { row in
                             Row(viewModel: row)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(
+                                    .init(
+                                        top: 12,
+                                        leading: 12,
+                                        bottom: .zero,
+                                        trailing: 12
+                                    )
+                                )
                                 .onTapGesture {
                                     onTap(row.id)
                                 }
@@ -34,6 +44,7 @@ struct NoteBoard: View {
                         }
                     }
                     .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                     .environment(\.defaultMinListRowHeight, .zero)
                 }
             } else {
