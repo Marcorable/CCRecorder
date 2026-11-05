@@ -1,0 +1,10 @@
+apply-tca-screen-pattern
+connect-tca-child-input
+connect-tca-child-output
+connect-tca-child-state
+connect-tca-presentation
+extract-tca-child-feature
+migrate-tca-screen
+refine-tca-view-expression
+replace-tca-entity-route-with-id
+separate-tca-view-resources

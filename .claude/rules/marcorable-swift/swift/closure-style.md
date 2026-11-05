@@ -11,11 +11,11 @@ paths:
 `map`, `compactMap`, `flatMap`, `filter`, `reduce`, `sorted(by:)`, `first(where:)`, `contains(where:)`, `allSatisfy` 등이다.
 체이닝은 연산자마다 줄을 바꾼다.
 
-클로저도 인자 하나로 센다. 다른 인자와 함께 받으면 `.claude/rules/marcorable-swift/swift/argument-wrapping.md` 대로 첫 인자부터 한 줄에 하나씩 쓴다.
+클로저도 인자 하나로 센다. 다른 인자와 함께 받으면 `agent-common/marcorable-swift/rules/swift/argument-wrapping.md` 대로 첫 인자부터 한 줄에 하나씩 쓴다.
 
 ```swift
 // ✅
-viewModel.$menus
+menuPublisher
     .map({
         $0.filter({ $0 != .myReview })
     })
@@ -62,7 +62,7 @@ Task(priority: .userInitiated) {
     ...
 }
 
-viewModel.$state
+statePublisher
     .sink { [weak self] state in
         ...
     }
@@ -91,20 +91,32 @@ viewModel.$state.sink(receiveValue: { [weak self] state in ... })
 ```swift
 // ✅
 Button(
-    action: { ... },
-    label: { ... }
+    action: {
+        ...
+    },
+    label: {
+        ...
+    }
 )
 
 // ❌
+Button(
+    action: {
+        ...
+    }, label: {
+        ...
+    }
+)
+
 Button { ... } label: { ... }
 ```
 
-<!-- 근거: MarcorableMVVM 세션에서 Marco 가 직접 명시한 규칙 (메모리 marco-screen-mvvm-pattern) -->
+<!-- 근거: Marco 가 직접 명시한 Swift 클로저 표기 규칙 -->
 
 ## 메서드 참조
 
 클로저가 메서드 하나만 부르면 메서드 참조로 넘긴다.
 
 ```swift
-.sink(receiveValue: viewModel.action(_:))
+.sink(receiveValue: handle(_:))
 ```

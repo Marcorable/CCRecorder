@@ -1,0 +1,46 @@
+{
+  "configurations" : [
+    {
+      "id" : "E13B7729-53AE-46D7-8221-309761736A8A",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testInteropMode" : "complete",
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "B62D1BA73D704801C358E9B8",
+        "name" : "DomainTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "6AE16DB16A8F4F466BFDB683",
+        "name" : "DataTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "74FDC675EC3EFCC5334FB76B",
+        "name" : "CCRecorderTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "2EC8FB27A7E19CDFA290227E",
+        "name" : "PresentationTests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -47,6 +47,9 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+Derived/
+CCRecorder.xcworkspace/
+Project/**/*.xcodeproj/
 
 # CocoaPods
 #
@@ -90,4 +93,3 @@ fastlane/test_output
 iOSInjectionProject/
 .DS_Store
 .DS_Store
-CasualConversation/graph.png
