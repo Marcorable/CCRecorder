@@ -32,7 +32,7 @@
 
 ## 저장소 구성
 
-Tuist로 생성하는 v2 앱과 데이터 마이그레이션 참고용 v1 코드가 한 저장소에 공존합니다.
+Tuist로 생성하는 앱과 v1 데이터 마이그레이션 호환 코드를 관리합니다.
 
 ```text
 Project/App/
@@ -43,11 +43,8 @@ Project/App/
 ├── Tests/               # 테스트 플랜과 Unit/UI 테스트
 └── Project.swift        # Tuist 프로젝트 정의
 
-CasualConversation/      # v1 레거시 — 마이그레이션 참고용
 Docs/                    # 개발 문서와 v2 이미지
 ```
-
-새 기능과 수정은 `Project/App/`의 v2 앱을 대상으로 합니다. `CasualConversation/`은 출시된 v1 데이터 구조를 확인하기 위한 레거시 코드이며 신규 개발 대상이 아닙니다.
 
 ## 기술 구성
 
@@ -114,6 +111,8 @@ xcodebuild test \
 ```
 
 실제 마이크 입력이 필요한 테스트와 CI 운영 기준은 [테스트 운영 문서](Docs/Testing.md)를 참고하세요.
+
+Firebase Crashlytics와 Analytics의 환경별 수집 정책, DebugView·테스트 크래시 검증, 개인정보 공개 검토는 [Firebase 관측성 운영 문서](Docs/FirebaseObservability.md)를 참고하세요.
 
 ## v1 데이터 마이그레이션
 
