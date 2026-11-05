@@ -98,7 +98,7 @@ extension MainScreen.ConversationList.Feature {
     ) -> Effect<Action> {
         switch action {
             case .task:
-                guard state.conversations == nil, !state.isLoading else {
+                guard state.conversations == nil else {
                     return .none
                 }
                 state.isLoading = true
