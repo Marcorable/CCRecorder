@@ -123,9 +123,6 @@ extension MainScreen.NoteList.Feature {
     ) -> Effect<Action> {
         switch action {
             case .task:
-                guard !state.isLoading else {
-                    return .none
-                }
                 state.isLoading = true
                 return .send(.response(.notesLoading))
 

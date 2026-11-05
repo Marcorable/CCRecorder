@@ -281,6 +281,37 @@ extension MainScreenPresentationTests {
         #expect(await notes.callCount == 2)
     }
 
+    @Test("취소된 로딩 상태가 남아 있어도 노트 목록 재진입 시 다시 불러온다")
+    func noteListTaskRestartsAfterCanceledLoading() async {
+        // given
+        let note: Note = .init(
+            createdDate: .init(timeIntervalSince1970: 0),
+            original: "Hello",
+            translation: "안녕하세요",
+            category: .vocabulary
+        )
+        var state: MainScreen.NoteList.Feature.State = .init()
+        state.isLoading = true
+        let store: TestStoreOf<MainScreen.NoteList.Feature> = .init(
+            initialState: state,
+            reducer: { MainScreen.NoteList.Feature() },
+            withDependencies: {
+                $0.managingNoteUsecase.loadNotes = { .success([note]) }
+            }
+        )
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        // when
+        await store.send(.view(.task))
+        await store.receive(\.response.notesLoading)
+        await store.receive(\.response.notesLoaded) {
+            $0.isLoading = false
+        }
+
+        // then
+        #expect(store.state.rows?.map(\.id) == [note.id])
+    }
+
     @Test("녹음 화면을 닫으면 선택한 노트 목록만 다시 불러온다")
     func recordDismissReloadsSelectedList() async {
         // given
