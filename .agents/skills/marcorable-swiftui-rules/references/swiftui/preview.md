@@ -13,7 +13,7 @@
 
 ```swift
 #Preview {
-    TooltipContainerView {
+    RequiredContainer {
         SampleScreen.Root(/* Preview 상태 */)
     }
 }

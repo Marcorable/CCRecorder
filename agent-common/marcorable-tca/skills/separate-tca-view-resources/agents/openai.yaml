@@ -1,0 +1,4 @@
+interface:
+  display_name: "TCA View 리소스 분리"
+  short_description: "Feature 상태 조건과 UI 리소스 매핑의 경계를 분리합니다"
+  default_prompt: "$separate-tca-view-resources를 사용해 Feature 상태와 UI 리소스 매핑을 분리해줘."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SwiftUI 컴포넌트 입력 투영"
+  short_description: "Domain 값을 재사용 컴포넌트용 표시 입력으로 투영합니다"
+  default_prompt: "$project-swiftui-component-input을 사용해 컴포넌트 입력을 UI 표시 값으로 분리해줘."

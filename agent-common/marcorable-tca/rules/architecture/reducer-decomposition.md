@@ -35,6 +35,9 @@ struct SearchFeature {
 
         Reduce { state, action in
             switch action {
+                case .parent(let action):
+                    return reduce(into: &state, action: action)
+
                 case .view(let action):
                     return reduce(into: &state, action: action)
 
@@ -47,31 +50,10 @@ struct SearchFeature {
         }
     }
 }
-
-extension SearchFeature {
-
-    private func reduce(
-        into state: inout State,
-        action: Action.View
-    ) -> Effect<Action> {
-        switch action {
-            case .appeared:
-                return loadRows()
-
-            case .queryChanged(let query):
-                state.query = query
-                return loadRows()
-
-            case .rowTapped(let id):
-                return .send(.delegate(.rowSelected(id)))
-        }
-    }
-
-}
 ```
 
-- 최상위 Action 분기만을 위한 `coreReduce` 같은 중간 함수는 만들지 않는다
-- `private func reduce(into:action: Action)`은 `Reducer` 프로토콜 요구사항과 충돌하므로 만들지 않는다
+- 최상위 Action routing closure는 `body`에 남기고 `route`, `coreReduce` 같은 중간 함수나 별도 파일로 옮기지 않는다
+- 접근 수준과 관계없이 `func reduce(into:action: Action)`은 `Reducer` 프로토콜 요구사항과 충돌하고 `body`보다 우선할 수 있으므로 만들지 않는다
 - `reducePart1`, `reducePart2`처럼 줄 수만 나누지 않는다
 - 역할별 함수는 중첩 Action 타입으로 오버로드한 `reduce(into:action:)`를 사용한다
 - Action 묶음 하나가 커지면 해당 묶음 안에서도 도메인 의미에 따라 함수를 더 나눈다
@@ -91,12 +73,9 @@ extension SearchFeature {
         action: Action.View
     ) -> Effect<Action> {
         switch action {
-            case .appeared:
-                return loadRows()
-
             case .queryChanged(let query):
                 state.query = query
-                return loadRows()
+                return .none
 
             case .rowTapped(let id):
                 return .send(.delegate(.rowSelected(id)))
@@ -121,6 +100,8 @@ extension SearchFeature {
 }
 ```
 
+Effect를 어디에서 시작하고 공유할지는 `effect-routing.md`가 정한다. 역할별 reducer 문서는 함수와 파일의 가독성 경계만 정한다.
+
 ## 파일 분리
 
 같은 파일로 충분하면 `private` 함수와 역할별 extension으로 나눈다. 파일 자체가 길거나 원하는 reducer를 찾기 어렵다면 다음처럼 옮긴다.
@@ -132,7 +113,7 @@ SearchFeature/
 └── SearchFeature + ResponseReducer.swift
 ```
 
-다른 파일의 extension으로 옮긴 함수에는 `private`을 사용할 수 없으므로 기본 `internal` 접근 수준을 사용한다.
+다른 파일의 extension으로 옮긴 역할별 함수에는 `private`을 사용할 수 없으므로 기본 `internal` 접근 수준을 사용한다. 파일을 나눠도 전체 `Action`을 받는 routing 함수는 만들지 않고, `Action.View`, `Action.Response`처럼 역할 타입을 받는 overload만 옮긴다. 전체 파일 배치 순서는 `feature-file-layout.md`를 따른다.
 
 ## Child Feature와의 경계
 

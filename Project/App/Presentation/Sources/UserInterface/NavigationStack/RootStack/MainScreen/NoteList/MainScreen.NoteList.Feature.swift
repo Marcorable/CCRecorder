@@ -13,14 +13,14 @@ extension MainScreen.NoteList {
         var body: some ReducerOf<Self> {
             Reduce { state, action in
                 switch action {
+                    case .parent(let action):
+                        return reduce(into: &state, action: action)
+
                     case .view(let action):
                         return reduce(into: &state, action: action)
 
                     case .response(let action):
                         return reduce(into: &state, action: action)
-
-                    case .noteDetailDismissed:
-                        return loadNotes(into: &state)
 
                     case .delegate:
                         return .none
@@ -33,103 +33,28 @@ extension MainScreen.NoteList {
 
 extension MainScreen.NoteList.Feature {
 
-    private func reduce(
-        into state: inout State,
-        action: Action.View
-    ) -> Effect<Action> {
-        switch action {
-            case .task:
-                guard state.notes == nil, !state.isLoading else {
-                    return .none
-                }
-                return loadNotes(into: &state)
-
-            case .reload:
-                return loadNotes(into: &state)
-
-            case .noteTapped(let id):
-                guard state.notes?.contains(where: { $0.id == id }) == true else {
-                    return .none
-                }
-                return .send(.delegate(.noteSelected(id)))
-
-            case .deleteRequested(let offsets):
-                guard let rows = state.rows else {
-                    return .none
-                }
-                let ids = offsets.compactMap({ index in
-                    rows.indices.contains(index) ? rows[index].id : nil
-                })
-                guard !ids.isEmpty else {
-                    return .none
-                }
-                return .run { send in
-                    await send(
-                        .response(
-                            .notesDeleted(
-                                ids: ids,
-                                result: await managingNoteUsecase.deleteNotes(ids)
-                            )
-                        )
-                    )
-                }
-        }
-    }
-
-    private func reduce(
-        into state: inout State,
-        action: Action.Response
-    ) -> Effect<Action> {
-        switch action {
-            case .notesLoaded(.success(let notes)):
-                state.isLoading = false
-                state.notes = notes
-                return .none
-
-            case .notesLoaded(.failure):
-                state.isLoading = false
-                return .send(.delegate(.loadFailed))
-
-            case .notesDeleted(let ids, .success):
-                state.notes?.removeAll(where: { ids.contains($0.id) })
-                return .none
-
-            case .notesDeleted(_, .failure):
-                return .send(.delegate(.deleteFailed))
-        }
-    }
-
-    private func loadNotes(into state: inout State) -> Effect<Action> {
-        state.isLoading = true
-        return .run { send in
-            await send(
-                .response(
-                    .notesLoaded(await managingNoteUsecase.loadNotes())
-                )
-            )
-        }
-        .cancellable(
-            id: CancelID.loadNotes,
-            cancelInFlight: true
-        )
-    }
-
-}
-
-extension MainScreen.NoteList.Feature {
-
     @ObservableState
     struct State: Equatable {
-        var notes: [Note]?
         var isLoading = false
 
-        var rows: [MainScreen.NoteList.Row.ViewModel]? {
-            notes?.sortedForList.map({ note in
+        fileprivate var notes: [Note]?
+
+        var rows: [NoteBoard.Row.ViewModel]? {
+            notes?.sorted(
+                by: { lhs, rhs in
+                    if lhs.isDone == rhs.isDone {
+                        lhs.createdDate < rhs.createdDate
+                    } else {
+                        !lhs.isDone
+                    }
+                }
+            )
+            .map({
                 .init(
-                    id: note.id,
-                    original: note.original,
-                    translation: note.translation,
-                    isVocabulary: note.category == .vocabulary
+                    id: $0.id,
+                    original: $0.original,
+                    translation: $0.translation,
+                    isVocabulary: $0.category == .vocabulary
                 )
             })
         }
@@ -137,21 +62,27 @@ extension MainScreen.NoteList.Feature {
 
     @CasePathable
     enum Action: ViewAction {
+        case parent(Parent)
         case view(View)
         case response(Response)
-        case noteDetailDismissed
         case delegate(Delegate)
+
+        @CasePathable
+        enum Parent {
+            case noteDetailDismissed
+        }
 
         @CasePathable
         enum View {
             case task
             case reload
-            case noteTapped(Note.ID)
-            case deleteRequested(IndexSet)
+            case noteTapped(UUID)
+            case deleteRequested([UUID])
         }
 
         @CasePathable
         enum Response {
+            case notesLoading
             case notesLoaded(Result<[Note], DomainError>)
             case notesDeleted(
                 ids: [Note.ID],
@@ -173,16 +104,92 @@ extension MainScreen.NoteList.Feature {
 
 }
 
-private extension Array where Element == Note {
+extension MainScreen.NoteList.Feature {
 
-    var sortedForList: Self {
-        sorted(by: { lhs, rhs in
-            if lhs.isDone == rhs.isDone {
-                lhs.createdDate < rhs.createdDate
-            } else {
-                !lhs.isDone
-            }
-        })
+    private func reduce(
+        into state: inout State,
+        action: Action.Parent
+    ) -> Effect<Action> {
+        switch action {
+            case .noteDetailDismissed:
+                state.isLoading = true
+                return .send(.response(.notesLoading))
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: Action.View
+    ) -> Effect<Action> {
+        switch action {
+            case .task:
+                guard state.notes == nil, !state.isLoading else {
+                    return .none
+                }
+                state.isLoading = true
+                return .send(.response(.notesLoading))
+
+            case .reload:
+                state.isLoading = true
+                return .send(.response(.notesLoading))
+
+            case .noteTapped(let id):
+                guard state.notes?.contains(where: { $0.id == id }) == true else {
+                    return .none
+                }
+                return .send(.delegate(.noteSelected(id)))
+
+            case .deleteRequested(let ids):
+                guard state.rows != nil, !ids.isEmpty else {
+                    return .none
+                }
+                return .run { send in
+                    await send(
+                        .response(
+                            .notesDeleted(
+                                ids: ids,
+                                result: await managingNoteUsecase.deleteNotes(ids)
+                            )
+                        )
+                    )
+                }
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: Action.Response
+    ) -> Effect<Action> {
+        switch action {
+            case .notesLoading:
+                return .run { send in
+                    await send(
+                        .response(
+                            .notesLoaded(await managingNoteUsecase.loadNotes())
+                        )
+                    )
+                }
+                .cancellable(
+                    id: CancelID.loadNotes,
+                    cancelInFlight: true
+                )
+
+            case .notesLoaded(.success(let notes)):
+                state.isLoading = false
+                state.notes = notes
+                return .none
+
+            case .notesLoaded(.failure):
+                state.isLoading = false
+                return .send(.delegate(.loadFailed))
+
+            case .notesDeleted(let ids, .success):
+                state.notes?.removeAll(where: { ids.contains($0.id) })
+                return .none
+
+            case .notesDeleted(_, .failure):
+                return .send(.delegate(.deleteFailed))
+        }
     }
 
 }

@@ -8,11 +8,11 @@ paths:
 `Store`와 `TestStore`는 후행 클로저로 축약하지 않고 소괄호와 매개변수 레이블을 유지한다.
 
 ```swift
-let store: StoreOf<RecordFeature> = .init(
+let store: StoreOf<SearchFeature> = .init(
     initialState: .init(),
-    reducer: { RecordFeature() },
+    reducer: { SearchFeature() },
     withDependencies: {
-        $0.recordUsecase = .live(service: MockRecorderService())
+        $0.searchClient = .previewValue
     }
 )
 ```

@@ -16,6 +16,20 @@
     {
       "target" : {
         "containerPath" : "container:App.xcodeproj",
+        "identifier" : "B62D1BA73D704801C358E9B8",
+        "name" : "DomainTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "6AE16DB16A8F4F466BFDB683",
+        "name" : "DataTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
         "identifier" : "74FDC675EC3EFCC5334FB76B",
         "name" : "CCRecorderTests"
       }

@@ -13,6 +13,22 @@ let packages: [Package] = [
     ),
 ]
 
+let userDefaultsPrivacyManifest: PrivacyManifest = .privacyManifest(
+    tracking: false,
+    trackingDomains: [],
+    collectedDataTypes: [],
+    accessedApiTypes: [
+        [
+            "NSPrivacyAccessedAPIType": .string(
+                "NSPrivacyAccessedAPICategoryUserDefaults"
+            ),
+            "NSPrivacyAccessedAPITypeReasons": .array([
+                .string("CA92.1"),
+            ]),
+        ],
+    ]
+)
+
 let domain = Target.module(
     name: "Domain",
     buildableFolders: ["Domain/Sources"]
@@ -46,13 +62,15 @@ let dataTests = Target.tests(
 
 let presentation = Target.module(
     name: "Presentation",
-    product: .staticFramework,
     buildableFolders: [
         "Presentation/Sources",
     ],
-    resources: [
-        "Presentation/Resources/**",
-    ],
+    resources: .resources(
+        [
+            "Presentation/Resources/**",
+        ],
+        privacyManifest: userDefaultsPrivacyManifest
+    ),
     dependencies: [
         .target(name: "Domain"),
         .package(product: "ComposableArchitecture"),
@@ -75,7 +93,6 @@ let presentationTests = Target.tests(
     dependencies: [
         .target(name: "Presentation"),
         .target(name: "Domain"),
-        .package(product: "ComposableArchitecture"),
     ]
 )
 
@@ -88,10 +105,11 @@ let app = Target.target(
     infoPlist: .extendingDefault(
         with: [
             "CFBundleDisplayName": "Casual Conversation",
-            "CFBundleShortVersionString": "1.2.0",
+            "CFBundleShortVersionString": "1.2.1",
             "CFBundleVersion": "1",
+            "ITSAppUsesNonExemptEncryption": false,
             "LSApplicationCategoryType": "public.app-category.productivity",
-            "NSMicrophoneUsageDescription": "사용자의 대화를 녹음 하기위해 앱에서 마이크 접근 허용을 요청합니다 (필수)",
+            "NSMicrophoneUsageDescription": "대화를 녹음하기 위해 마이크 접근 권한이 필요합니다.",
             "UIApplicationSceneManifest": [
                 "UIApplicationSupportsMultipleScenes": false,
             ],
@@ -101,9 +119,12 @@ let app = Target.target(
             ],
         ]
     ),
-    resources: [
-        "App/Resources/**",
-    ],
+    resources: .resources(
+        [
+            "App/Resources/**",
+        ],
+        privacyManifest: userDefaultsPrivacyManifest
+    ),
     buildableFolders: [
         "App/Sources",
     ],

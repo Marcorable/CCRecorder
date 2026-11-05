@@ -1,46 +1,72 @@
+
 import SwiftUI
 
 extension NoteDetailScreen {
 
     struct SentenceContent: View {
-        @Environment(\.colorScheme) private var colorScheme
-
         @Binding var original: String
         @Binding var translation: String
 
         var body: some View {
             VStack(alignment: .leading) {
-                HStack {
-                    Image(systemName: "e.circle.fill")
-                        .foregroundStyle(Color(asset: Asset.Logo.Prominent.blue))
-                    Text("문장 Original")
-                }
-                TextEditor(text: $original)
-                    .padding()
-                    .scrollContentBackground(.hidden)
-                    .background(textEditorBackground)
-
-                HStack {
-                    Image(systemName: "k.circle.fill")
-                        .foregroundStyle(Color(asset: Asset.Logo.Prominent.blue))
-                    Text("번역 Translation")
-                }
-                TextEditor(text: $translation)
-                    .padding()
-                    .scrollContentBackground(.hidden)
-                    .background(textEditorBackground)
+                InputField(
+                    title: "문장 Original",
+                    iconName: "e.circle.fill",
+                    text: $original
+                )
+                InputField(
+                    title: "번역 Translation",
+                    iconName: "k.circle.fill",
+                    text: $translation
+                )
             }
-        }
-
-        private var textEditorBackground: some View {
-            let color = colorScheme == .dark
-                ? Asset.Surface.Background.primary
-                : Asset.Surface.Background.grouped
-            return Color(asset: color)
-                .clipShape(.rect(cornerRadius: 15))
         }
     }
 
+}
+
+private extension NoteDetailScreen.SentenceContent {
+
+    struct InputField: View {
+        @Environment(\.colorScheme) private var colorScheme
+
+        let title: String
+        let iconName: String
+        @Binding var text: String
+
+        var body: some View {
+            VStack(alignment: .leading) {
+                HStack {
+                    Image(systemName: iconName)
+                        .foregroundStyle(Color(asset: Asset.Logo.Prominent.blue))
+                    Text(title)
+                }
+                TextEditor(text: $text)
+                    .padding()
+                    .scrollContentBackground(.hidden)
+                    .background(
+                        Color(
+                            asset: colorScheme == .dark
+                            ? Asset.Surface.Background.primary
+                            : Asset.Surface.Background.grouped
+                        )
+                        .clipShape(.rect(cornerRadius: 15))
+                    )
+            }
+        }
+    }
+
+}
+
+#Preview("InputField") {
+    @Previewable @State var text = "This is a sentence."
+
+    NoteDetailScreen.SentenceContent.InputField(
+        title: "문장 Original",
+        iconName: "e.circle.fill",
+        text: $text
+    )
+    .padding(.horizontal)
 }
 
 #Preview {

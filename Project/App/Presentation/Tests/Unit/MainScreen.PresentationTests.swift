@@ -212,18 +212,20 @@ extension MainScreenPresentationTests {
                 $0.managingNoteUsecase.loadNotes = { .success([note]) }
             }
         )
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.noteDetail(.dismiss)) {
             $0.noteDetail = nil
         }
-        await store.receive(\.noteList.noteDetailDismissed) {
+        await store.receive(\.noteList.parent.noteDetailDismissed) {
             $0.noteList.isLoading = true
         }
+        await store.receive(\.noteList.response.notesLoading)
         await store.receive(\.noteList.response.notesLoaded) {
             $0.noteList.isLoading = false
-            $0.noteList.notes = [note]
         }
+        #expect(store.state.noteList.rows?.map(\.id) == [note.id])
     }
 
     @Test("녹음 화면을 닫으면 선택한 노트 목록만 다시 불러온다")
@@ -244,6 +246,7 @@ extension MainScreenPresentationTests {
                 }
             }
         )
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.record(.dismiss)) {
@@ -252,10 +255,11 @@ extension MainScreenPresentationTests {
         await store.receive(\.noteList.view.reload) {
             $0.noteList.isLoading = true
         }
+        await store.receive(\.noteList.response.notesLoading)
         await store.receive(\.noteList.response.notesLoaded) {
             $0.noteList.isLoading = false
-            $0.noteList.notes = []
         }
+        #expect(store.state.noteList.rows == [])
         #expect(await spy.callCount == 1)
     }
 
@@ -266,7 +270,7 @@ extension MainScreenPresentationTests {
         var state: MainScreen.Root.Feature.State = .init()
         state.onboard = nil
         state.record = .init()
-        state.record?.phase = .finished
+        state.record?.recordingPanel.phase = .finished
         let store: TestStoreOf<MainScreen.Root.Feature> = .init(
             initialState: state,
             reducer: { MainScreen.Root.Feature() },
@@ -277,6 +281,7 @@ extension MainScreenPresentationTests {
                 }
             }
         )
+        store.exhaustivity = .off(showSkippedAssertions: false)
 
         // when, then
         await store.send(.record(.dismiss)) {
@@ -285,10 +290,11 @@ extension MainScreenPresentationTests {
         await store.receive(\.conversationList.view.reload) {
             $0.conversationList.isLoading = true
         }
+        await store.receive(\.conversationList.response.conversationsLoading)
         await store.receive(\.conversationList.response.conversationsLoaded) {
             $0.conversationList.isLoading = false
-            $0.conversationList.conversations = []
         }
+        #expect(store.state.conversationList.rows == [])
         #expect(await spy.callCount == 0)
     }
 

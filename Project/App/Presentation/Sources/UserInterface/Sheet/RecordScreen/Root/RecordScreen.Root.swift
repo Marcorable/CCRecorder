@@ -14,7 +14,12 @@ extension RecordScreen {
             NavigationView {
                 VStack(alignment: .leading) {
                     VStack(alignment: .center) {
-                        PinGrid(store: store)
+                        PinGrid(
+                            store: store.scope(
+                                state: \.recordingPanel,
+                                action: \.recordingPanel
+                            )
+                        )
                         ConversationInfoBox(
                             store: store.scope(
                                 state: \.conversationInfo,
@@ -25,7 +30,12 @@ extension RecordScreen {
                     .background(Color(asset: Asset.Surface.Recorder.prominent))
                     .clipShape(.rect(cornerRadius: 25))
                     .padding()
-                    RecordingPanel(store: store)
+                    RecordingPanel(
+                        store: store.scope(
+                            state: \.recordingPanel,
+                            action: \.recordingPanel
+                        )
+                    )
                 }
                 .padding()
                 .background(Color(asset: Asset.Surface.Recorder.muted))
@@ -43,6 +53,12 @@ extension RecordScreen {
                     }
                 }
             }
+            .disabled(store.isLoading)
+            .overlay {
+                if store.isLoading {
+                    LoadingProgress()
+                }
+            }
             .task {
                 await store.send(.view(.task)).finish()
             }
@@ -56,8 +72,11 @@ extension RecordScreen {
     RecordScreen.Root(
         store: .init(
             initialState: .init(),
-            reducer: {
-                RecordScreen.Root.Feature()
+            reducer: { RecordScreen.Root.Feature() },
+            withDependencies: {
+                $0.audioSession.authorizationStatus = { .authorized }
+                $0.audioSession.activate = {}
+                $0.recordingUsecase = .preview
             }
         )
     )

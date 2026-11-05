@@ -112,14 +112,3 @@ extension PresentationFactory {
     }
 
 }
-
-extension Note.Category {
-
-    var presentationDetents: Set<PresentationDetent> {
-        switch self {
-            case .vocabulary:   [.medium]
-            case .sentence:     [.medium, .large]
-        }
-    }
-
-}

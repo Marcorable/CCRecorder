@@ -1,7 +1,6 @@
 
 import SwiftUI
 
-import Domain
 import ComposableArchitecture
 
 enum ConversationDetailScreen {
@@ -11,19 +10,12 @@ enum ConversationDetailScreen {
 
         var body: some View {
             Group {
-                if store.conversation != nil {
+                if store.editor.createdDate != nil {
                     VStack {
                         Editor(
-                            store: store,
-                            notesStore: store.scope(
-                                state: \.notes,
-                                action: \.notes
-                            )
-                        )
-                        NoteList(
                             store: store.scope(
-                                state: \.notes,
-                                action: \.notes
+                                state: \.editor,
+                                action: \.editor
                             )
                         )
                         PlaybackPanel(
@@ -51,13 +43,67 @@ enum ConversationDetailScreen {
                 )
             ) { store in
                 NoteDetailScreen.Root(store: store)
-                    .presentationDetents(
-                        store.note?.category.presentationDetents ?? [.large]
-                    )
             }
             .alert($store.scope(state: \.alert, action: \.alert))
         }
 
     }
 
+}
+
+#Preview("Loaded") {
+    NavigationStack {
+        ConversationDetailScreen.Root(
+            store: .init(
+                initialState: {
+                    var state: ConversationDetailScreen.Root.Feature.State = .init(conversationID: .init())
+                    state.editor = .init(
+                        conversationID: state.conversationID,
+                        title: "영어 회화",
+                        createdDate: .init(timeIntervalSince1970: 1_735_689_600),
+                        topic: "여행 계획",
+                        parties: [
+                            .init(
+                                id: .init(),
+                                name: "Marco"
+                            ),
+                            .init(
+                                id: .init(),
+                                name: "John"
+                            )
+                        ],
+                        rows: [
+                            .init(
+                                id: .init(),
+                                original: "How have you been?",
+                                translation: "어떻게 지냈어요?",
+                                isVocabulary: false
+                            ),
+                            .init(
+                                id: .init(),
+                                original: "Itinerary",
+                                translation: "여행 일정",
+                                isVocabulary: true
+                            )
+                        ]
+                    )
+                    state.playbackPanel = .init(
+                        isPrepared: true,
+                        currentTime: 82,
+                        duration: 245,
+                        speed: .oneAndOneQuarter,
+                        pins: [30, 95, 180]
+                    )
+                    return state
+                }(),
+                reducer: { ConversationDetailScreen.Root.Feature() },
+                withDependencies: {
+                    $0.audioSession = .preview
+                    $0.managingConversationUsecase = .preview
+                    $0.navigator = .preview
+                    $0.playingRecordUsecase = .preview
+                }
+            )
+        )
+    }
 }

@@ -13,76 +13,39 @@ extension ConversationDetailScreen.Root {
         @Dependency(\.navigator) private var navigator
 
         var body: some ReducerOf<Self> {
-            Scope(state: \.notes, action: \.notes) {
-                ConversationDetailScreen.Notes.Feature()
+            Scope(
+                state: \.editor,
+                action: \.editor
+            ) {
+                ConversationDetailScreen.Editor.Feature()
             }
-            Scope(state: \.playbackPanel, action: \.playbackPanel) {
+            Scope(
+                state: \.playbackPanel,
+                action: \.playbackPanel
+            ) {
                 ConversationDetailScreen.PlaybackPanel.Feature()
             }
             Reduce { state, action in
                 switch action {
-                    case .noteDetail(.dismiss):
-                        return .send(.notes(.load))
-
-                    case .notes(.delegate(.noteSelected(let id))):
-                        state.noteDetail = .init(noteID: id)
-                        return .none
-
-                    case .notes(.delegate(.conversationUpdated(let conversation))):
-                        state.conversation?.noteIds = conversation.noteIds
-                        return .none
-
-                    case .playbackPanel(.delegate(.failed(let failure))):
-                        let message = switch failure {
-                            case .fileNotFound:  "녹음 파일을 찾을 수 없습니다"
-                            case .prepareFailed: "녹음 파일을 준비하지 못했습니다"
-                        }
-                        state.alert = .playbackFailed(message: message)
-                        return .none
-
-                    case .playbackPanel(.delegate(.interrupted)):
-                        state.alert = .playbackInterrupted
-                        return .none
-
-                    case .alert(.presented(.close)):
-                        return .run { _ in await navigator.pop() }
-
                     case .view(let action):
                         return reduce(into: &state, action: action)
 
                     case .response(let action):
                         return reduce(into: &state, action: action)
 
-                    case .conversationUpdateRequested(let conversation):
-                        state.conversation = conversation
-                        state.conversationUpdateRevision += 1
-                        let revision = state.conversationUpdateRevision
-                        return .run { send in
-                            try await clock.sleep(for: .seconds(1))
-                            await send(.conversationPersistenceRequested(
-                                revision: revision,
-                                conversation: conversation
-                            ))
-                        }
-                        .cancellable(
-                            id: CancelID.update,
-                            cancelInFlight: true
-                        )
+                    case .editor(.delegate(let action)):
+                        return reduce(into: &state, action: action)
 
-                    case .conversationPersistenceRequested(
-                        let revision,
-                        let conversation
-                    ):
-                        guard !state.isPersistingConversation else {
-                            return .none
-                        }
-                        state.isPersistingConversation = true
-                        return persist(
-                            revision: revision,
-                            conversation: conversation
-                        )
+                    case .playbackPanel(.delegate(let action)):
+                        return reduce(into: &state, action: action)
 
-                    case .notes, .playbackPanel, .noteDetail, .alert:
+                    case .alert(.presented(let action)):
+                        return reduce(into: &state, action: action)
+
+                    case .noteDetail(.dismiss):
+                        return .send(.editor(.parent(.noteDetailDismissed)))
+
+                    case .editor, .playbackPanel, .noteDetail, .alert:
                         return .none
                 }
             }
@@ -97,154 +60,63 @@ extension ConversationDetailScreen.Root {
 
 extension ConversationDetailScreen.Root.Feature {
 
-    private func reduce(
-        into state: inout State,
-        action: Action.View
-    ) -> Effect<Action> {
-        switch action {
-            case .appeared:
-                let id = state.conversationID
-                return .run { send in
-                    await send(.response(.conversationLoaded(
-                        await managingConversationUsecase.conversation(id)
-                    )))
-                }
-                .cancellable(
-                    id: CancelID.loadConversation,
-                    cancelInFlight: true
-                )
+    typealias EditorDelegate = ConversationDetailScreen.Editor.Feature.Action.Delegate
+    typealias PlaybackPanelDelegate = ConversationDetailScreen.PlaybackPanel.Feature.Action.Delegate
 
-            case .disappeared:
-                let persistence: Effect<Action> = if let conversation = state.conversation,
-                                                     state.persistedConversationRevision
-                                                     < state.conversationUpdateRevision {
-                    .send(.conversationPersistenceRequested(
-                        revision: state.conversationUpdateRevision,
-                        conversation: conversation
-                    ))
-                } else {
-                    .none
-                }
-                return .concatenate(
-                    .cancel(id: CancelID.loadConversation),
-                    .cancel(id: CancelID.update),
-                    .merge(
-                        persistence,
-                        .send(.notes(.cancel)),
-                        .send(.playbackPanel(.parent(.conversationDetailDisappeared)))
-                    )
-                )
+    @ObservableState
+    struct State: Equatable {
+        let conversationID: Conversation.ID
+        var conversationLoadFailed = false
+        var conversationUpdateRevision = 0
+        var persistedConversationRevision = 0
+        var isPersistingConversation = false
 
-            case .titleChanged(let title):
-                guard var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.title = title
-                return .send(.conversationUpdateRequested(updatingItem))
+        var editor: ConversationDetailScreen.Editor.Feature.State
+        var playbackPanel: ConversationDetailScreen.PlaybackPanel.Feature.State = .init()
 
-            case .topicChanged(let topic):
-                guard var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.topic = topic
-                return .send(.conversationUpdateRequested(updatingItem))
-
-            case .editingToggled:
-                state.isEditing.toggle()
-                return .none
-
-            case .partyInputChanged(let party):
-                state.partyInput = party
-                return .none
-
-            case .partyAdded:
-                guard !state.partyInput.isEmpty, var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.parties.append(.init(name: state.partyInput))
-                state.partyInput = ""
-                return .send(.conversationUpdateRequested(updatingItem))
-
-            case .partyRemoved(let id):
-                guard var updatingItem = state.conversation else {
-                    return .none
-                }
-                updatingItem.parties.removeAll(where: { $0.id == id })
-                return .send(.conversationUpdateRequested(updatingItem))
-
+        init(conversationID: Conversation.ID) {
+            self.conversationID = conversationID
+            self.editor = .init(conversationID: conversationID)
         }
+
+        @Presents var alert: AlertState<Action.Alert>?
+        @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
+
+        fileprivate var conversation: Conversation?
     }
 
-    private func reduce(
-        into state: inout State,
-        action: Action.Response
-    ) -> Effect<Action> {
-        switch action {
-            case .conversationLoaded(.success(let conversation)):
-                state.conversation = conversation
-                state.conversationLoadFailed = conversation == nil
-                guard let conversation else {
-                    return .none
-                }
-                return .merge(
-                    .send(.notes(.load)),
-                    .send(.playbackPanel(.parent(.conversationLoaded(
-                        fileName: conversation.recordFileName,
-                        pins: conversation.pins
-                    ))))
-                )
+    @CasePathable
+    enum Action: ViewAction {
+        case view(View)
+        case response(Response)
+        case editor(ConversationDetailScreen.Editor.Feature.Action)
+        case playbackPanel(ConversationDetailScreen.PlaybackPanel.Feature.Action)
+        case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
+        case alert(PresentationAction<Alert>)
 
-            case .conversationLoaded(.failure):
-                state.conversationLoadFailed = true
-                return .none
-
-            case .conversationPersisted(let revision, .success):
-                state.isPersistingConversation = false
-                state.persistedConversationRevision = max(
-                    state.persistedConversationRevision,
-                    revision
-                )
-                return persistLatestConversationIfNeeded(
-                    after: revision,
-                    state: state
-                )
-
-            case .conversationPersisted(let revision, .failure):
-                state.isPersistingConversation = false
-                return persistLatestConversationIfNeeded(
-                    after: revision,
-                    state: state
-                )
+        @CasePathable
+        enum View {
+            case appeared
+            case disappeared
         }
-    }
 
-    private func persistLatestConversationIfNeeded(
-        after revision: Int,
-        state: State
-    ) -> Effect<Action> {
-        guard
-            let conversation = state.conversation,
-            revision < state.conversationUpdateRevision
-        else {
-            return .none
+        @CasePathable
+        enum Response {
+            case conversationLoading
+            case conversationLoaded(Result<Conversation?, DomainError>)
+            case conversationUpdating(Conversation)
+            case conversationPersisting(
+                revision: Int,
+                conversation: Conversation
+            )
+            case conversationPersisted(
+                revision: Int,
+                TaskResult<Void>
+            )
         }
-        return .send(.conversationPersistenceRequested(
-            revision: state.conversationUpdateRevision,
-            conversation: conversation
-        ))
-    }
 
-    private func persist(
-        revision: Int,
-        conversation: Conversation
-    ) -> Effect<Action> {
-        .run { send in
-            await send(.response(.conversationPersisted(
-                revision: revision,
-                TaskResult {
-                    try await managingConversationUsecase.update(conversation)
-                }
-            )))
+        enum Alert: Equatable {
+            case close
         }
     }
 
@@ -257,64 +129,205 @@ extension ConversationDetailScreen.Root.Feature {
 
 extension ConversationDetailScreen.Root.Feature {
 
-    @ObservableState
-    struct State: Equatable {
-        let conversationID: Conversation.ID
-        var conversation: Conversation?
-        var conversationLoadFailed = false
-        var conversationUpdateRevision = 0
-        var persistedConversationRevision = 0
-        var isPersistingConversation = false
-        var partyInput = ""
-        var isEditing = false
-        var notes: ConversationDetailScreen.Notes.Feature.State
-        var playbackPanel: ConversationDetailScreen.PlaybackPanel.Feature.State = .init()
-        @Presents var alert: AlertState<Action.Alert>?
-        @Presents var noteDetail: NoteDetailScreen.Root.Feature.State?
+    private func reduce(
+        into state: inout State,
+        action: Action.View
+    ) -> Effect<Action> {
+        switch action {
+            case .appeared:
+                return .send(.response(.conversationLoading))
 
-        init(conversationID: Conversation.ID) {
-            self.conversationID = conversationID
-            self.notes = .init(conversationID: conversationID)
+            case .disappeared:
+                let persistence: Effect<Action> = if let conversation = state.conversation,
+                                                     state.persistedConversationRevision
+                                                     < state.conversationUpdateRevision {
+                    .send(.response(.conversationPersisting(
+                        revision: state.conversationUpdateRevision,
+                        conversation: conversation
+                    )))
+                } else {
+                    .none
+                }
+                return .concatenate(
+                    .cancel(id: CancelID.loadConversation),
+                    .cancel(id: CancelID.update),
+                    .merge(
+                        persistence,
+                        .send(.editor(.parent(.conversationDetailDisappeared))),
+                        .send(.playbackPanel(.parent(.conversationDetailDisappeared)))
+                    )
+                )
         }
     }
 
-    @CasePathable
-    enum Action: ViewAction {
-        case view(View)
-        case response(Response)
-        case conversationUpdateRequested(Conversation)
-        case conversationPersistenceRequested(
-            revision: Int,
-            conversation: Conversation
-        )
-        case notes(ConversationDetailScreen.Notes.Feature.Action)
-        case playbackPanel(ConversationDetailScreen.PlaybackPanel.Feature.Action)
-        case noteDetail(PresentationAction<NoteDetailScreen.Root.Feature.Action>)
-        case alert(PresentationAction<Alert>)
+    private func reduce(
+        into state: inout State,
+        action: Action.Response
+    ) -> Effect<Action> {
+        switch action {
+            case .conversationLoading:
+                let id = state.conversationID
+                return .run { send in
+                    await send(.response(.conversationLoaded(
+                        await managingConversationUsecase.conversation(id)
+                    )))
+                }
+                .cancellable(
+                    id: CancelID.loadConversation,
+                    cancelInFlight: true
+                )
 
-        @CasePathable
-        enum View {
-            case appeared
-            case disappeared
-            case titleChanged(String)
-            case topicChanged(String)
-            case editingToggled
-            case partyInputChanged(String)
-            case partyAdded
-            case partyRemoved(Party.ID)
+            case .conversationLoaded(.success(let conversation)):
+                state.conversation = conversation
+                state.conversationLoadFailed = conversation == nil
+                guard let conversation else {
+                    return .none
+                }
+                return .merge(
+                    .send(.editor(.parent(.conversationLoaded(
+                        createdDate: conversation.createdDate,
+                        title: conversation.title,
+                        topic: conversation.topic,
+                        parties: conversation.parties.map({ party in
+                            .init(
+                                id: party.id,
+                                name: party.name
+                            )
+                        })
+                    )))),
+                    .send(.playbackPanel(.parent(.conversationLoaded(
+                        fileName: conversation.recordFileName,
+                        pins: conversation.pins
+                    ))))
+                )
+
+            case .conversationLoaded(.failure):
+                state.conversationLoadFailed = true
+                return .none
+
+            case .conversationUpdating(let conversation):
+                state.conversation = conversation
+                state.conversationUpdateRevision += 1
+                let revision = state.conversationUpdateRevision
+                return .run { send in
+                    try await clock.sleep(for: .seconds(1))
+                    await send(.response(.conversationPersisting(
+                        revision: revision,
+                        conversation: conversation
+                    )))
+                }
+                .cancellable(
+                    id: CancelID.update,
+                    cancelInFlight: true
+                )
+
+            case .conversationPersisting(let revision, let conversation):
+                guard !state.isPersistingConversation else {
+                    return .none
+                }
+                state.isPersistingConversation = true
+                return .run { send in
+                    await send(.response(.conversationPersisted(
+                        revision: revision,
+                        TaskResult {
+                            try await managingConversationUsecase.update(conversation)
+                        }
+                    )))
+                }
+
+            case .conversationPersisted(let revision, let result):
+                state.isPersistingConversation = false
+                if case .success = result {
+                    state.persistedConversationRevision = max(
+                        state.persistedConversationRevision,
+                        revision
+                    )
+                }
+                guard
+                    let conversation = state.conversation,
+                    revision < state.conversationUpdateRevision
+                else {
+                    return .none
+                }
+                return .send(.response(.conversationPersisting(
+                    revision: state.conversationUpdateRevision,
+                    conversation: conversation
+                )))
         }
+    }
 
-        @CasePathable
-        enum Response {
-            case conversationLoaded(Result<Conversation?, DomainError>)
-            case conversationPersisted(
-                revision: Int,
-                TaskResult<Void>
-            )
+    private func reduce(
+        into state: inout State,
+        action: EditorDelegate
+    ) -> Effect<Action> {
+        switch action {
+            case .noteSelected(let id):
+                state.noteDetail = .init(noteID: id)
+                return .none
+
+            case .noteIDsUpdated(let ids):
+                state.conversation?.noteIds = ids
+                return .none
+
+            case .titleChanged(let title):
+                guard var conversation = state.conversation else {
+                    return .none
+                }
+                conversation.title = title
+                return .send(.response(.conversationUpdating(conversation)))
+
+            case .topicChanged(let topic):
+                guard var conversation = state.conversation else {
+                    return .none
+                }
+                conversation.topic = topic
+                return .send(.response(.conversationUpdating(conversation)))
+
+            case .partyAdded(let id, let name):
+                guard var conversation = state.conversation else {
+                    return .none
+                }
+                conversation.parties.append(.init(
+                    id: id,
+                    name: name
+                ))
+                return .send(.response(.conversationUpdating(conversation)))
+
+            case .partyRemoved(let id):
+                guard var conversation = state.conversation else {
+                    return .none
+                }
+                conversation.parties.removeAll(where: { $0.id == id })
+                return .send(.response(.conversationUpdating(conversation)))
         }
+    }
 
-        enum Alert: Equatable {
-            case close
+    private func reduce(
+        into state: inout State,
+        action: PlaybackPanelDelegate
+    ) -> Effect<Action> {
+        switch action {
+            case .failed(let failure):
+                let message = switch failure {
+                    case .fileNotFound:  "녹음 파일을 찾을 수 없습니다"
+                    case .prepareFailed: "녹음 파일을 준비하지 못했습니다"
+                }
+                state.alert = .playbackFailed(message: message)
+                return .none
+
+            case .interrupted:
+                state.alert = .playbackInterrupted
+                return .none
+        }
+    }
+
+    private func reduce(
+        into state: inout State,
+        action: Action.Alert
+    ) -> Effect<Action> {
+        switch action {
+            case .close:
+                return .run { _ in await navigator.pop() }
         }
     }
 

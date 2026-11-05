@@ -9,28 +9,11 @@ extension MainScreen {
         let store: StoreOf<Feature>
 
         var body: some View {
-            Group {
-                if store.isLoading, store.notes == nil {
-                    ProgressView()
-                } else if let rows = store.rows, !rows.isEmpty {
-                    List {
-                        ForEach(rows) { row in
-                            Row(viewModel: row)
-                                .onTapGesture {
-                                    store.send(.view(.noteTapped(row.id)))
-                                }
-                        }
-                        .onDelete { store.send(.view(.deleteRequested($0))) }
-                    }
-                    .listStyle(.plain)
-                } else {
-                    ContentUnavailableView(
-                        "No Notes",
-                        systemImage: "note.text",
-                        description: Text("Notes from your conversations will appear here.")
-                    )
-                }
-            }
+            NoteBoard(
+                rows: store.rows,
+                onTap: { store.send(.view(.noteTapped($0))) },
+                onDelete: { store.send(.view(.deleteRequested($0))) }
+            )
             .accessibilityIdentifier("main.noteList")
             .navigationTitle("Note")
             .task {
@@ -39,4 +22,33 @@ extension MainScreen {
         }
     }
 
+}
+
+#Preview {
+    NavigationStack {
+        MainScreen.NoteList(
+            store: .init(
+                initialState: .init(),
+                reducer: { MainScreen.NoteList.Feature() },
+                withDependencies: {
+                    $0.managingNoteUsecase.loadNotes = {
+                        .success([
+                            .init(
+                                createdDate: .init(),
+                                original: "conversation",
+                                translation: "대화",
+                                category: .vocabulary
+                            ),
+                            .init(
+                                createdDate: .init(),
+                                original: "How have you been?",
+                                translation: "어떻게 지냈어요?",
+                                category: .sentence
+                            ),
+                        ])
+                    }
+                }
+            )
+        )
+    }
 }

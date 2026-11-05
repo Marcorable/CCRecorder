@@ -1,6 +1,6 @@
+
 import SwiftUI
 
-import Domain
 import ComposableArchitecture
 
 enum NoteDetailScreen {
@@ -11,46 +11,50 @@ enum NoteDetailScreen {
         var body: some View {
             NavigationStack {
                 Group {
-                    if let note = store.note {
-                        content(note: note)
-                    } else if store.noteLoadFailed {
+                    if let isVocabulary = store.isVocabulary {
+                        VStack(alignment: .leading) {
+                            if isVocabulary {
+                                VocabularyContent(
+                                    original: $store.original,
+                                    translation: $store.translation
+                                )
+                            } else {
+                                SentenceContent(
+                                    original: $store.original,
+                                    translation: $store.translation
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                        .disabled(store.isLoading)
+                        .toolbar {
+                            Toolbar(
+                                isAbleToSave: store.isAbleToSave,
+                                isVocabulary: isVocabulary,
+                                saveAction: { store.send(.view(.saveButtonTapped)) }
+                            )
+                        }
+                    } else if store.isLoading {
+                        ProgressView()
+                    } else {
                         ContentUnavailableView(
                             "노트를 불러올 수 없습니다",
                             systemImage: "exclamationmark.triangle"
                         )
-                    } else {
-                        ProgressView()
                     }
                 }
             }
+            .presentationDetents(
+                {
+                    switch store.isVocabulary {
+                        case true:     [.medium]
+                        case false:    [.medium, .large]
+                        case nil:      [.large]
+                    }
+                }()
+            )
             .task { await store.send(.view(.appeared)).finish() }
             .alert($store.scope(state: \.$alert, action: \.alert))
-        }
-
-        private func content(note: Note) -> some View {
-            VStack(alignment: .leading) {
-                switch note.category {
-                    case .vocabulary:
-                        VocabularyContent(
-                            original: $store.original,
-                            translation: $store.translation
-                        )
-
-                    case .sentence:
-                        SentenceContent(
-                            original: $store.original,
-                            translation: $store.translation
-                        )
-                }
-            }
-            .padding(.horizontal)
-            .toolbar {
-                Toolbar(
-                    isAbleToSave: store.isAbleToSave,
-                    isVocabulary: note.category == .vocabulary,
-                    saveAction: { store.send(.view(.saveButtonTapped)) }
-                )
-            }
         }
     }
 
@@ -66,9 +70,13 @@ extension NoteDetailScreen.Root {
         var body: some ToolbarContent {
             ToolbarItem(placement: .principal) {
                 HStack {
-                    Image(systemName: imageSystemName)
+                    Image(
+                        systemName: isVocabulary
+                            ? "textformat.abc"
+                            : "text.bubble.fill"
+                    )
                         .foregroundStyle(Color(asset: Asset.Logo.Prominent.red))
-                    Text(title)
+                    Text(isVocabulary ? "Vocabulary" : "Sentence")
                         .font(.headline)
                 }
             }
@@ -85,53 +93,55 @@ extension NoteDetailScreen.Root {
                 .opacity(isAbleToSave ? 1 : 0.3)
             }
         }
-
-        private var title: String {
-            isVocabulary ? "Vocabulary" : "Sentence"
-        }
-
-        private var imageSystemName: String {
-            isVocabulary ? "textformat.abc" : "text.bubble.fill"
-        }
     }
 
 }
 
 #Preview("Vocabulary") {
-    let note: Note = .init(
-        createdDate: .init(),
-        original: "conversation",
-        translation: "대화",
-        category: .vocabulary
-    )
+    let noteID = UUID()
     NoteDetailScreen.Root(
         store: .init(
-            initialState: .init(noteID: note.id),
+            initialState: .init(noteID: noteID),
             reducer: {
                 NoteDetailScreen.Root.Feature()
             },
             withDependencies: {
-                $0.managingNoteUsecase.note = { _ in .success(note) }
+                $0.managingNoteUsecase.note = { _ in
+                    .success(
+                        .init(
+                            id: noteID,
+                            createdDate: .init(),
+                            original: "conversation",
+                            translation: "대화",
+                            category: .vocabulary
+                        )
+                    )
+                }
             }
         )
     )
 }
 
 #Preview("Sentence") {
-    let note: Note = .init(
-        createdDate: .init(),
-        original: "This is a sentence.",
-        translation: "문장입니다.",
-        category: .sentence
-    )
+    let noteID = UUID()
     NoteDetailScreen.Root(
         store: .init(
-            initialState: .init(noteID: note.id),
+            initialState: .init(noteID: noteID),
             reducer: {
                 NoteDetailScreen.Root.Feature()
             },
             withDependencies: {
-                $0.managingNoteUsecase.note = { _ in .success(note) }
+                $0.managingNoteUsecase.note = { _ in
+                    .success(
+                        .init(
+                            id: noteID,
+                            createdDate: .init(),
+                            original: "This is a sentence.",
+                            translation: "문장입니다.",
+                            category: .sentence
+                        )
+                    )
+                }
             }
         )
     )

@@ -6,7 +6,7 @@ import ComposableArchitecture
 extension RecordScreen {
 
     struct PinGrid: View {
-        let store: StoreOf<Root.Feature>
+        let store: StoreOf<RecordingPanel.Feature>
 
         var body: some View {
             ScrollView(
@@ -24,7 +24,7 @@ extension RecordScreen {
                                     : Asset.Logo.Muted.red
                                 )
                             )
-                            .opacity(store.isRecording ? Int(store.currentTime) % 2 == 0 ? 1.0 : 0.0 : 1.0)
+                            .opacity(store.isRecordingIndicatorVisible ? 1 : 0)
                         Text(store.currentTime, format: .playbackTime)
                             .foregroundStyle(store.isRecording ? .white : .gray)
                             .font(.largeTitle)
@@ -75,7 +75,7 @@ extension RecordScreen {
                 pins: [3.0, 2.1]
             ),
             reducer: {
-                RecordScreen.Root.Feature()
+                RecordScreen.RecordingPanel.Feature()
             }
         )
     )

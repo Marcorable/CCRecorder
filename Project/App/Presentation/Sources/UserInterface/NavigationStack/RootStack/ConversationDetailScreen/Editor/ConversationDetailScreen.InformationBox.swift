@@ -6,7 +6,7 @@ import ComposableArchitecture
 extension ConversationDetailScreen.Editor {
 
     struct InformationBox: View {
-        let store: StoreOf<ConversationDetailScreen.Root.Feature>
+        let store: StoreOf<Feature>
         let focusedField: FocusState<Field?>.Binding
 
         var body: some View {
@@ -40,7 +40,7 @@ extension ConversationDetailScreen.Editor {
                             TextField(
                                 "Topic",
                                 text: Binding(
-                                    get: { store.conversation?.topic ?? "" },
+                                    get: { store.topic },
                                     set: { store.send(.view(.topicChanged($0))) }
                                 ),
                                 prompt: Text("주제를 입력하세요")
@@ -71,14 +71,14 @@ extension ConversationDetailScreen.Editor {
                             )
                         }
                         .focused(focusedField, equals: .infoParty)
-                        if let parties = store.conversation?.parties, !parties.isEmpty {
+                        if !store.parties.isEmpty {
                             ScrollView(.horizontal, showsIndicators: true) {
                                 HStack(alignment: .center) {
-                                    Text("\(parties.count)명")
+                                    Text("\(store.parties.count)명")
                                         .font(.body)
                                         .fontWeight(.bold)
                                     LazyHGrid(rows: [.init(.flexible())]) {
-                                        ForEach(parties) { party in
+                                        ForEach(store.parties) { party in
                                             HStack(spacing: 6) {
                                                 Text(party.name)
                                                 Button(
@@ -112,4 +112,36 @@ extension ConversationDetailScreen.Editor {
         }
     }
 
+}
+
+#Preview("Editing") {
+    @Previewable @FocusState var focusedField: ConversationDetailScreen.Editor.Field?
+
+    ConversationDetailScreen.Editor.InformationBox(
+        store: .init(
+            initialState: .init(
+                conversationID: .init(),
+                title: "영어 회화",
+                createdDate: .init(timeIntervalSince1970: 1_735_689_600),
+                topic: "여행 계획",
+                parties: [
+                    ConversationDetailScreen.Editor.Feature.State.Party(
+                        id: .init(),
+                        name: "Marco"
+                    ),
+                    ConversationDetailScreen.Editor.Feature.State.Party(
+                        id: .init(),
+                        name: "John"
+                    )
+                ],
+                isEditing: true,
+                rows: [NoteBoard.Row.ViewModel]()
+            ),
+            reducer: { ConversationDetailScreen.Editor.Feature() },
+            withDependencies: {
+                $0.managingConversationUsecase = .preview
+            }
+        ),
+        focusedField: $focusedField
+    )
 }
