@@ -222,6 +222,32 @@ extension ConversationDetailScreenPlaybackPanelTests {
         await store.finish()
     }
 
+    @Test("오디오 장치 연결이 해제되면 재생을 일시 정지한다")
+    func routeDisconnectionPausesPlayback() async {
+        // given
+        let playback = PlaybackSpy()
+        var state = ConversationDetailScreen.PlaybackPanel.Feature.State()
+        state.isPrepared = true
+        state.isPlaying = true
+        let store = TestStore(
+            initialState: state,
+            reducer: {
+                ConversationDetailScreen.PlaybackPanel.Feature()
+            },
+            withDependencies: {
+                $0.playingRecordUsecase.pause = { await playback.pause() }
+            }
+        )
+
+        // when, then
+        await store.send(.response(.audioSessionEvent(.routeDisconnected))) {
+            $0.isPlaying = false
+        }
+        await store.receive(\.delegate.interrupted)
+        await playback.waitUntilPaused()
+        await store.finish()
+    }
+
     @Test("상세 화면이 종료된 뒤 도착한 재생 응답은 상태를 되살리지 않는다")
     func latePlaybackResponseIsIgnoredAfterDisappearance() async {
         // given
@@ -262,7 +288,7 @@ extension ConversationDetailScreenPlaybackPanelTests {
         #expect(await playback.finishCallCount == 1)
     }
 
-    @Test("AVAudioSession 알림을 인터럽션 이벤트로 변환한다")
+    @Test("AVAudioSession 알림을 인터럽션과 장치 연결 해제 이벤트로 변환한다")
     func convertsAudioSessionNotificationsToEvents() {
         let began = Notification(
             name: AVAudioSession.interruptionNotification,
@@ -278,9 +304,25 @@ extension ConversationDetailScreenPlaybackPanelTests {
                     AVAudioSession.InterruptionType.ended.rawValue
             ]
         )
+        let disconnected = Notification(
+            name: AVAudioSession.routeChangeNotification,
+            userInfo: [
+                AVAudioSessionRouteChangeReasonKey:
+                    AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue
+            ]
+        )
+        let connected = Notification(
+            name: AVAudioSession.routeChangeNotification,
+            userInfo: [
+                AVAudioSessionRouteChangeReasonKey:
+                    AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue
+            ]
+        )
 
         #expect(AudioSessionClient.Event(notification: began) == .interruptionBegan)
         #expect(AudioSessionClient.Event(notification: ended) == nil)
+        #expect(AudioSessionClient.Event(notification: disconnected) == .routeDisconnected)
+        #expect(AudioSessionClient.Event(notification: connected) == nil)
     }
 
 }

@@ -117,6 +117,8 @@ extension RecordScreen.RecordingPanel.Feature {
 
         @CasePathable
         enum Response {
+            case audioSessionUpdates
+            case audioSessionEvent(AudioSessionClient.Event)
             case recordingPreparing
             case recordingPrepared(TimeInterval)
             case recorderUpdated(isRecording: Bool, currentTime: TimeInterval)
@@ -137,6 +139,7 @@ extension RecordScreen.RecordingPanel.Feature {
     }
 
     private enum CancelID {
+        case audioSession
         case prepare
         case save
         case ticker
@@ -256,7 +259,18 @@ extension RecordScreen.RecordingPanel.Feature {
                 }
                 state.phase = .idle
                 state.currentTime = currentTime
-                return .none
+                return .send(.response(.audioSessionUpdates))
+
+            case .audioSessionEvent(.interruptionBegan),
+                 .audioSessionEvent(.routeDisconnected):
+                guard state.isRecording else {
+                    return .none
+                }
+                state.phase = .paused
+                return .merge(
+                    .cancel(id: CancelID.ticker),
+                    .run { _ in await recordingUsecase.pause() }
+                )
 
             case .recorderUpdated(let isRecording, let currentTime):
                 guard !state.isFinished else {
@@ -292,6 +306,7 @@ extension RecordScreen.RecordingPanel.Feature {
 
             case .recordingDiscarding:
                 return .merge(
+                    .cancel(id: CancelID.audioSession),
                     .cancel(id: CancelID.prepare),
                     .cancel(id: CancelID.save),
                     .cancel(id: CancelID.ticker),
@@ -303,6 +318,7 @@ extension RecordScreen.RecordingPanel.Feature {
 
             case .recordingSaving(let conversation):
                 return .merge(
+                    .cancel(id: CancelID.audioSession),
                     .cancel(id: CancelID.ticker),
                     .run { send in
                         do {
@@ -332,6 +348,17 @@ extension RecordScreen.RecordingPanel.Feature {
                 }
                 state.phase = .idle
                 return .send(.delegate(.recordingFailed(error)))
+
+            case .audioSessionUpdates:
+                return .run { send in
+                    for await event in audioSession.events() {
+                        await send(.response(.audioSessionEvent(event)))
+                    }
+                }
+                .cancellable(
+                    id: CancelID.audioSession,
+                    cancelInFlight: true
+                )
         }
     }
 

@@ -23,23 +23,39 @@ extension AudioSessionClient {
 
     enum Event: Equatable, Sendable {
         case interruptionBegan
+        case routeDisconnected
 
         init?(notification: Notification) {
-            guard
-                let rawValue = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
-                let type = AVAudioSession.InterruptionType(rawValue: rawValue)
-            else {
-                return nil
-            }
+            switch notification.name {
+                case AVAudioSession.interruptionNotification:
+                    guard
+                        let rawValue = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+                        let type = AVAudioSession.InterruptionType(rawValue: rawValue)
+                    else {
+                        return nil
+                    }
+                    switch type {
+                        case .began:
+                            self = .interruptionBegan
 
-            switch type {
-                case .began:
-                    self = .interruptionBegan
+                        case .ended:
+                            return nil
 
-                case .ended:
-                    return nil
+                        @unknown default:
+                            return nil
+                    }
 
-                @unknown default:
+                case AVAudioSession.routeChangeNotification:
+                    guard
+                        let rawValue = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                        let reason = AVAudioSession.RouteChangeReason(rawValue: rawValue),
+                        reason == .oldDeviceUnavailable
+                    else {
+                        return nil
+                    }
+                    self = .routeDisconnected
+
+                default:
                     return nil
             }
         }
@@ -78,13 +94,23 @@ extension AudioSessionClient {
         events: {
             AsyncStream { continuation in
                 let task = Task {
-                    for await notification in NotificationCenter.default.notifications(
-                        named: AVAudioSession.interruptionNotification
-                    ) {
-                        guard let event = Event(notification: notification) else {
-                            continue
+                    await withTaskGroup(of: Void.self) { group in
+                        let names: [Notification.Name] = [
+                            AVAudioSession.interruptionNotification,
+                            AVAudioSession.routeChangeNotification,
+                        ]
+                        for name in names {
+                            group.addTask {
+                                for await notification in NotificationCenter.default.notifications(
+                                    named: name
+                                ) {
+                                    guard let event = Event(notification: notification) else {
+                                        continue
+                                    }
+                                    continuation.yield(event)
+                                }
+                            }
                         }
-                        continuation.yield(event)
                     }
                 }
                 continuation.onTermination = { _ in task.cancel() }

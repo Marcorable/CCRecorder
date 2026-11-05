@@ -109,6 +109,9 @@ extension RecordScreenRecordingPanelTests {
             withDependencies: {
                 $0.audioSession.authorizationStatus = { .authorized }
                 $0.audioSession.activate = {}
+                $0.audioSession.events = {
+                    AsyncStream { $0.finish() }
+                }
                 $0.recordingUsecase.prepare = {}
                 $0.recordingUsecase.currentTime = { 1 }
             }
@@ -121,6 +124,30 @@ extension RecordScreenRecordingPanelTests {
             $0.phase = .idle
             $0.currentTime = 1
         }
+        await store.receive(\.response.audioSessionUpdates)
+    }
+
+    @Test("오디오 장치 연결이 해제되면 녹음을 일시 정지한다")
+    func routeDisconnectionPausesRecording() async {
+        // given
+        let recorder = RecordingPanelControlSpy()
+        let store: TestStoreOf<RecordScreen.RecordingPanel.Feature> = .init(
+            initialState: .init(
+                phase: .recording,
+                currentTime: 1
+            ),
+            reducer: { RecordScreen.RecordingPanel.Feature() },
+            withDependencies: {
+                $0.recordingUsecase.pause = { await recorder.pause() }
+            }
+        )
+
+        // when, then
+        await store.send(.response(.audioSessionEvent(.routeDisconnected))) {
+            $0.phase = .paused
+        }
+        await recorder.waitUntilPaused()
+        await store.finish()
     }
 
     @Test("녹음 준비에 실패하면 부모 화면에 오류를 알린다")
@@ -310,6 +337,7 @@ private actor RecordingPanelControlSpy {
     private(set) var currentTime: TimeInterval = .zero
     private(set) var startCallCount = 0
     private(set) var pauseCallCount = 0
+    private var pauseContinuations: [CheckedContinuation<Void, Never>] = []
 
     func start() {
         isRecording = true
@@ -320,6 +348,17 @@ private actor RecordingPanelControlSpy {
     func pause() {
         isRecording = false
         pauseCallCount += 1
+        pauseContinuations.forEach({ $0.resume() })
+        pauseContinuations = []
+    }
+
+    func waitUntilPaused() async {
+        guard pauseCallCount == 0 else {
+            return
+        }
+        await withCheckedContinuation { continuation in
+            pauseContinuations.append(continuation)
+        }
     }
 }
 

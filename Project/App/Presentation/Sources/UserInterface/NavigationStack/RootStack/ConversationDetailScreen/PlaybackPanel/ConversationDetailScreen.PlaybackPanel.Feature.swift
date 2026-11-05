@@ -271,7 +271,8 @@ extension ConversationDetailScreen.PlaybackPanel.Feature {
                 state.speed = .init(rawValue: rate) ?? .default
                 return .none
 
-            case .audioSessionEvent(.interruptionBegan):
+            case .audioSessionEvent(.interruptionBegan),
+                 .audioSessionEvent(.routeDisconnected):
                 let notification: Effect<Action> = state.isPlaying
                     ? .send(.delegate(.interrupted))
                     : .none
