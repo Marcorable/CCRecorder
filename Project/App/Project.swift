@@ -105,7 +105,7 @@ let app = Target.target(
     infoPlist: .extendingDefault(
         with: [
             "CFBundleDisplayName": "Casual Conversation",
-            "CFBundleShortVersionString": "1.2.0",
+            "CFBundleShortVersionString": "1.2.1",
             "CFBundleVersion": "1",
             "ITSAppUsesNonExemptEncryption": false,
             "LSApplicationCategoryType": "public.app-category.productivity",
