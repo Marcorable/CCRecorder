@@ -4,6 +4,10 @@ import ProjectDescriptionHelpers
 
 let packages: [Package] = [
     .remote(
+        url: "https://github.com/firebase/firebase-ios-sdk",
+        requirement: .exact("13.1.1")
+    ),
+    .remote(
         url: "https://github.com/pointfreeco/swift-composable-architecture",
         requirement: .exact("1.26.1")
     ),
@@ -107,6 +111,9 @@ let app = Target.target(
             "CFBundleDisplayName": "Casual Conversation",
             "CFBundleShortVersionString": "1.2.1",
             "CFBundleVersion": "1",
+            "FIREBASE_ANALYTICS_COLLECTION_ENABLED": false,
+            "FirebaseCrashlyticsCollectionEnabled": false,
+            "GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS": false,
             "ITSAppUsesNonExemptEncryption": false,
             "LSApplicationCategoryType": "public.app-category.productivity",
             "NSMicrophoneUsageDescription": "대화를 녹음하기 위해 마이크 접근 권한이 필요합니다.",
@@ -134,11 +141,27 @@ let app = Target.target(
             name: "Generate Open Source Licenses",
             basedOnDependencyAnalysis: false
         ),
+        .post(
+            script: #"""
+            "${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+            """#,
+            name: "Upload Crashlytics Symbols",
+            inputPaths: [
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+                "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+                "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+            ],
+            basedOnDependencyAnalysis: false
+        ),
     ],
     dependencies: [
         .target(name: "Presentation"),
         .target(name: "Domain"),
         .target(name: "Data"),
+        .package(product: "FirebaseAnalyticsCore"),
+        .package(product: "FirebaseCrashlytics"),
     ],
     settings: .settings(
         base: [
@@ -147,7 +170,9 @@ let app = Target.target(
             "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "",
             "DEVELOPMENT_ASSET_PATHS": "\"App/Resources/Preview Content\"",
             "DEVELOPMENT_TEAM": "9486RJPBM5",
+            "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
             "ENABLE_PREVIEWS": "YES",
+            "OTHER_LDFLAGS": "$(inherited) -ObjC",
             "SWIFT_EMIT_LOC_STRINGS": "YES",
             "SWIFT_VERSION": "5.0",
             "TARGETED_DEVICE_FAMILY": "1,2",
@@ -231,7 +256,22 @@ let project = Project(
                 ],
                 configuration: .debug
             ),
-            runAction: .runAction(configuration: .debug, executable: "CCRecorder"),
+            runAction: .runAction(
+                configuration: .debug,
+                executable: "CCRecorder",
+                arguments: .arguments(
+                    launchArguments: [
+                        .launchArgument(
+                            name: "-FIRDebugEnabled",
+                            isEnabled: false
+                        ),
+                        .launchArgument(
+                            name: "-FIRDebugDisabled",
+                            isEnabled: false
+                        ),
+                    ]
+                )
+            ),
             archiveAction: .archiveAction(configuration: .release),
             profileAction: .profileAction(configuration: .release, executable: "CCRecorder"),
             analyzeAction: .analyzeAction(configuration: .debug)

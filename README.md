@@ -112,6 +112,8 @@ xcodebuild test \
 
 실제 마이크 입력이 필요한 테스트와 CI 운영 기준은 [테스트 운영 문서](Docs/Testing.md)를 참고하세요.
 
+Firebase Crashlytics와 Analytics의 환경별 수집 정책, DebugView·테스트 크래시 검증, 개인정보 공개 검토는 [Firebase 관측성 운영 문서](Docs/FirebaseObservability.md)를 참고하세요.
+
 ## v1 데이터 마이그레이션
 
 v2는 App Store의 v1과 동일한 Bundle ID(`com.pseapplications.CasualConversation`)를 유지합니다. 첫 실행 시 기존 CoreData 저장소가 발견되면 다음 데이터를 SwiftData와 v2 녹음 디렉터리로 옮깁니다.

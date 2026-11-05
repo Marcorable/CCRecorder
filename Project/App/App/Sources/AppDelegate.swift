@@ -13,6 +13,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         do {
             for serviceType in [
+                FirebaseService.self,
+                AnalyticsServiceConcrete.self,
+                CrashReportingServiceConcrete.self,
                 PlayerServiceConcrete.self,
                 RecorderServiceConcrete.self
             ] as [Service.Type] {
