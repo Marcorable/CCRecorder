@@ -18,13 +18,15 @@ extension CrashReportingServiceConcrete: Service {
     }
 
     private static func configureFirebaseCrashlytics() {
-        let enabled: Bool
+        let crashlytics = Crashlytics.crashlytics()
 #if DEBUG
-        enabled = FirebaseService.isDebugEnabled
+        crashlytics.setCrashlyticsCollectionEnabled(false)
+        if FirebaseService.isDebugEnabled {
+            crashlytics.sendUnsentReports()
+        }
 #else
-        enabled = true
+        crashlytics.setCrashlyticsCollectionEnabled(true)
 #endif
-        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(enabled)
     }
 
 }

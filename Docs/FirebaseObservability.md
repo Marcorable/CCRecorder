@@ -17,7 +17,7 @@ Analytics와 Crashlytics의 자동 수집은 기본 비활성화하고 앱 시�
 
 | 환경 | Analytics | Crashlytics |
 | --- | --- | --- |
-| Xcode Debug | `-FIRDebugEnabled` 사용 시에만 활성화 | `-FIRDebugEnabled` 사용 시에만 활성화 |
+| Xcode Debug | `-FIRDebugEnabled` 사용 시에만 활성화 | 자동 수집 비활성화, `-FIRDebugEnabled` 사용 시 대기 보고서 전송 |
 | TestFlight | 비활성화 | 활성화 |
 | App Store | 활성화 | 활성화 |
 | 환경 확인 실패·Ad Hoc | 비활성화 | Release 빌드에서 활성화 |
