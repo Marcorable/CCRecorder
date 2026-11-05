@@ -19,6 +19,22 @@
   },
   "testTargets" : [
     {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "B62D1BA73D704801C358E9B8",
+        "name" : "DomainTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:App.xcodeproj",
+        "identifier" : "6AE16DB16A8F4F466BFDB683",
+        "name" : "DataTests"
+      }
+    },
+    {
       "enabled" : false,
       "parallelizable" : true,
       "target" : {
