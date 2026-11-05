@@ -27,15 +27,6 @@ extension NoteBoard {
                 Divider()
             }
             .contentShape(.rect)
-            .listRowSeparator(.hidden)
-            .listRowInsets(
-                .init(
-                    top: 12,
-                    leading: 12,
-                    bottom: .zero,
-                    trailing: 12
-                )
-            )
         }
     }
 
@@ -86,16 +77,12 @@ extension NoteBoard.Row {
 }
 
 #Preview {
-    List {
-        NoteBoard.Row(
-            viewModel: .init(
-                id: .init(),
-                original: "How have you been?",
-                translation: "어떻게 지냈어요?",
-                isVocabulary: false
-            )
+    NoteBoard.Row(
+        viewModel: .init(
+            id: .init(),
+            original: "How have you been?",
+            translation: "어떻게 지냈어요?",
+            isVocabulary: false
         )
-    }
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, .zero)
+    )
 }

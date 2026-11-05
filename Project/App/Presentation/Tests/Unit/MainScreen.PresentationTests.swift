@@ -228,6 +228,90 @@ extension MainScreenPresentationTests {
         #expect(store.state.noteList.rows?.map(\.id) == [note.id])
     }
 
+    @Test("노트 목록 화면에 다시 진입하면 저장소에서 최신 노트를 불러온다")
+    func noteListTaskReloadsPreviouslyLoadedNotes() async {
+        // given
+        let existingNote: Note = .init(
+            createdDate: .init(timeIntervalSince1970: 0),
+            original: "Hello",
+            translation: "안녕하세요",
+            category: .vocabulary
+        )
+        let addedNote: Note = .init(
+            createdDate: .init(timeIntervalSince1970: 1),
+            original: "Goodbye",
+            translation: "안녕히 가세요",
+            category: .vocabulary
+        )
+        let notes = NotesSequence([
+            [existingNote],
+            [existingNote, addedNote],
+        ])
+        let store: TestStoreOf<MainScreen.NoteList.Feature> = .init(
+            initialState: .init(),
+            reducer: { MainScreen.NoteList.Feature() },
+            withDependencies: {
+                $0.managingNoteUsecase.loadNotes = {
+                    .success(await notes.next())
+                }
+            }
+        )
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        await store.send(.view(.task)) {
+            $0.isLoading = true
+        }
+        await store.receive(\.response.notesLoading)
+        await store.receive(\.response.notesLoaded) {
+            $0.isLoading = false
+        }
+        #expect(store.state.rows?.map(\.id) == [existingNote.id])
+
+        // when
+        await store.send(.view(.task)) {
+            $0.isLoading = true
+        }
+        await store.receive(\.response.notesLoading)
+        await store.receive(\.response.notesLoaded) {
+            $0.isLoading = false
+        }
+
+        // then
+        #expect(store.state.rows?.map(\.id) == [existingNote.id, addedNote.id])
+        #expect(await notes.callCount == 2)
+    }
+
+    @Test("취소된 로딩 상태가 남아 있어도 노트 목록 재진입 시 다시 불러온다")
+    func noteListTaskRestartsAfterCanceledLoading() async {
+        // given
+        let note: Note = .init(
+            createdDate: .init(timeIntervalSince1970: 0),
+            original: "Hello",
+            translation: "안녕하세요",
+            category: .vocabulary
+        )
+        var state: MainScreen.NoteList.Feature.State = .init()
+        state.isLoading = true
+        let store: TestStoreOf<MainScreen.NoteList.Feature> = .init(
+            initialState: state,
+            reducer: { MainScreen.NoteList.Feature() },
+            withDependencies: {
+                $0.managingNoteUsecase.loadNotes = { .success([note]) }
+            }
+        )
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        // when
+        await store.send(.view(.task))
+        await store.receive(\.response.notesLoading)
+        await store.receive(\.response.notesLoaded) {
+            $0.isLoading = false
+        }
+
+        // then
+        #expect(store.state.rows?.map(\.id) == [note.id])
+    }
+
     @Test("녹음 화면을 닫으면 선택한 노트 목록만 다시 불러온다")
     func recordDismissReloadsSelectedList() async {
         // given
@@ -313,5 +397,19 @@ private actor CallSpy {
 
     func call() {
         callCount += 1
+    }
+}
+
+private actor NotesSequence {
+    private var values: [[Note]]
+    private(set) var callCount = 0
+
+    init(_ values: [[Note]]) {
+        self.values = values
+    }
+
+    func next() -> [Note] {
+        defer { callCount += 1 }
+        return values[min(callCount, values.count - 1)]
     }
 }
