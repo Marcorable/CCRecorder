@@ -98,7 +98,7 @@ extension MainScreen.ConversationList.Feature {
     ) -> Effect<Action> {
         switch action {
             case .task:
-                guard state.conversations == nil, !state.isLoading else {
+                guard state.conversations == nil else {
                     return .none
                 }
                 state.isLoading = true
@@ -144,9 +144,11 @@ extension MainScreen.ConversationList.Feature {
         switch action {
             case .conversationsLoading:
                 return .run { send in
-                    await send(.response(.conversationsLoaded(
-                        await managingConversationUsecase.conversations()
-                    )))
+                    let result = await managingConversationUsecase.conversations()
+                    guard !Task.isCancelled else {
+                        return
+                    }
+                    await send(.response(.conversationsLoaded(result)))
                 }
                 .cancellable(
                     id: CancelID.loadConversations,
