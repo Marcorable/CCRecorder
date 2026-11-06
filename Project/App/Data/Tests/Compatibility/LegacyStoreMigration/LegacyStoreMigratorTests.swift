@@ -437,6 +437,47 @@ extension LegacyStoreMigratorTests {
         #expect(try Data(contentsOf: targetFileURL) == recording)
     }
 
+    @Test("중복 대화 ID가 있는 원본의 녹음 재시도도 안전하게 완료한다")
+    func retryHandlesDuplicateConversationIDs() throws {
+        defer { cleanUp() }
+
+        // given
+        let conversationID = UUID()
+        let recording = Data("recording".utf8)
+        let fixture: V1ConversationFixture = .init(
+            id: conversationID,
+            title: "중복 대화",
+            members: [],
+            pins: [],
+            recordedDate: .now,
+            fileName: "duplicate.m4a"
+        )
+        try makeV1Fixture(
+            conversations: [fixture, fixture],
+            notes: []
+        )
+        try recording.write(
+            to: legacyRecordDirectoryURL.appendingPathComponent("duplicate.m4a")
+        )
+        try blockCurrentRecordDirectory()
+        let firstReport = makeSUT().migrate(into: destinationContainer)
+        try restoreCurrentRecordDirectory()
+
+        // when
+        let secondReport = makeSUT().migrate(into: destinationContainer)
+
+        // then
+        #expect(firstReport.status == .partial)
+        #expect(secondReport.status == .completed)
+        let context = destinationContainer.mainContext
+        #expect(try context.fetchCount(FetchDescriptor<Domain.Conversation.Record>()) == 1)
+        #expect(try context.fetchCount(FetchDescriptor<LegacyStoreMigrationRecord>()) == 1)
+        let targetFileURL = currentRecordDirectoryURL.appendingPathComponent(
+            "duplicate.m4a"
+        )
+        #expect(try Data(contentsOf: targetFileURL) == recording)
+    }
+
     @Test("빈 저장소는 완료 처리하고 재실행해도 데이터를 만들지 않는다")
     func emptyStoreCompletesOnlyOnce() throws {
         defer { cleanUp() }

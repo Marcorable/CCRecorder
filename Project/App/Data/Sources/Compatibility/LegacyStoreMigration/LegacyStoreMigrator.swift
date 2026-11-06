@@ -587,7 +587,8 @@ private extension LegacyStoreMigrator {
                 continue
             }
             let sourceConversationsByID = Dictionary(
-                uniqueKeysWithValues: source.data.conversations.map({ ($0.id, $0) })
+                source.data.conversations.map({ ($0.id, $0) }),
+                uniquingKeysWith: { first, _ in first }
             )
             for retry in remainingRetries {
                 let conversationID = retry.key.conversationID
