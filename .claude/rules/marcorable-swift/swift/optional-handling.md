@@ -12,32 +12,26 @@ Optional 을 다른 값으로 바꿀 때는 `if let` 분기 대신 `flatMap` 을
 ```swift
 // ✅
 AWMText(
-    viewModel.deliveryNotice.flatMap({ "· \($0)" }) ?? "",
+    deliveryNotice.flatMap({ "· \($0)" }) ?? "",
     font: .thinBody
 )
 
 // ❌ 뷰 계층 안에서 분기
-if let deliveryNotice = viewModel.deliveryNotice {
+if let deliveryNotice {
     AWMText("· \(deliveryNotice)", font: .thinBody)
 }
 ```
 
 단, 값이 없을 때 **뷰 자체가 없어야** 하면(레이아웃 공간까지 사라져야 하면) `if let` 을 쓴다.
 
-## 표시용 ViewModel 프로퍼티
-
-Optional `model` 을 들고 있는 ViewModel 은 표시용 computed property 에서 기본값을 정한다. 뷰는 Optional 을 몰라도 되게 한다.
-
-```swift
-var representative: String { model?.representative ?? "" }
-```
+같은 Optional 해석을 호출부 여러 곳에서 반복하지 않고 한 곳에서 만든다.
 
 ## guard
 
 `guard` 는 항상 여러 줄로 쓴다. 한 줄 `guard ... else { return }` 은 쓰지 않는다.
 
 ```swift
-guard let martId = dependency.loginUsecase.martId else {
+guard let userID = session.userID else {
     return
 }
 ```
@@ -46,7 +40,7 @@ guard let martId = dependency.loginUsecase.martId else {
 
 ```swift
 guard
-    let martId = dependency.loginUsecase.martId,
+    let userID = session.userID,
     isAbleToSubmit
 else {
     return
@@ -55,7 +49,7 @@ else {
 
 ## nil 비교
 
-Optional 이 있는지는 `!= nil` / `== nil` 로 쓴다. `.isNil` 같은 확장 프로퍼티는 쓰지 않는다. (QMarket `4684b6409` 리뷰 반영)
+Optional 이 있는지는 `!= nil` / `== nil` 로 쓴다. `.isNil` 같은 확장 프로퍼티는 쓰지 않는다.
 
 ```swift
 // ✅

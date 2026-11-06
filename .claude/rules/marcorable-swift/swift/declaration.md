@@ -9,13 +9,10 @@ paths:
 
 - class 는 기본으로 `final class` 로 쓴다
 - 접근 수준을 의도대로 적는다. 밖에서 쓸 일이 없으면 `private`, 밖에서 읽기만 하면 `private(set)`
-- `@Observable` 타입이 가진 의존성은 `@ObservationIgnored` 로 관찰에서 뺀다
 
 ```swift
-@Observable
-@MainActor
-final class Model {
-    @ObservationIgnored private let dependency: Dependency
+final class ItemStore {
+    private let service: ItemService
     private(set) var items: [Item] = []
 }
 ```
@@ -26,13 +23,13 @@ final class Model {
 
 ```swift
 // ✅
-viewModel.model = .init(
-    representative: info.representative,
-    businessRegistrationNumber: info.number
+configuration = .init(
+    retryCount: 3,
+    timeout: 10
 )
 
 // ❌
-viewModel.model = BusinessInfoSection.Model(...)
+configuration = NetworkConfiguration(...)
 ```
 
 ## 인자 레이블
@@ -50,4 +47,4 @@ reject(refund: 42, reason: "재고 없음")
 
 - 할 수 있는지: `isAbleTo~` — `isAbleToReject`, `isAbleToSubmit`
 - 필요한지: `~Needs` — `authorizationNeeds`
-- 파생 상태는 ViewModel extension 의 computed property 로 둔다
+- 파생 값은 저장하지 않고 computed property로 표현한다

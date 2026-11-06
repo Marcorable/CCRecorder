@@ -7,7 +7,7 @@ paths:
 
 ## 첫 줄은 비운다
 
-파일의 **첫 줄은 빈 줄**로 두고 둘째 줄부터 쓴다. 파일 헤더 주석은 넣지 않는다 (`.claude/rules/marcorable-swift/comment/file-header.md`).
+파일의 **첫 줄은 빈 줄**로 두고 둘째 줄부터 쓴다. 파일 헤더 주석은 넣지 않는다 (`agent-common/marcorable-swift/rules/comment/file-header.md`).
 
 ## import 그룹
 

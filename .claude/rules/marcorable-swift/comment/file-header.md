@@ -18,7 +18,7 @@ Xcode 가 새 Swift 파일에 자동으로 넣는 다음 형태가 대표적이�
 
 ## 적용
 
-- 새 파일은 첫 줄을 비우고 둘째 줄부터 시작한다 (`.claude/rules/marcorable-swift/swift/file-layout.md`)
+- 새 파일은 첫 줄을 비우고 둘째 줄부터 시작한다 (`agent-common/marcorable-swift/rules/swift/file-layout.md`)
 - 기존 파일을 수정할 때 헤더가 보이면 그 김에 함께 지워도 된다
 - 설명 목적의 문서 주석(`///`, `/** */`, docstring)은 해당 없다 — 지우는 건 헤더뿐이다
 - 라이선스·저작권 고지처럼 법적으로 필요한 헤더는 예외다
