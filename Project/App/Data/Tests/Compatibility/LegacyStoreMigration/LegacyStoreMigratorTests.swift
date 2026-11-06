@@ -334,6 +334,150 @@ extension LegacyStoreMigratorTests {
         #expect(try context.fetchCount(FetchDescriptor<LegacyStoreMigrationRecord>()) == 1)
     }
 
+    @Test("녹음 복사 실패 뒤 재실행해도 사용자가 삭제한 대화와 노트를 복원하지 않는다")
+    func fileRetryDoesNotRestoreDeletedData() throws {
+        defer { cleanUp() }
+
+        // given
+        let conversationID = UUID()
+        let noteID = UUID()
+        try makeV1Fixture(
+            conversations: [
+                .init(
+                    id: conversationID,
+                    title: "삭제할 대화",
+                    members: [],
+                    pins: [],
+                    recordedDate: .now,
+                    fileName: "retry.m4a"
+                )
+            ],
+            notes: [
+                .init(
+                    id: noteID,
+                    original: "delete",
+                    translation: "삭제",
+                    category: "vocabulary",
+                    references: [conversationID],
+                    createdDate: .now
+                )
+            ]
+        )
+        try Data("recording".utf8).write(
+            to: legacyRecordDirectoryURL.appendingPathComponent("retry.m4a")
+        )
+        try blockCurrentRecordDirectory()
+        let firstReport = makeSUT().migrate(into: destinationContainer)
+        let context = destinationContainer.mainContext
+        let conversation = try #require(
+            try context.fetch(FetchDescriptor<Domain.Conversation.Record>()).first
+        )
+        let note = try #require(
+            try context.fetch(FetchDescriptor<Domain.Note.Record>()).first
+        )
+        context.delete(conversation)
+        context.delete(note)
+        try context.save()
+        try restoreCurrentRecordDirectory()
+
+        // when
+        let secondReport = makeSUT().migrate(into: destinationContainer)
+
+        // then
+        #expect(firstReport.status == .partial)
+        #expect(secondReport.status == .completed)
+        #expect(secondReport.conversationCount == 0)
+        #expect(secondReport.noteCount == 0)
+        #expect(try context.fetchCount(FetchDescriptor<Domain.Conversation.Record>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<Domain.Note.Record>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<LegacyStoreMigrationRecord>()) == 1)
+        let targetFileURL = currentRecordDirectoryURL.appendingPathComponent("retry.m4a")
+        #expect(!FileManager.default.fileExists(atPath: targetFileURL.path))
+    }
+
+    @Test("녹음 복사 실패 뒤 재실행하면 실패한 파일만 복구한다")
+    func retryRepairsOnlyFailedRecordingFile() throws {
+        defer { cleanUp() }
+
+        // given
+        let conversationID = UUID()
+        let recording = Data("recording".utf8)
+        try makeV1Fixture(
+            conversations: [
+                .init(
+                    id: conversationID,
+                    title: "복구할 대화",
+                    members: [],
+                    pins: [],
+                    recordedDate: .now,
+                    fileName: "retry.m4a"
+                )
+            ],
+            notes: []
+        )
+        try recording.write(
+            to: legacyRecordDirectoryURL.appendingPathComponent("retry.m4a")
+        )
+        try blockCurrentRecordDirectory()
+        let firstReport = makeSUT().migrate(into: destinationContainer)
+        try restoreCurrentRecordDirectory()
+
+        // when
+        let secondReport = makeSUT().migrate(into: destinationContainer)
+
+        // then
+        #expect(firstReport.status == .partial)
+        #expect(secondReport.status == .completed)
+        #expect(secondReport.conversationCount == 0)
+        #expect(secondReport.noteCount == 0)
+        let context = destinationContainer.mainContext
+        #expect(try context.fetchCount(FetchDescriptor<Domain.Conversation.Record>()) == 1)
+        #expect(try context.fetchCount(FetchDescriptor<LegacyStoreMigrationRecord>()) == 1)
+        let targetFileURL = currentRecordDirectoryURL.appendingPathComponent("retry.m4a")
+        #expect(try Data(contentsOf: targetFileURL) == recording)
+    }
+
+    @Test("중복 대화 ID가 있는 원본의 녹음 재시도도 안전하게 완료한다")
+    func retryHandlesDuplicateConversationIDs() throws {
+        defer { cleanUp() }
+
+        // given
+        let conversationID = UUID()
+        let recording = Data("recording".utf8)
+        let fixture: V1ConversationFixture = .init(
+            id: conversationID,
+            title: "중복 대화",
+            members: [],
+            pins: [],
+            recordedDate: .now,
+            fileName: "duplicate.m4a"
+        )
+        try makeV1Fixture(
+            conversations: [fixture, fixture],
+            notes: []
+        )
+        try recording.write(
+            to: legacyRecordDirectoryURL.appendingPathComponent("duplicate.m4a")
+        )
+        try blockCurrentRecordDirectory()
+        let firstReport = makeSUT().migrate(into: destinationContainer)
+        try restoreCurrentRecordDirectory()
+
+        // when
+        let secondReport = makeSUT().migrate(into: destinationContainer)
+
+        // then
+        #expect(firstReport.status == .partial)
+        #expect(secondReport.status == .completed)
+        let context = destinationContainer.mainContext
+        #expect(try context.fetchCount(FetchDescriptor<Domain.Conversation.Record>()) == 1)
+        #expect(try context.fetchCount(FetchDescriptor<LegacyStoreMigrationRecord>()) == 1)
+        let targetFileURL = currentRecordDirectoryURL.appendingPathComponent(
+            "duplicate.m4a"
+        )
+        #expect(try Data(contentsOf: targetFileURL) == recording)
+    }
+
     @Test("빈 저장소는 완료 처리하고 재실행해도 데이터를 만들지 않는다")
     func emptyStoreCompletesOnlyOnce() throws {
         defer { cleanUp() }
@@ -600,6 +744,19 @@ private extension LegacyStoreMigratorTests {
             snapshot[suffix] = try Data(contentsOf: url)
         }
         return snapshot
+    }
+
+    func blockCurrentRecordDirectory() throws {
+        try FileManager.default.removeItem(at: currentRecordDirectoryURL)
+        try Data("blocked".utf8).write(to: currentRecordDirectoryURL)
+    }
+
+    func restoreCurrentRecordDirectory() throws {
+        try FileManager.default.removeItem(at: currentRecordDirectoryURL)
+        try FileManager.default.createDirectory(
+            at: currentRecordDirectoryURL,
+            withIntermediateDirectories: true
+        )
     }
 
     func cleanUp() {
