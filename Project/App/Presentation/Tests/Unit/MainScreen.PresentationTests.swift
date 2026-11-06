@@ -344,6 +344,62 @@ extension MainScreenPresentationTests {
         #expect(store.state.rows?.map(\.id) == [conversation.id])
     }
 
+    @Test("재진입 뒤 늦게 끝난 이전 대화 조회는 최신 목록을 덮어쓰지 않는다")
+    func conversationListIgnoresLateCanceledResponse() async {
+        // given
+        let staleConversation: Conversation = .init(
+            createdDate: .init(timeIntervalSince1970: 0),
+            pins: [],
+            title: "Stale",
+            topic: "Previous request",
+            parties: []
+        )
+        let latestConversation: Conversation = .init(
+            createdDate: .init(timeIntervalSince1970: 1),
+            pins: [],
+            title: "Latest",
+            topic: "Current request",
+            parties: []
+        )
+        let requests = ConversationRequests()
+        let store: TestStoreOf<MainScreen.ConversationList.Feature> = .init(
+            initialState: .init(),
+            reducer: { MainScreen.ConversationList.Feature() },
+            withDependencies: {
+                $0.managingConversationUsecase.conversations = {
+                    await requests.next()
+                }
+            }
+        )
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        await store.send(.view(.task)) {
+            $0.isLoading = true
+        }
+        await store.receive(\.response.conversationsLoading)
+        await requests.waitForCallCount(1)
+
+        // when
+        await store.send(.view(.task))
+        await store.receive(\.response.conversationsLoading)
+        await requests.waitForCallCount(2)
+        await requests.resolve(
+            call: 1,
+            with: .success([latestConversation])
+        )
+        await store.receive(\.response.conversationsLoaded) {
+            $0.isLoading = false
+        }
+        await requests.resolve(
+            call: 0,
+            with: .success([staleConversation])
+        )
+        await store.finish()
+
+        // then
+        #expect(store.state.rows?.map(\.id) == [latestConversation.id])
+    }
+
     @Test("녹음 화면을 닫으면 선택한 노트 목록만 다시 불러온다")
     func recordDismissReloadsSelectedList() async {
         // given
@@ -443,5 +499,54 @@ private actor NotesSequence {
     func next() -> [Note] {
         defer { callCount += 1 }
         return values[min(callCount, values.count - 1)]
+    }
+}
+
+private actor ConversationRequests {
+    private var continuations: [
+        Int: CheckedContinuation<Result<[Conversation], DomainError>, Never>
+    ] = [:]
+    private var callCountWaiters: [
+        (count: Int, continuation: CheckedContinuation<Void, Never>)
+    ] = []
+    private(set) var callCount = 0
+
+    func next() async -> Result<[Conversation], DomainError> {
+        let call = callCount
+        callCount += 1
+        resumeCallCountWaiters()
+        return await withCheckedContinuation { continuation in
+            continuations[call] = continuation
+        }
+    }
+
+    func waitForCallCount(_ count: Int) async {
+        guard callCount < count else {
+            return
+        }
+        await withCheckedContinuation { continuation in
+            callCountWaiters.append((count, continuation))
+        }
+    }
+
+    func resolve(
+        call: Int,
+        with result: Result<[Conversation], DomainError>
+    ) {
+        continuations.removeValue(forKey: call)?.resume(returning: result)
+    }
+
+    private func resumeCallCountWaiters() {
+        var remaining: [
+            (count: Int, continuation: CheckedContinuation<Void, Never>)
+        ] = []
+        for waiter in callCountWaiters {
+            if callCount >= waiter.count {
+                waiter.continuation.resume()
+            } else {
+                remaining.append(waiter)
+            }
+        }
+        callCountWaiters = remaining
     }
 }
